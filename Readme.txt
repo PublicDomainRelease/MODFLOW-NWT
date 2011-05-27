@@ -1,6 +1,6 @@
 
 
-                      MODFLOW-NWT - Version: 1.0
+                      MODFLOW-NWT - Version: 1.0.1
                   Newton Formulation for MODFLOW-2005
 
 

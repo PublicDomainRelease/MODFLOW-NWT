@@ -1114,7 +1114,7 @@ C--Update heads.
 !     -----------------------------------------------------------------
 !     LOCAL VARIABLES
 !     -----------------------------------------------------------------
-      INTEGER ic, ir, il, jj
+      INTEGER ic, ir, il, jj, i, ibotlay
       DOUBLE PRECISION hsave, sum
 !     -----------------------------------------------------------------
 !  APPLY BACKTRACKING
@@ -1127,21 +1127,28 @@ C--Update heads.
         Hiter(ic, ir, il) = Hiter(ic, ir, il) - Hchange(jj)
         Hchange(jj) = Breduc*Hchange(jj)
         HNEW(ic, ir, il) = HITER(ic, ir, il) + Hchange(jj)
-!  CHECK IF HEADS NEEDS TO BE RESET TO CELL BOTTOM
         IF ( IBOTAV.GT.0 .AND. LAYTYPUPW(il).GT.0 ) THEN
-          IF ( il.EQ.Nlay .AND. Hnew(ic, ir, il)
-     +              .LT.Botm(ic, ir, Lbotm(NLAY)) ) THEN
-            sum = 0.0D0
-            sum = Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat
-     +            (Sum_sat(sum,ic,ir,il),ic-1,ir,il),ic+1,ir,il),
-     +             ic,ir-1,il),ic,ir+1,il),ic,ir,il-1),ic,ir,il+1)
-            IF ( sum .LT.1.0e-6 ) THEN
-              hsave = Hnew(ic, ir, il)
-              Hnew(ic, ir, il) = (Hiter(ic, ir, il)+
-     +                            BOTM(ic, ir, Lbotm(NLAY)))/2.0d0
-              Hchange(jj) = Hnew(ic, ir, NLAY) - hsave
+          ibotlay = il
+          DO i = il + 1, NLAY
+            IF ( IBOUND(ic,ir,i).GT.0 ) ibotlay = ibotlay + 1
+          END DO
+!          IF ( ibotlay.EQ.0 ) THEN
+            IF (Hnew(ic, ir, il).LT.Botm(ic, ir, Lbotm(ibotlay)) ) THEN
+              IF ( Hiter(ic, ir, il).LT.BOTM(ic, ir, Lbotm(ibotlay)) )
+     +          Hiter(ic, ir, il) = BOTM(ic, ir, Lbotm(ibotlay)) + 
+     +                              1.0e-6
+              sum = 0.0D0
+              sum = Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat
+     +              (Sum_sat(sum,ic,ir,il),ic-1,ir,il),ic+1,ir,il),
+     +               ic,ir-1,il),ic,ir+1,il),ic,ir,il-1),ic,ir,il+1)
+              IF ( sum .LT.1.0e-7 ) THEN
+                hsave = Hnew(ic, ir, il)
+                Hnew(ic, ir, il) = (Hiter(ic, ir, il)+
+     +                              BOTM(ic, ir, Lbotm(ibotlay)))/2.0d0
+                Hchange(jj) = Hnew(ic, ir, il) - hsave
+              END IF
             END IF
-          ENDIF
+!          ENDIF
         END IF
         IF ( ABS(Hchange(jj)).GT.ABS(fhead) ) THEN
           Fhead = Hchange(jj)
@@ -1173,7 +1180,7 @@ C--Update heads.
 !     LOCAL VARIABLES
 !     -----------------------------------------------------------------
       DOUBLE PRECISION s, wstar, ww, change, hsave, sum
-      INTEGER ic, ir, il, jj
+      INTEGER ic, ir, il, jj, ibotlay, i
 !     -----------------------------------------------------------------
 !
       Fhead = 0.0D0
@@ -1197,21 +1204,28 @@ C--Update heads.
         Wsave(jj) = ww
         Hchange(jj) = Hchange(jj) * ww + amomentum * Hchold(jj)
         Hnew(ic, ir, il) = Hiter(ic, ir, il) + Hchange(jj)
-!  CHECK IF HEADS NEEDS TO BE RESET TO CELL BOTTOM
         IF ( IBOTAV.GT.0 .AND. LAYTYPUPW(il).GT.0 ) THEN
-          IF ( il.EQ.Nlay .AND. Hnew(ic, ir, il)
-     +              .LT.Botm(ic, ir, Lbotm(NLAY)) ) THEN
-            sum = 0.0D0
-            sum = Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat
-     +            (Sum_sat(sum,ic,ir,il),ic-1,ir,il),ic+1,ir,il),
-     +             ic,ir-1,il),ic,ir+1,il),ic,ir,il-1),ic,ir,il+1)
-            IF ( sum .LT.1.0e-6 ) THEN
-              hsave = Hnew(ic, ir, il)
-              Hnew(ic, ir, il) = (Hiter(ic, ir, il)+
-     +                            BOTM(ic, ir, Lbotm(NLAY)))/2.0d0
-              Hchange(jj) = Hnew(ic, ir, NLAY) - hsave
+          ibotlay = il
+          DO i = il + 1, NLAY
+            IF ( IBOUND(ic,ir,i).GT.0 ) ibotlay = ibotlay + 1
+          END DO
+!          IF ( ibotlay.EQ.0 ) THEN
+            IF (Hnew(ic, ir, il).LT.Botm(ic, ir, Lbotm(ibotlay)) ) THEN
+              IF ( Hiter(ic, ir, il).LT.BOTM(ic, ir, Lbotm(ibotlay)) )
+     +          Hiter(ic, ir, il) = BOTM(ic, ir, Lbotm(ibotlay)) + 
+     +                              1.0e-6
+              sum = 0.0D0
+              sum = Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat
+     +              (Sum_sat(sum,ic,ir,il),ic-1,ir,il),ic+1,ir,il),
+     +               ic,ir-1,il),ic,ir+1,il),ic,ir,il-1),ic,ir,il+1)
+              IF ( sum .LT.1.0e-7 ) THEN
+                hsave = Hnew(ic, ir, il)
+                Hnew(ic, ir, il) = (Hiter(ic, ir, il)+
+     +                              BOTM(ic, ir, Lbotm(ibotlay)))/2.0d0
+                Hchange(jj) = Hnew(ic, ir, il) - hsave
+              END IF
             END IF
-          ENDIF
+!          ENDIF
         END IF
         IF ( ABS(Hchange(jj)).GT.ABS(fhead) ) THEN
           fhead = Hchange(jj)

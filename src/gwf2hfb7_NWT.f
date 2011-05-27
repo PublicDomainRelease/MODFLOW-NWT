@@ -136,7 +136,7 @@ C13-----SAVE POINTERS TO GRID AND RETURN.
       CALL SGWF2HFB7PSV(IGRID)
       RETURN
       END
-      SUBROUTINE GWF2HFB7FM(IUPW,IGRID)
+      SUBROUTINE GWF2HFB7FM(IGRID)
 C     ******************************************************************
 C     MODIFY HORIZONTAL BRANCH CONDUCTANCES IN VARIABLE-TRANSMISSIVITY
 C     LAYERS TO ACCOUNT FOR HORIZONTAL FLOW BARRIERS. STORE UNMODIFIED
@@ -188,38 +188,22 @@ C8------(J1,I1,K) AND (J2,I2,K).  NOTE: NEGATIVE SATURATED
 C8------THICKNESS DOES NOT OCCUR; OTHERWISE, CR(J1,I1,K) WOULD BE
 C8------ZERO AND THE FOLLOWING CALCULATION FOR SATURATED THICKNESS
 C8------WOULD BE SKIPPED.
-              IF ( IUPW.EQ.0 ) THEN
-                HD1 = HNEW(J1,I1,K)
-                HD2 = HNEW(J2,I2,K)
-                IF (HD1.GT.BOTM(J1,I1,LBOTM(K)-1)) HD1 =
+              HD1 = HNEW(J1,I1,K)
+              HD2 = HNEW(J2,I2,K)
+              IF (HD1.GT.BOTM(J1,I1,LBOTM(K)-1)) HD1 =
      &                                           BOTM(J1,I1,LBOTM(K)-1)
-                IF (HD2.GT.BOTM(J2,I2,LBOTM(K)-1)) HD2 =
+              IF (HD2.GT.BOTM(J2,I2,LBOTM(K)-1)) HD2 =
      &                                           BOTM(J2,I2,LBOTM(K)-1)
-                THKAVG = ((HD1-BOTM(J1,I1,LBOTM(K))) +
+              THKAVG = ((HD1-BOTM(J1,I1,LBOTM(K))) +
      &                 (HD2-BOTM(J2,I2,LBOTM(K))))/2.
 C
 C9------STORE UNMODIFIED CR FOR CALCULATING SENSITIVITIES
-                HFB(7,II) = CR(J1,I1,K)
+              HFB(7,II) = CR(J1,I1,K)
 C
 C10-----MODIFY CR(J1,I1,K) TO ACCOUNT FOR BARRIER.
-                TDW = THKAVG*HCDW
-                CR(J1,I1,K) = TDW*CR(J1,I1,K)*DELC(I1)/
+              TDW = THKAVG*HCDW
+              CR(J1,I1,K) = TDW*CR(J1,I1,K)*DELC(I1)/
      &                      (TDW*DELC(I1)+CR(J1,I1,K))
-              ELSE
-C------FOR UPW HORIZONTAL CONDUCTANCE DOES NOT INCLUDE SATURATED THICKNESS
-C------THE TOTAL CELL THICKNESS IS USED TO WEIGHT THE BARRIER 
-                THKAVG = ((BOTM(J1,I1,LBOTM(K)-1)-BOTM(J1,I1,LBOTM(K)))
-     &               + (BOTM(J2,I2,LBOTM(K)-1)-BOTM(J2,I2,LBOTM(K))))/2.
-C
-C9------STORE UNMODIFIED CR FOR CALCULATING SENSITIVITIES
-                HFB(7,II) = CR(J1,I1,K)
-C
-C10-----MODIFY CR(J1,I1,K) TO ACCOUNT FOR BARRIER.
-C  -----
-                TDW = THKAVG*HCDW
-                CR(J1,I1,K) = TDW*CR(J1,I1,K)*DELC(I1)/
-     &                      (TDW*DELC(I1)+CR(J1,I1,K))
-              END IF
             ENDIF
 C
 C11-----CASE OF J1=J2. MODIFY HORIZONTAL BRANCH CONDUCTANCES ALONG
@@ -233,37 +217,22 @@ C
 C13-----CALCULATE AVERAGE SATURATED THICKNESS BETWEEN CELLS
 C13-----(J1,I1,K) AND (J2,I2,K).  NEGATIVE SATURATED THICKNESS
 C13-----DOES NOT OCCUR FOR THE SAME REASON AS DESCRIBED ABOVE.
-              IF ( IUPW.EQ.0 ) THEN
-                HD1 = HNEW(J1,I1,K)
-                HD2 = HNEW(J2,I2,K)
-                IF (HD1.GT.BOTM(J1,I1,LBOTM(K)-1)) HD1 =
+              HD1 = HNEW(J1,I1,K)
+              HD2 = HNEW(J2,I2,K)
+              IF (HD1.GT.BOTM(J1,I1,LBOTM(K)-1)) HD1 =
      &                                           BOTM(J1,I1,LBOTM(K)-1)
-                IF (HD2.GT.BOTM(J2,I2,LBOTM(K)-1)) HD2 =
+              IF (HD2.GT.BOTM(J2,I2,LBOTM(K)-1)) HD2 =
      &                                           BOTM(J2,I2,LBOTM(K)-1)
-                THKAVG = ((HD1-BOTM(J1,I1,LBOTM(K))) +
-     &                   (HD2-BOTM(J2,I2,LBOTM(K))))/2.
+              THKAVG = ((HD1-BOTM(J1,I1,LBOTM(K))) +
+     &                 (HD2-BOTM(J2,I2,LBOTM(K))))/2.
 C
 C14-----STORE UNMODIFIED CC FOR CALCULATING SENSITIVITIES.
-                HFB(7,II) = CC(J1,I1,K)
+              HFB(7,II) = CC(J1,I1,K)
 C
 C15-----MODIFY CC(J1,I1,K) TO ACCOUNT FOR BARRIER.
-                TDW = THKAVG*HCDW
-                CC(J1,I1,K) = TDW*CC(J1,I1,K)*DELR(J1)/
-     &                        (TDW*DELR(J1)+CC(J1,I1,K))
-              ELSE
-C------FOR UPW HORIZONTAL CONDUCTANCE DOES NOT INCLUDE SATURATED THICKNESS
-C------THE TOTAL CELL THICKNESS IS USED TO WEIGHT THE BARRIER 
-                THKAVG = ((BOTM(J1,I1,LBOTM(K)-1)-BOTM(J1,I1,LBOTM(K))) 
-     &                +(BOTM(J2,I2,LBOTM(K)-1)-BOTM(J2,I2,LBOTM(K))))/2.
-C
-C14-----STORE UNMODIFIED CC FOR CALCULATING SENSITIVITIES.
-                HFB(7,II) = CC(J1,I1,K)
-C
-C15-----MODIFY CC(J1,I1,K) TO ACCOUNT FOR BARRIER.
-                TDW = THKAVG*HCDW
-                CC(J1,I1,K) = TDW*CC(J1,I1,K)*DELR(J1)/
-     &                        (TDW*DELR(J1)+CC(J1,I1,K))
-              END IF
+              TDW = THKAVG*HCDW
+              CC(J1,I1,K) = TDW*CC(J1,I1,K)*DELR(J1)/
+     &                      (TDW*DELR(J1)+CC(J1,I1,K))
             ENDIF
           ENDIF
         ENDIF
@@ -617,6 +586,87 @@ C9------parameter. Write an error message and stop.
      1   ' file specifies an undefined parameter:',LINE(ISTART:ISTOP)
       CALL USTOP(' ')
 C
+      END
+C
+      SUBROUTINE GWF2HFB7UPW(IGRID)
+C     ******************************************************************
+C     MODIFY HORIZONTAL BRANCH CONDUCTANCES IN VARIABLE-TRANSMISSIVITY
+C     LAYERS TO ACCOUNT FOR HORIZONTAL FLOW BARRIERS IN MODFLOW-NWT. 
+C     STORE UNMODIFIED HORIZONTAL CONDUCTANCE IN HFB(7,#) TO ALLOW 
+C     CALCULATION OF SENSITIVITIES.
+C     ******************************************************************
+C
+C        SPECIFICATIONS:
+C     ------------------------------------------------------------------
+      USE GLOBAL,      ONLY:NCOL,NROW,HNEW,LAYHDT,CR,CC,BOTM,LBOTM,
+     1                      DELR,DELC
+      USE GWFHFBMODULE,ONLY:NHFB,HFB
+C     ------------------------------------------------------------------
+C
+C1------Set pointers to the specified grid.
+      CALL SGWF2HFB7PNT(IGRID)
+C
+C2------FOR EACH BARRIER, MODIFY HORIZONTAL BRANCH CONDUCTANCES IF LAYER
+C2------IS CONVERTIBLE.
+      DO 10 II=1,NHFB
+        K = HFB(1,II)
+C
+C3-----IF LAYHDT=0, THICKNESS AND CONDUCTANCE DO NOT VARY, AND
+C3-----MODIFICATION OF CONDUCTANCE DUE TO BARRIER WAS DONE IN
+C3-----SGWF1HFBMC
+        IF (LAYHDT(K).GT.0) THEN
+C
+C4------CELL (J1,I1,K) IS THE ONE WHOSE HORIZONTAL BRANCH
+C4------CONDUCTANCES ARE TO BE MODIFIED.
+          I1 = HFB(2,II)
+          J1 = HFB(3,II)
+C
+C5------CELL (J2,I2,K) IS THE CELL NEXT TO CELL (J1,I1,K) AND
+C5------SEPARATED FROM IT BY THE BARRIER.
+          I2 = HFB(4,II)
+          J2 = HFB(5,II)
+          HCDW = HFB(6,II)
+C
+C6------IF I1=I2, MODIFY HORIZONTAL BRANCH CONDUCTANCES ALONG ROW
+C6------DIRECTION.
+          IF (I1.EQ.I2) THEN
+C
+C7------IF CR(J1,I1,K) NOT = 0, CELLS ON EITHER SIDE OF BARRIER ARE
+C7------ACTIVE
+            IF (CR(J1,I1,K).NE.0.) THEN
+C
+C
+C9------STORE UNMODIFIED CR FOR CALCULATING SENSITIVITIES
+              HFB(7,II) = CR(J1,I1,K)
+C
+C10-----MODIFY CR(J1,I1,K) TO ACCOUNT FOR BARRIER.
+              TDW = HCDW
+              CR(J1,I1,K) = TDW*CR(J1,I1,K)*DELC(I1)/
+     &                      (TDW*DELC(I1)+CR(J1,I1,K))
+            ENDIF
+C
+C11-----CASE OF J1=J2. MODIFY HORIZONTAL BRANCH CONDUCTANCES ALONG
+C11-----COLUMN DIRECTION.
+          ELSE
+C
+C12-----IF CC(J1,I1,K) NOT = 0, CELLS ON EITHER SIDE OF BARRIER ARE
+C12-----ACTIVE
+            IF (CC(J1,I1,K).NE.0.) THEN
+C
+C14-----STORE UNMODIFIED CC FOR CALCULATING SENSITIVITIES.
+              HFB(7,II) = CC(J1,I1,K)
+C
+C15-----MODIFY CC(J1,I1,K) TO ACCOUNT FOR BARRIER.
+              TDW = HCDW
+              CC(J1,I1,K) = TDW*CC(J1,I1,K)*DELR(J1)/
+     &                      (TDW*DELR(J1)+CC(J1,I1,K))
+            ENDIF
+          ENDIF
+        ENDIF
+   10 CONTINUE
+C
+C16-----RETURN
+      RETURN
       END
       SUBROUTINE GWF2HFB7DA(IGRID)
 C  Deallocate HFB data for a grid.

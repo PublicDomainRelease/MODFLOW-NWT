@@ -40,6 +40,17 @@ the MNW1 and MNW2 Packages called CEL2WELUPW for calculating well conductance
 values. A new argument was added to the call statement for subroutines GWF2MNW17RP
 and GWF2MNW27RP to include the file unit number for the UPW Package.
 
+o Version 1.0.1 05/27/2011:
+
+Changes were made to the MODFLOW-NWT source files to correct an error in how the
+Horizontal-Flow (HFB) Barrier Package was implemented in MODFLOW-NWT. Additionally,
+changes were made to deallocate arrays in the XMD and GMRES solvers at the termination 
+of a simulation.
+
+Source files that were modified include: MF_NWT.f, NWT1_solver.f, NWT1_xmd.f,     
+gwf2hfb7_NWT.f, NWT1_gmres.f90, and gwf2bas7.f
+
+
 Reference:
 
 Niswonger, R.G., Panday, Sorab, and Ibaraki, Motomu, 2011, MODFLOW-NWT, 
