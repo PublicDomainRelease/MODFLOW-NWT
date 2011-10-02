@@ -23,7 +23,7 @@
 !     ------------------------------------------------------------------
 !     LOCAL VARIABLES
 !     ------------------------------------------------------------------
-      INTEGER lloc, istart, istop, i, ic, ir, il, jj
+      INTEGER lloc, LLOCSAVE, istart, istop, i, ic, ir, il, jj
       CHARACTER(LEN=200) line
       REAL r, toldum, ftoldum, relaxdum, thetadum, amomentdum
       REAL akappadum, gammadum, Breducdum, Btoldum, Thickdum,ZERO
@@ -36,7 +36,7 @@
 
       CALL URDCOM(In, Iout, line)
       lloc = 1
-      ALLOCATE (Tol, Ftol, RMS2, RMS1, Iierr,IFDPARAM)
+      ALLOCATE (Tol, Ftol, RMS2, RMS1, Iierr,IFDPARAM,ICNVGFLG)
       ALLOCATE (ITER1,THETA,THICKFACT,BTOL,Numtrack)
       ALLOCATE (RMSAVE)
       ALLOCATE (Numnonzero, Numactive, Numcell, II)
@@ -46,7 +46,7 @@
 !1------IDENTIFY PACKAGE AND INITIALIZE.
       WRITE (Iout, 9001) In
  9001 FORMAT (1X, /' NWT1 -- Newton Solver, ',
-     +        'VERSION 1, 01/01/2010', /, 9X, 'INPUT READ FROM UNIT',
+     +       'VERSION 1.0.2, 10/01/2011', /, 9X, 'INPUT READ FROM UNIT',
      +        I3,/)
       i = 1
       Itreal = 0
@@ -61,13 +61,14 @@
       ftoldum = 100.0
       Mxiter = 100
       Thickdum = 1.0e-4
-      Linmeth = 2     ! Linmeth=1 GMRES; Linmeth=2 XMD
+      Linmeth = 2     ! Linmeth=1 GMRES; Linmeth=2 XMD; Linmeth=3 SAMG 
       IPRNWT = 1     ! Iteration stats (>0 prints)
       IBOTAV = 1     ! Doesn't reset to bottom
       LLOC=1
       Numtrack = 0
       Btoldum = 1.0
       Breducdum = 1.0
+      ICNVGFLG = 0
       CALL URWORD(line, lloc, istart, istop, 3, i, toldum, Iout, In)
       CALL URWORD(line, lloc, istart, istop, 3, i, ftoldum, Iout, In)
       CALL URWORD(line, lloc, istart, istop, 2, Mxiter, r, Iout, In)
@@ -101,6 +102,15 @@ C3B-----GET OPTIONS.
    26    FORMAT(1X,'SPECIFIED OPTION:',/,1X,'SOLVER INPUT',
      1 ' VALUES ARE SPECIFIED BY USER')
       END IF
+      LLOCSAVE = LLOC
+      CALL URWORD(LINE,LLOC,ISTART,ISTOP,1,I,R,IOUT,IN)
+      IF(LINE(ISTART:ISTOP).EQ.'CONTINUE') THEN
+        ICNVGFLG = 1
+      ELSE
+        LLOC = LLOCSAVE
+      END IF
+        
+      
 !      IF(LLOC.LT.200) GO TO 20    
 !
 ! Don't need to read these when using default Options.
@@ -170,6 +180,9 @@ C3B-----GET OPTIONS.
         Write(iout,*)
       ELSEIF ( Linmeth==2 )Then
         Write(iout,*) '***XMD linear solver will be used***'
+        Write(iout,*)
+       ELSEIF ( Linmeth==3 )Then
+        Write(iout,*) '***SAMG linear solver will be used***'
         Write(iout,*)
       ELSE
         Write(iout,*) '***Incorrect value for Linear solution method ',
@@ -296,6 +309,8 @@ C
         CALL GMRES7AR(IN)
       ELSEIF ( Linmeth==2 ) THEN
         CALL XMD7AR(IN)
+ !     ELSEIF ( Linmeth==3 ) THEN
+!        CALL SAMG7AR(IN)
       END IF
 !
 !
@@ -808,6 +823,7 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
       USE GWFNWTMODULE
       USE XMDMODULE
       USE GMRESMODULE
+!      USE SAMGMODULE
       USE ilupc_mod
       USE machine_constants
       IMPLICIT NONE
@@ -828,12 +844,15 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
       DOUBLE PRECISION h2
       DOUBLE PRECISION FHEADTEMP,R_norm_gmres
       DOUBLE PRECISION r_norm, fheadsave2, STPNUM
-      INTEGER ic, ir, il, LICNVG,ITER
+      INTEGER ic, ir, il, LICNVG,ITER, ippn
       INTEGER ij, jj, ichld, irhld, ilhld, IUNSTR, itertot
       INTEGER n_iter, z, n, icfld, irfld, ilfld, ITP, ITER1U
 !      CHARACTER ierr
       SAVE FHEADTEMP,itertot
       DOUBLE PRECISION TINY,SCALE
+
+      INTEGER matrix,ncyc_done,ierr_samg,control,iout_samg,i,j,new
+      DOUBLE PRECISION res_out
 !     -----------------------------------------------------------------
 !
 !
@@ -853,6 +872,7 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
       ilfld = 1
       Icnvg = 0
       iierr = 0
+      ippn = 0
       r_norm = 0.0D0
       n_iter = 0
       ISS=ISSFLG(KPER)
@@ -863,20 +883,19 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
         itertot = 0
         II = 0
         RMS2 = 0.0
-        Fheadsave = 0.0D0
+        IF ( kkiter+kper.EQ.2) Fheadsave = 2.0*Tol
         Fhead = 0.0D0
-        IF ( Iunitchd.GT.0 ) THEN
-          CALL ORDERCELL()
-          CALL FILLINDEX(jj)
-        END IF
-        Itreal = 0
+!        IF ( Iunitchd.GT.0 ) THEN
+!          CALL ORDERCELL()
+!          CALL FILLINDEX(jj)
+!        END IF
       END IF
       IF ( II.EQ.0 ) RMSAVE = RMS1
       RMS2 = RMS1
       RMS1 = RMS_func(icfld,irfld,ilfld,kkiter)
       Icnvg = 0
       IF ( RMS1.GT.FTOL .OR. ABS(Fheadsave).GT.Tol .OR. 
-     +                           kkiter.EQ.1 ) THEN
+     +                           kkiter+kper.EQ.2 ) THEN
         Ibt = 1
         IF ( BTRACK.EQ.0 .OR. II.GE.Numtrack ) Ibt = 0
         IF ( RMS1.LT.Btol*rmsave .OR. Kkiter.EQ.1 ) Ibt = 0
@@ -975,17 +994,89 @@ c           recover {x} because diagonal scaling subroutine (xmddgscl) is used
                 HCHANGE(jj) = HCHANGE(jj) * dgscal(jj)
               enddo                  
             ENDIF
+!          ELSE IF ( Linmeth.EQ.3 ) THEN !SAMG solver
+
+c         INPUT DATA
+c            n=number of cells
+c            nja=number of non-zero entries in the linear system
+c            ia,ja,a matrix in CRS format
+c            BB= right hand side of the linear system
+c            Hchange= first guess / solution of the linear system
+c            matrix=22 if not symmetric else matrix=12
+             matrix=22 
+c            Stop_tol_samg = closure criterion L2-norm 
+c               if eps<0 :: absolute residual 
+c               else     :: relative reduction compared to first guess
+c            Maxitr_samg=maximal number of iterations
+c            control=1 no setup reuse
+c            control=2 automatic setup reuse
+             control=1
+c            iout  Controls print output related to SAMG’s solution phase.
+c                <0 No printout, except for warnings and errors24.
+c                =0 Minimal output on results and timings.
+c                >0 Additional print output specified by the individual digits:
+c                   iout[1:1]
+c                      1 Table of input data and work statistics.
+c                      2 In addition: history of cycling process.
+c                      3 Extended history: including all levels, full smoothing steps.
+c                      4 Extended history: including all levels, partial smoothing steps.
+c                    iout[2:2]
+c                      0 No action.
+c                      1 Display most relevant hidden parameters.
+c                      2 Display all hidden parameters.
+c                      3 Display all hidden parameters in a single list.
+!              iout_samg=2
+
+c
+c         OUTPUT DATA
+c            res_out=output residual L2-Norm (Norm can be changed)
+c            ncyc_done=iterations performed
+c            ierr=error flag         
+             
+
+
+c !Diagonals have to be positive!
+!             do i=1,n
+!                if (a(ia(i)).lt.0) then
+!                   do j=ia(i),ia(i+1)-1
+!                      a(j)=-a(j)
+!                   enddo
+!                   bb(i)=-bb(i)
+!                endif
+!             enddo
+!
+!100          call samg_interface(n,nja,ia,ja,a,BB,Hchange, 
+!     +              matrix,res_out,ncyc_done,ierr_samg,          
+!     +              samg_approach,Stop_tol_samg,
+!     +              Maxitr_samg,control,iout_samg)
+!
+!!    DEBUG OPTION
+!             write(6,*) res_out,ierr_samg,ncyc_done
+!!             if (ierr_samg.eq.0) goto 100
+!
+!             if (ierr_samg.gt.0) then
+!              WRITE(Iout,*) 'Error in SAMG - err,cyc,res:', ierr_samg,
+!     +                        ncyc_done,res_out
+!              CALL USTOP('  ')
+!             endif
+                
           END IF
 C
 C--Update heads.
           CALL GWF2NWT1UPH2(ichld,irhld,ilhld,ISS,Kkiter)
           Fheadsave = Fhead
+          ippn = 0
+          IF ( RMS1.LT.FTOL .AND. ABS(Fheadsave).LT.Tol ) THEN
+            Icnvg = 1
+            ippn = 1
+          END IF
+          Itreal = Itreal + 1
         ELSE
           n_iter = 0
           CALL Back_track(ichld,irhld,ilhld,ISS)
           II = II + 1
         END IF
-        Itreal = Itreal + 1
+ !       Itreal = Itreal + 1
       ELSE
         Icnvg = 1
  !     open(999,file='Init_head.dat')
@@ -1003,7 +1094,7 @@ C--Update heads.
 !  Write head and flux residuals
 !  Write iteration header
       IF ( IPRNWT.GT.0 ) THEN
-        IF ( MOD(Itreal,10).eq.1 .AND. Icnvg.EQ.0 ) THEN
+        IF ( MOD(Kkiter,10).eq.1 .AND. Icnvg.EQ.0 ) THEN
           IF ( Btrack.GT.0 ) THEN
             WRITE(IOUT,111)
           ELSE
@@ -1035,19 +1126,21 @@ C--Update heads.
      +          '   Maximum-Flux-Residual          RMS ')
       itertot = itertot + n_iter
       IF ( IPRNWT.GT.0 ) THEN
-        IF ( Icnvg.EQ.0 ) THEN
+        IF ( Icnvg.EQ.0 .OR. ippn.EQ.1) THEN
           IF ( Btrack.GT.0 ) THEN 
                       WRITE (Iout, 9001) II,itreal,n_iter,
      +                 ichld,irhld,ilhld,fhead,icfld,irfld,ilfld,
      +                 Fflux,RMS1,RMS2,FHEADSAVE
           ELSE
-            WRITE (Iout, 9002) II,Kkiter,n_iter,ichld,irhld,ilhld,fhead,
+            WRITE (Iout, 9002) II,itreal,n_iter,ichld,irhld,ilhld,fhead,
      +                   icfld,irfld,ilfld,fflux,RMS1
+!     +      HNEW(ichld,irhld,ilhld),BOTM(ichld,irhld,ilhld-1),
+!     +      BOTM(ichld,irhld,ilhld)
           END IF
         END IF
       END IF
-      IF ( Icnvg.GT.0 .OR. Kkiter.GE.Maxiter) THEN
-        WRITE (Iout,9003) Kkiter, itertot
+      IF ( Icnvg.GT.0 .OR. itreal.GE.Maxiter) THEN
+        WRITE (Iout,9003) itreal, itertot
       END IF
  9001 FORMAT (5X,I6,12X,I6,6X,I6,8X,I6,1x,I4,3X,I3,3X,E20.10,
      +        2x,I6,1x,I4,3X,I2,1X,4(2X,E20.10))
@@ -1063,7 +1156,7 @@ C--Update heads.
 !     -----------------------------------------------------------------
 !     Set the head in dewatered cells to Hdry.
       SUBROUTINE GWF2NWT1BD()
-      USE GLOBAL, ONLY:Hnew, Nrow, Ncol, Nlay, BOTM, IBOUND, iout
+      USE GLOBAL, ONLY:Hnew, Nrow, Ncol, Nlay, BOTM, LBOTM, IBOUND, iout
       USE GWFBASMODULE,ONLY:HDRY
       USE GWFUPWMODULE,ONLY:IPHDRY
       IMPLICIT NONE
@@ -1082,7 +1175,7 @@ C--Update heads.
         DO ir = 1, Nrow
           DO ic = 1, Ncol
             IF ( IBOUND(ic,ir,il).GT.0 .AND. IPHDRY.GT.0 ) THEN
-              IF ( Hnew(ic, ir, il)-BOTM(ic,ir,il).LT.2.0e-3 ) 
+              IF ( Hnew(ic, ir, il)-BOTM(ic,ir,LBOTM(il)).LT.2.0e-3 ) 
      +             Hnew(ic, ir, il) = Hdry
             END IF
           ENDDO
@@ -1129,10 +1222,26 @@ C--Update heads.
         HNEW(ic, ir, il) = HITER(ic, ir, il) + Hchange(jj)
         IF ( IBOTAV.GT.0 .AND. LAYTYPUPW(il).GT.0 ) THEN
           ibotlay = il
-          DO i = il + 1, NLAY
+          DO i = il + 1, NLAY - 1
             IF ( IBOUND(ic,ir,i).GT.0 ) ibotlay = ibotlay + 1
           END DO
-!          IF ( ibotlay.EQ.0 ) THEN
+          IF ( il.EQ.NLAY ) THEN
+            IF (Hnew(ic, ir, il).LT.Botm(ic, ir, Lbotm(il)) ) THEN
+              IF ( Hiter(ic, ir, il).LT.BOTM(ic, ir, Lbotm(il)) )
+     +          Hiter(ic, ir, il) = BOTM(ic, ir, Lbotm(il)) + 
+     +                              1.0e-6
+              sum = 0.0D0
+              sum = Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat
+     +              (Sum_sat(sum,ic,ir,il),ic-1,ir,il),ic+1,ir,il),
+     +               ic,ir-1,il),ic,ir+1,il),ic,ir,il-1),ic,ir,il+1)
+              IF ( sum .LT.1.0e-7 ) THEN
+                hsave = Hnew(ic, ir, il)
+                Hnew(ic, ir, il) = (Hiter(ic, ir, il)+
+     +                              BOTM(ic, ir, Lbotm(il)))/2.0d0
+                Hchange(jj) = Hnew(ic, ir, il) - hsave
+              END IF
+            END IF
+          ELSEIF ( IBOUND(ic,ir,ibotlay+1).EQ.0 ) THEN
             IF (Hnew(ic, ir, il).LT.Botm(ic, ir, Lbotm(ibotlay)) ) THEN
               IF ( Hiter(ic, ir, il).LT.BOTM(ic, ir, Lbotm(ibotlay)) )
      +          Hiter(ic, ir, il) = BOTM(ic, ir, Lbotm(ibotlay)) + 
@@ -1148,7 +1257,7 @@ C--Update heads.
                 Hchange(jj) = Hnew(ic, ir, il) - hsave
               END IF
             END IF
-!          ENDIF
+          ENDIF
         END IF
         IF ( ABS(Hchange(jj)).GT.ABS(fhead) ) THEN
           Fhead = Hchange(jj)
@@ -1206,10 +1315,26 @@ C--Update heads.
         Hnew(ic, ir, il) = Hiter(ic, ir, il) + Hchange(jj)
         IF ( IBOTAV.GT.0 .AND. LAYTYPUPW(il).GT.0 ) THEN
           ibotlay = il
-          DO i = il + 1, NLAY
+          DO i = il + 1, NLAY - 1
             IF ( IBOUND(ic,ir,i).GT.0 ) ibotlay = ibotlay + 1
           END DO
-!          IF ( ibotlay.EQ.0 ) THEN
+          IF ( il.EQ.NLAY ) THEN
+            IF (Hnew(ic, ir, il).LT.Botm(ic, ir, Lbotm(il)) ) THEN
+              IF ( Hiter(ic, ir, il).LT.BOTM(ic, ir, Lbotm(il)) )
+     +          Hiter(ic, ir, il) = BOTM(ic, ir, Lbotm(il)) + 
+     +                              1.0e-6
+              sum = 0.0D0
+              sum = Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat(Sum_sat
+     +              (Sum_sat(sum,ic,ir,il),ic-1,ir,il),ic+1,ir,il),
+     +               ic,ir-1,il),ic,ir+1,il),ic,ir,il-1),ic,ir,il+1)
+              IF ( sum .LT.1.0e-7 ) THEN
+                hsave = Hnew(ic, ir, il)
+                Hnew(ic, ir, il) = (Hiter(ic, ir, il)+
+     +                              BOTM(ic, ir, Lbotm(il)))/2.0d0
+                Hchange(jj) = Hnew(ic, ir, il) - hsave
+              END IF
+            END IF
+          ELSEIF ( IBOUND(ic,ir,ibotlay+1).EQ.0 ) THEN
             IF (Hnew(ic, ir, il).LT.Botm(ic, ir, Lbotm(ibotlay)) ) THEN
               IF ( Hiter(ic, ir, il).LT.BOTM(ic, ir, Lbotm(ibotlay)) )
      +          Hiter(ic, ir, il) = BOTM(ic, ir, Lbotm(ibotlay)) + 
@@ -1225,7 +1350,7 @@ C--Update heads.
                 Hchange(jj) = Hnew(ic, ir, il) - hsave
               END IF
             END IF
-!          ENDIF
+          ENDIF
         END IF
         IF ( ABS(Hchange(jj)).GT.ABS(fhead) ) THEN
           fhead = Hchange(jj)
@@ -1546,15 +1671,15 @@ C--Update heads.
             BB(ij) = BB(ij) + tolf*HNEW(ic,ir,il)
           END IF
         END IF
- !       I1 = IA(ij)
- !       I2 = IA(ij+1)-1
- !       if ( kper==2)then
- !       if(ic==49.and.ir==236.and.il==1)then
- !       WRITE(IOUT,66)ij,BB(ij),HNEW(ic,ir,il),BOTM(ic,ir,il-1),
- !    +                BOTM(ic,ir,il),HCOFF,RHSS,(A(I),I=I1,I2)
- !       end if
- !       end if      
- !66      FORMAT(I9,1X,3G15.6,2X,11G15.6)
+!        I1 = IA(ij)
+!        I2 = IA(ij+1)-1
+!        if ( kper.gt.28)then
+!!        if(ic==49.and.ir==236.and.il==1)then
+!        WRITE(IOUT,66)ij,BB(ij),HNEW(ic,ir,il),BOTM(ic,ir,il-1),
+!     +                BOTM(ic,ir,il),HCOFF,RHSS,(A(I),I=I1,I2)
+!        end if
+!!        end if      
+! 66      FORMAT(I9,1X,3G15.6,2X,11G15.6)
       END DO
       RETURN
       END SUBROUTINE Jacobian

@@ -7,7 +7,7 @@ C     ALLOCATE ARRAY STORAGE FOR STREAMS
 C     INITIALIZE VARIABLES FOR SFR PACKAGES
 C     READ STREAM DATA THAT IS CONSTANT FOR ENTIRE SIMULATION:
 C     REACH DATA AND PARAMETER DEFINITIONS
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
 C     SPECIFICATIONS:
 C     ------------------------------------------------------------------
@@ -38,7 +38,7 @@ C     ------------------------------------------------------------------
       REAL epsslpe
 C     ------------------------------------------------------------------
       Version_sfr =
-     +'$Id: gwf2sfr7_dev.f 2359 2011-01-15 00:41:23Z rniswon $'
+     +'$Id: gwf2sfr7_NWT.f 2359 2011-10-01 00:41:23Z rniswon $'
       iterp = 1
       idum(1) = 0
       ALLOCATE (NSS, NSTRM,TOTSPFLOW)
@@ -52,7 +52,7 @@ C     ------------------------------------------------------------------
 C1------IDENTIFY PACKAGE AND INITIALIZE NSTRM.
       WRITE (IOUT, 9001) In
  9001 FORMAT (1X, /, ' SFR7 -- STREAMFLOW ROUTING PACKAGE, '
-     +        ,'VERSION 7.1.03, 2010-12-28', /, 9X, 
+     +        ,'VERSION 1.0.2, 2011-10-01', /, 9X, 
      +         'INPUT READ FROM UNIT', I4)
 C
 C2------READ COMMENT RECORDS, NSTRM, NSS, NSFRPAR, NPARSEG, CONST,
@@ -199,8 +199,8 @@ Cdep  changed DSTROT to FXLKOT
       ALLOCATE (QSTRM(nstrmar,NUMTIM))
       ALLOCATE (HWTPRM(nstrmar,NUMTIM))
       ALLOCATE (DVRCH(nstrmar),DVEFF(nstrmar))        !cjm
-      ALLOCATE (DVRCELL(NCOL*NROW,2,nss))  !cjm
-      ALLOCATE (RECHSAVE(NCOL,NROW))   !cjm
+      ALLOCATE (DVRCELL(100,2,nss))  !cjm
+      ALLOCATE (RECHSAVE(NCOL,NROW),DVRPERC(NCOL,NROW))   !cjm
       STRM = 0.0  
       HSTRM = 0.0
       QSTRM = 0.0
@@ -208,15 +208,16 @@ Cdep  changed DSTROT to FXLKOT
       HWTPRM = 0.0
       ISTRM = 0
       DVRCH = 0       !cjm
-      DVEFF = 0.0       !cjm
+      DVEFF = 0.0     !cjm
       DVRCELL = 0     !cjm
       RECHSAVE = 0.0  !cjm
+      DVRPERC = 0.0   !cjm
       ALLOCATE (SEG(26,nsegdim), ISEG(4,nsegdim), IDIVAR(2,nsegdim))
 Cdep  allocate space for stream outflow derivatives for lake package
       ALLOCATE (DLKOTFLW(200,nssar), SLKOTFLW(200,nssar))
       ALLOCATE (DLKSTAGE(200,nssar))
       IF ( NUMTAB.GT.0 ) THEN
-        ALLOCATE (TABFLOW(MAXVAL,NUMTAB), TABTIME(MAXVAL,NUMTAB))
+        ALLOCATE (TABFLOW(MAXVAL,NSS), TABTIME(MAXVAL,NSS))
       ELSE
         ALLOCATE (TABFLOW(1,1), TABTIME(1,1))
       END IF 
@@ -425,7 +426,7 @@ C11-----READ AND WRITE DATA FOR EACH REACH ON BASIS OF ISFROPT.
               write(iout,*)'Layer: ',krch,' Row: ',irch,' Col: ',jrch
               write(iout,*)'Streambed bottom altitude: ',STRM(4, ii)
               write(iout,*)'Cell bottom altitude: ',BOTM(jrch,irch,krch)
-!              CALL USTOP('')
+              CALL USTOP('')
             END IF
           END IF
           IF ( STRM(2, ii).LE.0.0 ) THEN
@@ -847,7 +848,7 @@ C-------SUBROUTINE SGWF2SFR7UHC
 C     ******************************************************************
 C     SETS UNSATURATED VERTICAL HYDRAULIC CONDUCTIVITY TO VERTICAL
 C     HYDRAULIC CONDUCTIVITY IN THE LAYER-PROPERTY FLOW PACKAGE.
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: NSTRM, ISTRM, UHC
       USE GLOBAL,       ONLY: IOUT, IBOUND
@@ -914,7 +915,7 @@ C-------SUBROUTINE GWF2SFR7RP
      +                      Iunitupw, Igrid)
 C     ******************************************************************
 C     READ STREAM DATA FOR STRESS PERIOD
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     Compute three new tables for lake outflow
 C     ******************************************************************
       USE GWFSFRMODULE
@@ -1704,31 +1705,41 @@ CC45-----READ TABLES FOR SPECIFIED INFLOWS
           DO i=1,NUMTAB
 ! segment number, number of rows, unit number
             READ(In,*)ISFRLIST(1,i),ISFRLIST(2,i),ISFRLIST(3,i)
+            WRITE(iout,9033)ISFRLIST(1,i),ISFRLIST(3,i)
+            WRITE(iout,9031)
             numval = ISFRLIST(2,i)
             iunit = ISFRLIST(3,i)
             DO j = 1, numval
-              READ(iunit,*)TABTIME(j,i),TABFLOW(j,i)
-              IF ( TABFLOW(j,i).LT.0.0 ) THEN
-                TABFLOW(j,i) = 0.0
+              READ(iunit,*)TABTIME(j,ISFRLIST(1,i)),
+     +                     TABFLOW(j,ISFRLIST(1,i))
+              IF ( TABFLOW(j,ISFRLIST(1,i)).LT.0.0 ) THEN
+                TABFLOW(j,ISFRLIST(1,i)) = 0.0
                 WRITE(IOUT,9029)
               END IF
+              WRITE(IOUT,9032)TABTIME(j,ISFRLIST(1,i)),
+     +                        TABFLOW(j,ISFRLIST(1,i))
             END DO
           END DO
         END IF
       END IF
  9029 FORMAT('A NEGATIVE VALUE FOR FLOW WAS SPECIFIED IN A ',
      +        'SFR TABULAR INFLOW FILE. VALUE WILL BE RESET TO ZERO')
+ 9033 FORMAT('TABULAR INFLOWS WERE READ FOR SEGMENT ',I6,/
+     +       'FROM FILE UNIT NUMBER ',I6,/)
+ 9031 FORMAT(5X,'TIMES',10X,'INFLOWS')
+ 9032 FORMAT(5X,F14.5,1X,F14.5)
       RETURN
       END SUBROUTINE GWF2SFR7RP
 C
 C-------SUBROUTINE GWF2SFR7FM
       SUBROUTINE GWF2SFR7FM(Kkiter, Kkper, Kkstp, Iunitlak, Iunitnwt,
-     +                      Iunitrch, Igrid)
+     +                      Iunitrch, Iunituzf, Igrid)
 C     *****************************************************************
 C     ADD STREAM TERMS TO RHS AND HCOF IF FLOW OCCURS IN MODEL CELL
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     *****************************************************************
       USE GWFRCHMODULE,ONLY:RECH  !cjm
+      USE GWFUZFMODULE,ONLY:FINF  !cjm
       USE GWFSFRMODULE
       USE GLOBAL,       ONLY: NLAY, IOUT, ISSFLG, IBOUND, HNEW, HCOF, 
      +                        RHS, BOTM, LBOTM
@@ -1747,7 +1758,8 @@ C     -----------------------------------------------------------------
 C     -----------------------------------------------------------------
 C     ARGUMENTS
 C     -----------------------------------------------------------------
-      INTEGER Kkiter, Kkper, Iunitlak, Igrid, Kkstp, Iunitnwt, Iunitrch
+      INTEGER Kkiter, Kkper, Iunitlak, Igrid, Kkstp, Iunitnwt, Iunitrch,
+     +        Iunituzf
 C     -----------------------------------------------------------------
 C     LOCAL VARIABLES
 C     -----------------------------------------------------------------
@@ -1774,7 +1786,7 @@ C     -----------------------------------------------------------------
 !rsr  DOUBLE PRECISION grad, hdiff
       REAL areamax, avhc, errold, fks, ha, qcnst, seep, 
      +     stgon, strlen, roughch, roughbnk, widthch, deltinc, qlat, 
-     +     fltest, Transient_bd, dvt  !CJM
+     +     fltest, Transient_bd, dvt, dum, totdum  !CJM
 !      real fin, fout
       INTEGER i, ibflg, ic, icalc, idivseg, iflg, iic, iic2, iic3, iic4,
      +        il, ilay, iprior, iprndpth, iprvsg, ir, istsg, itot,itrib,
@@ -1980,17 +1992,23 @@ C20-----SET FLOW INTO DIVERSION IF SEGMENT IS DIVERSION.
                 IF( IDIVAR(1,istsg).GT.0 ) flowin = DVRSFLW(istsg)
               END IF
             END IF
-C20B-----STORE OUTFLOW FROM PREVIOUS SEGMENT FOR REECHARGE  !cjm
+C20B-----STORE OUTFLOW FROM PREVIOUS SEGMENT FOR RECHARGE  !cjm
             IF ( istsg.GT.1 ) THEN
-              IF (Iunitrch .GT. 0) THEN
+              IF (Iunitrch.GT.0 .OR. Iunituzf.GT.0) THEN
                 iprvsg = ISTRM(4, ll)
                 IF ( DVRCH(iprvsg) .GT. 0) THEN
                   DO icount = 1, DVRCH(iprvsg)
                     irr = DVRCELL(icount, 1, iprvsg)
                     icc = DVRCELL(icount, 2, iprvsg)
-                    dvt = (SGOTFLW(iprvsg) / float(DVRCH(iprvsg)))
-                    RECH(icc, irr) = RECHSAVE(icc, irr) + 
+                    IF ( Iunituzf.GT.0 ) THEN
+                      dvt = SGOTFLW(iprvsg)*DVRPERC(icc,irr)
+                      FINF(icc, irr) = RECHSAVE(icc, irr) + 
      +                              dvt*(1.0-DVEFF(iprvsg))
+                    ELSE
+                      dvt = (SGOTFLW(iprvsg) / float(DVRCH(iprvsg)))
+                      RECH(icc, irr) = RECHSAVE(icc, irr) + 
+     +                              dvt*(1.0-DVEFF(iprvsg))
+                    END IF
                   END DO
                 END IF
               END IF
@@ -3268,7 +3286,7 @@ C-------SUBROUTINE GWF2SFR7BD
 C     *****************************************************************
 C     CALCULATE VOLUMETRIC GROUND-WATER BUDGET FOR STREAMS AND SUM
 C     STREAMFLOWS IN MODELED AREA
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     *****************************************************************
       USE GWFSFRMODULE
       USE GWFLAKMODULE, ONLY: VOL, LKARR1, STGNEW, STGOLD
@@ -3277,6 +3295,7 @@ C     *****************************************************************
       USE GWFBASMODULE, ONLY: MSUM, ICBCFL, IBUDFL, DELT, PERTIM, TOTIM,
      +                        VBVL, VBNM, HDRY
       USE GWFRCHMODULE,ONLY:RECH  !cjm
+      USE GWFUZFMODULE,ONLY:FINF  !cjm
       IMPLICIT NONE
       INTRINSIC FLOAT, ABS, IABS, DSQRT, DLOG10, SQRT, SNGL
 C     ------------------------------------------------------------------
@@ -3505,9 +3524,15 @@ C20B-----STORE OUTFLOW FROM PREVIOUS SEGMENT FOR RECHARGE  !cjm
                  DO icount = 1, DVRCH(iprvsg)
                    irr = DVRCELL(icount, 1, iprvsg)
                    icc = DVRCELL(icount, 2, iprvsg)
-                   dvt = (SGOTFLW(iprvsg) / float(DVRCH(iprvsg)))
-                   RECH(icc, irr) = RECHSAVE(icc, irr) + 
+                   IF ( Iunituzf.GT.0 ) THEN
+                     dvt = SGOTFLW(iprvsg)*DVRPERC(icc,irr)
+                     FINF(icc, irr) = RECHSAVE(icc, irr) + 
      +                              dvt*(1.0-DVEFF(iprvsg))
+                   ELSE
+                     dvt = (SGOTFLW(iprvsg) / float(DVRCH(iprvsg)))
+                     RECH(icc, irr) = RECHSAVE(icc, irr) + 
+     +                              dvt*(1.0-DVEFF(iprvsg))
+                   END IF
                  END DO
                END IF
              END IF
@@ -4005,8 +4030,8 @@ Cdep  revised format statement
      +        3(1X, E10.3), 1X, E12.5, 6(1X, E10.3))
 C
 C47-----PRINT MASS BALANCE OF UNSATURATED ZONE IF IUZT GREATER THAN 0.
-      IF ( IUZT.GT.0 .AND. ( ibd.NE.0 .OR. iblst.LT.0 ) ) 
-     +                CALL GWF2SFR7UZOT(Kkstp, Kkper)
+      IF ( IBUDFL.GT.0 .and. icalccheck.EQ.1) 
+     +     CALL GWF2SFR7UZOT(Kkstp, Kkper)
 C
 C48-----SAVE FLOW TO AND FROM GROUND WATER AS A 3-D ARRAY WHEN 
 C         IBD IS EQUAL TO 1. revised dep 5/10/2006
@@ -4062,7 +4087,7 @@ C     *****************************************************************
 C     CALCULATE ARRAYS OF LAKE STAGE, FLOW, AND THE DERIVATIVE OF
 C     FLOWS FOR STREAM SEGMENTS THAT HAVE INFLOWS DETERMINED BY
 C     LAKE STAGE
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     *****************************************************************
       USE GWFSFRMODULE
       USE GLOBAL,     ONLY:IOUT
@@ -4165,7 +4190,7 @@ C-------SUBROUTINE GWF2SFR7DIVERS
       SUBROUTINE GWF2SFR7DIVERS(Iprior, Upflw, Dvrsn)
 C     ******************************************************************
 C     COMPUTES DIVERSIONS FROM AN UPSTREAM SEGMENT
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       IMPLICIT NONE
 C     SPECIFICATIONS:
@@ -4217,7 +4242,7 @@ C-------SUBROUTINE GWF2SFR7UZOT
       SUBROUTINE GWF2SFR7UZOT(Kkstp, Kkper)
 C     ******************************************************************
 C     PRINTS MASS BALANCE FOR ENTIRE UNSATURATED ZONE
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: SFRUZBD, CLOSEZERO
       USE GLOBAL,       ONLY: IOUT
@@ -4396,7 +4421,7 @@ C-------SUBROUTINE GWF2SFR7DPTH
      +                        Iprndpth)
 C     ******************************************************************
 C     COMPUTE STREAM DEPTH GIVEN FLOW USING 8-POINT CROSS SECTION
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: CONST, XSEC, NEARZERO
       USE GLOBAL,       ONLY: IOUT
@@ -4571,7 +4596,7 @@ C-------SUBROUTINE GWF2SFR7FLW
      +                       Wetperm, Flow, Totwdth)
 C     *******************************************************************
 C     COMPUTE FLOW IN STREAM GIVEN DEPTH USING 8-POINT CROSS SECTION
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     *******************************************************************
       USE GWFSFRMODULE, ONLY: XSEC, CONST
       IMPLICIT NONE
@@ -4714,7 +4739,7 @@ C-------SUBROUTINE GWF2SFR7TBD
       SUBROUTINE GWF2SFR7TBD(Flow, Depth, Width, Nstrpts, Istsg)
 C     *******************************************************************
 C     COMPUTE DEPTH AND WIDTH IN STREAM GIVEN FLOW USING RATING TABLES.
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     *******************************************************************
       USE GWFSFRMODULE, ONLY: QSTAGE
       IMPLICIT NONE
@@ -4805,9 +4830,9 @@ C-------SUBROUTINE GWF2SFR7TBF
      +                       Kkiter, Itb)
 C     *******************************************************************
 C     COMPUTE FLOW AND WIDTH IN STREAM GIVEN DEPTH USING RATING TABLES.
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     *******************************************************************
-      USE GWFSFRMODULE, ONLY: QSTAGE
+      USE GWFSFRMODULE, ONLY: QSTAGE, DVRPERC
       USE GLOBAL,       ONLY: IOUT
       IMPLICIT NONE
       INTRINSIC DLOG10
@@ -4825,6 +4850,7 @@ C     -------------------------------------------------------------------
       DOUBLE PRECISION flwlw, flwhi, stglw, stghi, wthlw, wthhi, dflwlw,
      +                 dflwhi, dstglw, dstghi, dwthlw, dwthhi, dlgflw, 
      +                 dlgslf, dlgslw, dlgstg, dlgwth
+      REAL dum, totdum
 C     -------------------------------------------------------------------
 C
 C1------DEFINE RANGE OF FLOW, DEPTH, AND WIDTH FROM RATING TABLE.
@@ -4910,11 +4936,11 @@ C-------SUBROUTINE SGWF2SFR7RDSEG
      +                          Nischk, Ichk, Kkper, Nsol)
 C     ******************************************************************
 C     READ STREAM SEGMENT DATA -- parameters or non parameters
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: NSS, MAXPTS, ISFROPT, IDIVAR, IOTSG, ISEG,
      +                        SEG, XSEC, QSTAGE, CONCQ, CONCRUN,CONCPPT,
-     +                        DVRCH, DVRCELL, RECHSAVE, DVEFF  !cjm (added DVRCH, DVRCELL and RECHSAVE)
+     +                        DVRCH, DVRCELL, RECHSAVE, DVEFF, DVRPERC  !cjm (added DVRCH, DVRCELL and RECHSAVE)
       USE GLOBAL,       ONLY: IOUT
       USE GWFRCHMODULE,ONLY: RECH  !cjm
       IMPLICIT NONE
@@ -4931,6 +4957,7 @@ C     LOCAL VARIABLES
 C     ------------------------------------------------------------------
       INTEGER icalc, idum, ii, iqseg, isol, iupseg, jj, jk, lstend, n, 
      +        noutseg, nseg, nstrpts, numcell, i  !cjm (added numcell and i)
+      REAL dum, totdum
 C     ------------------------------------------------------------------
 C
 C1------READ STREAM SEGMENT DATA.
@@ -5204,12 +5231,19 @@ C
 C10b----READ CELL INDECES THAT RECEIVE RECHARGE: i,1 = ROW, i,2 = COL  !cjm
         IF ( DVRCH(N).GT.0 ) THEN
           READ(In, *)DVRCH(N),DVEFF(N)
+          totdum = 0.0
           DO i = 1, DVRCH(N)
-            READ(In, *) DVRCELL(i,1,N),DVRCELL(i,2,N)
+            READ(In, *) DVRCELL(i,1,N),DVRCELL(i,2,N),dum
+            DVRPERC(DVRCELL(i,2,N),DVRCELL(i,1,N)) = dum
+            totdum = totdum + dum
           END DO
+          IF ( totdum.GT.1.000001 ) WRITE(Iout,9006)totdum
         END IF
 C
       END DO
+ 9006 FORMAT(' ***Warning in SFR2*** ',/
+     1       'Fraction of diversion for each cell in group sums '/,
+     1       'to a value greater than one. Sum = ',E10.5)
 C
 C11-----RETURN.
       RETURN
@@ -5219,7 +5253,7 @@ C-------SUBROUTINE SGWF2SFR7PARMOV
       SUBROUTINE SGWF2SFR7PARMOV(In, Iunitgwt, Nsol)
 C     ******************************************************************
 C     MOVE STREAM PARAMETER DATA INTO ACTIVE SEGMENTS
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: IDIVAR, IOTSG, ISEG, SEG, XSEC, QSTAGE, 
      +                        CONCQ, CONCRUN, CONCPPT, NSEGCK
@@ -5400,7 +5434,7 @@ C-------SUBROUTINE SGWF2SFR7PRSEG
      +                          Iouts)
 C     ******************************************************************
 C     PRINT STREAM SEGMENT DATA -- parameters or non parameters
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: ISFROPT, IDIVAR, IOTSG, ISEG, SEG, XSEC,
      +                        QSTAGE, CONCQ, CONCRUN, CONCPPT
@@ -5802,7 +5836,7 @@ C-------SUBROUTINE CALC_UNSAT_INFIL written by RGN, MAY 24, 2004
      +                            Strlen, Iwidthcheck, Icalc)
 C     ******************************************************************
 C     DEFINE UNSATURATED CELLS TO ACCOMMODATE STREAM LOSS.
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: ISUZN, NSTOTRL
       IMPLICIT NONE
@@ -5908,7 +5942,7 @@ C-------SUBROUTINE UZMASSBAL written MAY 24, 2004
 C     ******************************************************************
 C     COMPUTE INFLOW, OUTFLOW, AND CHANGE IN STORAGE IN UNSATURATED
 C     ZONE BENEATH STREAMBED.
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: ISUZN,NSTOTRL,NUMAVE,STRM,ITRLSTH,SFRUZBD,
      +                        SUMLEAK,SUMRCH, NEARZERO, CLOSEZERO
@@ -6556,7 +6590,7 @@ C-------SUBROUTINE ROUTWAVESIT
 C     ******************************************************************
 C     ROUTE UNSATURATED ZONE WAVES DURING MODEL ITERATIONS
 C     CALLED FROM SUBROUTINE GWF2SFR7FM
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
 C
       USE GWFSFRMODULE, ONLY: NSTOTRL, ISUZN, STRM, CLOSEZERO
@@ -6655,7 +6689,7 @@ C-------SUBROUTINE ROUTWAVESST
 C     ******************************************************************
 C     ROUTE UNSATURATED-ZONE WAVES AFTER FINAL ITERATION
 C     CALLED FROM SUBROUTINE GWF2SFR7BD
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: NSTOTRL, ISUZN, STRM, NEARZERO
       USE GLOBAL,       ONLY: IOUT
@@ -6733,7 +6767,7 @@ C-------SUBROUTINE UZFLOW
      +                  Jpnt, Deltinc)
 C     ******************************************************************
 C     WAVE INTERACTION WITHIN AN UNSATURATED FLOW COMPARTMENT
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: NSTOTRL, NSFRSETS, NSTRAIL, THETAB, FLUXB
       USE GLOBAL,    ONLY: IOUT
@@ -6891,7 +6925,7 @@ C-------SUBROUTINE LEADWAVE
      +                    Feps2, Itrailflg, Deltinc)
 C     ******************************************************************
 C     CREATE LEAD WAVE WHEN THE SURFACE FLUX INCREASES AND ROUTE WAVES.
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
 C
       USE GWFSFRMODULE, ONLY: NSTOTRL, NEARZERO, CLOSEZERO, THETAB,
@@ -7364,7 +7398,7 @@ C-------SUBROUTINE TRAILWAVE
      +                     Surflux, Jpnt)
 C     ******************************************************************
 C     INITIALIZE A NEW SET OF TRAIL WAVES WHEN SURFACE FLUX DECREASES.
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: NSTOTRL, NSTRAIL, NSFRSETS, NEARZERO,
      +                        FLUXHLD2, FLUXB, THETAB
@@ -7469,7 +7503,7 @@ C-------SUBROUTINE CHANNELAREA
 C     ******************************************************************
 C     COMPARTMENTALIZE UNSATURATED ZONE BENEATH STREAMBED ON BASIS OF 
 C     EIGHT POINT CROSS SECTION WHEN ICALC IS 2
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C     ******************************************************************
       USE GWFSFRMODULE, ONLY: NUZST, ISUZN, XSEC, WETPER
       IMPLICIT NONE
@@ -7611,7 +7645,7 @@ C-------SUBROUTINE ROUTE_CHAN
      +                      Chanstor,depth)
 C***********************************************************************
 C     IMPLICIT FINITE-DIFFERENCE SCHEME TO ROUTE FLOW DOWN CHANNELS 
-C     VERSION  7.1.01: February 15, 2009
+C     VERSION 1.0.2:  OCTOBER 01, 2011
 C***********************************************************************
       USE GWFSFRMODULE, ONLY: ISEG, WEIGHT, SEG, FLWTOL, NEARZERO
       USE GLOBAL,       ONLY: IOUT 
@@ -7919,6 +7953,7 @@ C     ------------------------------------------------------------------
       DEALLOCATE (GWFSFRDAT(IGRID)%DVEFF)     !cjm
       DEALLOCATE (GWFSFRDAT(IGRID)%DVRCELL)   !cjm
       DEALLOCATE (GWFSFRDAT(IGRID)%RECHSAVE)  !cjm
+      DEALLOCATE (GWFSFRDAT(IGRID)%DVRPERC)  !cjm
       DEALLOCATE (GWFSFRDAT(IGRID)%NSEGCK)
       DEALLOCATE (GWFSFRDAT(IGRID)%ITRLSTH)
       DEALLOCATE (GWFSFRDAT(IGRID)%ISEG)
@@ -8026,6 +8061,7 @@ C     ------------------------------------------------------------------
       DVEFF=>GWFSFRDAT(IGRID)%DVEFF        !cjm
       DVRCELL=>GWFSFRDAT(IGRID)%DVRCELL    !cjm
       RECHSAVE=>GWFSFRDAT(IGRID)%RECHSAVE  !cjm
+      DVRPERC=>GWFSFRDAT(IGRID)%DVRPERC  !cjm
       NSEGCK=>GWFSFRDAT(IGRID)%NSEGCK
       ITRLSTH=>GWFSFRDAT(IGRID)%ITRLSTH
       ISEG=>GWFSFRDAT(IGRID)%ISEG
@@ -8132,6 +8168,7 @@ C     ------------------------------------------------------------------
       GWFSFRDAT(IGRID)%DVRCH=>DVRCH        !cjm
       GWFSFRDAT(IGRID)%DVEFF=>DVEFF        !cjm
       GWFSFRDAT(IGRID)%DVRCELL=>DVRCELL    !cjm
+      GWFSFRDAT(IGRID)%DVRPERC=>DVRPERC  !cjm
       GWFSFRDAT(IGRID)%RECHSAVE=>RECHSAVE  !cjm
       GWFSFRDAT(IGRID)%NSEGCK=>NSEGCK
       GWFSFRDAT(IGRID)%ITRLSTH=>ITRLSTH

@@ -642,7 +642,7 @@ C       LOC2H=NK+N1
 C4-----RETURN.
       RETURN
       END
-      SUBROUTINE GWF2SUB7FM(KPER,KITER,ISIP,IGRID)
+      SUBROUTINE GWF2SUB7FM(IUNITUPW,KPER,KITER,ISIP,IGRID)
 C     ******************************************************************
 C        ADD INTERBED STORAGE TERMS TO RHS AND HCOF
 C     ******************************************************************
@@ -653,6 +653,8 @@ C     ------------------------------------------------------------------
      1                     NCOL,NROW,ISSFLG
       USE GWFBASMODULE, ONLY: DELT
       USE SIPMODULE,    ONLY: V,HCLOSE
+      USE GWFNWTMODULE, ONLY: ICELL
+      USE GWFUPWMODULE, ONLY: Sn, LAYTYPUPW
       USE GWFSUBMODULE ,ONLY: RNB,LN,LDN,HC,SCE,SCV,DHP,DH,DHC,NZ,DZ,DP,
      1                        BB,NDF,NNDF,AC1,AC2,ITMIN,NN,
      1                        NDB,NNDB,NMZ
@@ -689,8 +691,20 @@ C3------DETERMINE STORAGE CAPACITIES FOR CELL AT START AND END OF STEP
        IF(HNEW(IC,IR,K).LT.HCTMP) RHO2=SCV(LOC2)*TLED
 C
 C4------ADD APPROPRIATE TERMS TO RHS AND HCOF
-       RHS(IC,IR,K)=RHS(IC,IR,K)-HCTMP*(RHO2-RHO1)-RHO1*HOLD(IC,IR,K)
-       HCOF(IC,IR,K)=HCOF(IC,IR,K)-RHO2
+!       IF ( IUNITUPW==0 ) THEN
+         RHS(IC,IR,K)=RHS(IC,IR,K)-HCTMP*(RHO2-RHO1)-RHO1*HOLD(IC,IR,K)
+         HCOF(IC,IR,K)=HCOF(IC,IR,K)-RHO2
+!       ELSEIF( LAYTYPUPW(K).EQ.0 ) THEN
+!         RHS(IC,IR,K)=RHS(IC,IR,K)-HCTMP*(RHO2-RHO1)-RHO1*HOLD(IC,IR,K)
+!         HCOF(IC,IR,K)=HCOF(IC,IR,K)-RHO2
+!       ELSE
+!*********************************************************************
+!         ij = Icell(IC,IR,K)
+!         RHS(IC,IR,K)=RHS(IC,IR,K)-
+!     +        Sn(ij)*(HCTMP*(RHO2-RHO1)-RHO1*HOLD(IC,IR,K))
+!         HCOF(IC,IR,K)=HCOF(IC,IR,K)-Sn(ij)*RHO2
+!       END IF
+*********************************************************************
   100  CONTINUE
   110  CONTINUE
       ENDIF
@@ -766,7 +780,7 @@ C
 C11-----RETURN
       RETURN
       END
-      SUBROUTINE GWF2SUB7BD(KSTP,KPER,IGRID)
+      SUBROUTINE GWF2SUB7BD(IUNITUPW,KSTP,KPER,IGRID)
 C     ******************************************************************
 C     CALCULATE VOLUMETRIC BUDGET FOR INTERBED STORAGE
 C     ******************************************************************
@@ -779,6 +793,8 @@ C     ------------------------------------------------------------------
       USE GWFSUBMODULE ,ONLY: RNB,LN,LDN,HC,SCE,SCV,SUB,DHP,DH,DHC,
      1                        NZ,DZ,DCOM,DP,DVB,NDF,NNDF,NN,ND2,NDB,
      2                        NNDB,NMZ,IIBSCB
+      USE GWFNWTMODULE, ONLY: ICELL
+      USE GWFUPWMODULE, ONLY: Sn, LAYTYPUPW
       CHARACTER*16 TEXT(2)
 C
       DATA TEXT(1) /'INST. IB STORAGE'/
@@ -833,7 +849,14 @@ C7------GET STORAGE CAPACITIES AT BEGINNING AND END OF TIME STEP.
        IF(HHNEW.LT.HHC) SEND=SCV(LOC2)
 C
 C8------CALCULATE VOLUME CHANGE IN INTERBED STORAGE FOR TIME STEP.
-       STRG=HHC*(SEND-SBGN)+SBGN*HHOLD-SEND*HHNEW
+!       IF ( IUNITUPW.EQ.0 ) THEN
+         STRG=HHC*(SEND-SBGN)+SBGN*HHOLD-SEND*HHNEW
+!       ELSEIF ( LAYTYPUPW(K).EQ.0 ) THEN
+!         STRG=HHC*(SEND-SBGN)+SBGN*HHOLD-SEND*HHNEW
+!       ELSE
+!         ij = ICELL(IC,IR,K)
+!         STRG=Sn(ij)*(HHC*(SEND-SBGN)+SBGN*HHOLD-SEND*HHNEW)
+!       END IF
 C
 C9------ACCUMULATE SUBSIDENCE ASSOCIATED WITH CHANGE IN STORAGE
        SUB(LOC2)=SUB(LOC2)+STRG/(DELR(IC)*DELC(IR))

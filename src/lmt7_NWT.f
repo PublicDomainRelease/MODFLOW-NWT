@@ -82,7 +82,7 @@ C--CHECK for OPTIONS/PACKAGES USED IN CURRENT SIMULATION
           MTIBS=IUNIT(IU)
         ELSEIF(CUNIT(IU).EQ.'LAK ') THEN
           MTLAK=IUNIT(IU)
-        ELSEIF(CUNIT(IU).EQ.'MNW1') THEN
+        ELSEIF(CUNIT(IU).EQ.'MNW1'.OR.CUNIT(IU).EQ.'MNW2') THEN
           MTMNW=IUNIT(IU)
         ELSEIF(CUNIT(IU).EQ.'SWT ') THEN
           MTSWT=IUNIT(IU)        
@@ -1281,7 +1281,11 @@ C--CALCULATE FLOW FROM STORAGE (VARIABLE HEAD CELLS ONLY)
  !               STRG=RHO*HOLD(J,I,K) - RHO*HSING
  !             ELSE
                 TP=BOTM(J,I,LBOTM(K)-1)
-                RHO2=SC2UPW(J,I,KT)*TLED
+                IF ( LC.GT.0 ) THEN
+                  RHO2=SC2UPW(J,I,KT)*TLED
+                ELSE
+                  RHO2=0.0
+                END IF
                 RHO1=SC1(J,I,K)*TLED             
                 TP=BOTM(J,I,LBOTM(K)-1)
                 BT=BOTM(J,I,LBOTM(K))
@@ -1924,16 +1928,19 @@ C--RETURN
       END
 C
 C
-      SUBROUTINE LMT7WEL7(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
+      SUBROUTINE LMT7WEL7(IUNITUPW,ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
 C *********************************************************************
 C SAVE WELL CELL LOCATIONS AND VOLUMETRIC FLOW RATES FOR USE BY MT3D.
 C *********************************************************************
 C Modified from  Harbaugh (2005)
 C last modified: 08-08-2008
 C
-      USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND
-      USE GWFWELMODULE,ONLY:NWELLS,WELL      
+      USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND,BOTM,LBOTM,HNEW
+      USE GWFWELMODULE,ONLY:NWELLS,WELL,PSIRAMP
+      USE GWFUPWMODULE,ONLY:LAYTYPUPW
       CHARACTER*16 TEXT
+      double precision bbot, Hh, cof1, cof2, cof3, Qp, x, s
+      double precision ttop
 C      
 C--SET POINTERS FOR THE CURRENT GRID   
       CALL SGWF2WEL7PNT(IGRID)
@@ -1961,6 +1968,28 @@ C
 C--IF CELL IS EXTERNAL Q=0
         Q=ZERO
         IF(IBOUND(IC,IR,IL).GT.0) Q=WELL(4,L)
+        IF ( LAYTYPUPW(il).GT.0 ) THEN
+          bbot = Botm(IC, IR, Lbotm(IL))
+          ttop = Botm(IC, IR, Lbotm(IL)-1)
+          Hh = HNEW(ic,ir,il)
+          x = (Hh-bbot)
+          s = PSIRAMP
+          s = s*(Ttop-Bbot)
+          aa = -1.0d0/(s**2.0d0)
+          b = 2.0d0/s
+          cof1 = x**2.0D0
+          cof2 = -(2.0D0*x)/(s**3.0D0)
+          cof3 = 3.0D0/(s**2.0D0)
+          Qp = cof1*(cof2+cof3)
+          IF ( x.LT.0.0D0 ) THEN
+            Qp = 0.0D0
+          ELSEIF ( x-s.GT.-1.0e-14 ) THEN
+            Qp = 1.0D0
+          END IF
+          IF ( Qp.LT.1.0 ) THEN
+            Q = Q*Qp
+          END IF
+        END IF
         IF(ILMTFMT.EQ.0) THEN
           WRITE(IUMT3D) IL,IR,IC,Q
         ELSEIF(ILMTFMT.EQ.1) THEN
@@ -2656,6 +2685,77 @@ C
 C--RETURN
 ! 9999 RETURN
 !      END
+C
+C
+C
+      SUBROUTINE LMT7MNW2(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
+C *********************************************************************
+C SAVE MNW LOCATIONS AND VOLUMETRIC FLOW RATES FOR USE BY MT3D.
+C *********************************************************************
+C Modified from MNW by Halford and Hanson (2002)
+C last modification: 08-08-2008
+C
+      USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND
+      USE GWFMNW2MODULE,ONLY:NMNWVL,MNWMAX,MNW2,MNWNOD
+      CHARACTER*16 TEXT
+C
+C--SET POINTERS FOR THE CURRENT GRID
+      CALL SGWF2MNW2PNT(IGRID)
+C      
+      TEXT='MNW'
+      qqq1=0.
+      qqq2=0.
+      IOUT = IUMT3D
+C
+C--WRITE AN IDENTIFYING HEADER
+      IF(ILMTFMT.EQ.0) THEN
+        WRITE(IOUT) KPER,KSTP,NCOL,NROW,NLAY,TEXT,NUMMNW2
+      ELSEIF(ILMTFMT.EQ.1) THEN
+        WRITE(IOUT,*) KPER,KSTP,NCOL,NROW,NLAY
+        WRITE(IOUT,*) TEXT,NUMMNW2
+      ENDIF
+C
+C--IF THERE ARE NO WELLS RETURN
+      IF(NUMMNW2.LE.0) RETURN
+C
+C--PROCESS WELL LIST
+      iii=0
+      do iw=1,MNWMAX
+        if (MNW2(1,iw).EQ.1) then
+          firstnode=MNW2(4,iw)
+          lastnode=MNW2(4,iw)+ABS(MNW2(2,iw))-1
+          do INODE=firstnode,lastnode
+            iii=iii+1
+            il=MNWNOD(1,INODE)              
+            ir=MNWNOD(2,INODE)              
+            ic=MNWNOD(3,INODE)              
+            Q = MNWNOD(4,INODE) !well2(17,m)
+C
+C--IF CELL IS EXTERNAL Q=0
+            IF(IBOUND(ic,ir,il).LE.0) Q=0.
+            if(q.le.0.) then 
+              qqq1=qqq1+q
+            else
+              qqq2=qqq2+q
+            endif
+C
+C--DUMMY VARIABLE QSW NOT USED, SET TO 0
+            QSW=0.
+C
+C--SAVE TO OUTPUT FILE
+            IF(ILMTFMT.EQ.0) THEN
+              WRITE(IOUT) IL,IR,IC,Q,INODE,QSW
+            ELSEIF(ILMTFMT.EQ.1) THEN
+              WRITE(IOUT,*) IL,IR,IC,Q,INODE,QSW
+            ENDIF
+C
+          ENDDO
+        endif
+      ENDDO
+C
+C--RETURN
+      RETURN
+      END
 C
 C
       SUBROUTINE LMT7ETS7(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)

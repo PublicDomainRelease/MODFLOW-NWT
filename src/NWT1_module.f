@@ -19,7 +19,7 @@
       DOUBLE PRECISION, SAVE, POINTER :: Hcoff, Rhss, Fflux, Fhead
       DOUBLE PRECISION, SAVE, POINTER :: Fheadsave
       INTEGER, SAVE, POINTER :: Numnonzero, II, Itreal, Ibt, NJA
-      INTEGER, SAVE, POINTER :: Ilinal, IFDPARAM
+      INTEGER, SAVE, POINTER :: Ilinal, IFDPARAM, ICNVGFLG
       INTEGER, SAVE, POINTER :: Btrack, Iierr
       DOUBLE PRECISION, SAVE, POINTER :: Tol, Ftol, RELAX, RMS2, RMS1
       DOUBLE PRECISION, SAVE, POINTER :: Thickfact, Breduc, Btol, RMSAVE
@@ -48,7 +48,7 @@
         DOUBLE PRECISION, POINTER :: Hcoff, Rhss, Fflux, Fhead
         DOUBLE PRECISION, POINTER :: Fheadsave
         INTEGER, POINTER :: Numnonzero, II, Itreal, Ibt, NJA
-        INTEGER, POINTER :: Ilinal, IFDPARAM
+        INTEGER, POINTER :: Ilinal, IFDPARAM, ICNVGFLG
         DOUBLE PRECISION, POINTER :: Tol, Ftol, RMS2, RMS1
         DOUBLE PRECISION, POINTER :: Thickfact, Breduc, Btol, RMSAVE
         INTEGER, POINTER :: Numactive, Numcell
@@ -91,7 +91,8 @@
       DEALLOCATE (Gwfnwtdat(Igrid)%Ibt)
       DEALLOCATE (Gwfnwtdat(Igrid)%II)
       DEALLOCATE (Gwfnwtdat(Igrid)%Ilinal)
-      DEALLOCATE (Gwfnwtdat(Igrid)%IFDPARAM)
+      DEALLOCATE (Gwfnwtdat(Igrid)%IFDPARAM) 
+      DEALLOCATE (Gwfnwtdat(Igrid)%ICNVGFLG)
       DEALLOCATE (Gwfnwtdat(Igrid)%Tol)
       DEALLOCATE (Gwfnwtdat(Igrid)%Ftol)
       DEALLOCATE (Gwfnwtdat(Igrid)%ITER1)     
@@ -165,7 +166,8 @@
       Ibt => Gwfnwtdat(Igrid)%Ibt
       II => Gwfnwtdat(Igrid)%II
       Ilinal => Gwfnwtdat(Igrid)%Ilinal
-      IFDPARAM => Gwfnwtdat(Igrid)%IFDPARAM  
+      IFDPARAM => Gwfnwtdat(Igrid)%IFDPARAM   
+      ICNVGFLG => Gwfnwtdat(Igrid)%ICNVGFLG
       Tol => Gwfnwtdat(Igrid)%Tol
       Ftol => Gwfnwtdat(Igrid)%Ftol                           
       ITER1 => Gwfnwtdat(Igrid)%ITER1
@@ -238,7 +240,8 @@
       Gwfnwtdat(Igrid)%Ibt => Ibt
       Gwfnwtdat(Igrid)%II => II
       Gwfnwtdat(Igrid)%Ilinal => Ilinal
-      Gwfnwtdat(Igrid)%IFDPARAM => IFDPARAM
+      Gwfnwtdat(Igrid)%IFDPARAM => IFDPARAM   
+      Gwfnwtdat(Igrid)%ICNVGFLG => ICNVGFLG
       Gwfnwtdat(Igrid)%Tol => Tol
       Gwfnwtdat(Igrid)%Ftol => Ftol    
       Gwfnwtdat(Igrid)%ITER1 => ITER1

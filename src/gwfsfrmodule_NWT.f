@@ -7,6 +7,7 @@
         INTEGER,SAVE,  DIMENSION(:),  POINTER:: DVRCH   !(diverted recharge flag; then reharge cell count)
         INTEGER,SAVE,  DIMENSION(:,:,:),POINTER:: DVRCELL !(store cells to apply diverted recharge)
         REAL,   SAVE,  DIMENSION(:,:),POINTER:: RECHSAVE  !(store original recharge values)
+        REAL,   SAVE,  DIMENSION(:,:),POINTER:: DVRPERC  !(Percentage of diversion applied to each cell)
         REAL,   SAVE,  DIMENSION(:),POINTER:: DVEFF  !(store efficiency factor)
         INTEGER,SAVE,POINTER:: NSS, NSTRM, NSFRPAR, ISTCB1, ISTCB2
         INTEGER,SAVE,POINTER:: IUZT, MAXPTS, IRTFLG, NUMTIM
@@ -49,6 +50,7 @@
         INTEGER,       DIMENSION(:),  POINTER:: DVRCH      !Diversions to recharge
         INTEGER,       DIMENSION(:,:,:),  POINTER:: DVRCELL  !Diversions to recharge
         REAL,          DIMENSION(:,:),POINTER:: RECHSAVE  !Diversions to recharge
+        REAL,          DIMENSION(:,:),POINTER:: DVRPERC  !Diversions to recharge
         REAL,          DIMENSION(:),POINTER:: DVEFF  !Diversions to recharge
         INTEGER,     POINTER:: NSS, NSTRM, NSFRPAR, ISTCB1, ISTCB2
         INTEGER,     POINTER:: IUZT, MAXPTS, IRTFLG, NUMTIM

@@ -5,6 +5,7 @@ c                  GZH  20050405      -- Converted calculations to use double pr
 c                  KJH  20050419      -- Array WELL2 dimensioned to 18 to store well id
 C                  AWH  20080411      -- Retrieve HDRY from GWFBASMODULE rather than from
 C                                        LPF, BCF, or HUF
+C                  RGN  20111001      -- Modified to support UPW; removed BC switching is UPW is used.
 c
       MODULE GWFMNW1MODULE
         DOUBLE PRECISION, PARAMETER :: TWOPI=2.0D0*3.1415926535897932D0
@@ -1050,6 +1051,12 @@ c Process multi-node wells, Constraints were already tested when allocating flow
             qact = WELL2(3, m)
             iqslv = 0
           ENDIF
+! Added next lines to stop BC switching. RGN 7/20/11
+! 
+          IF ( Iuupw.GT. 0 ) THEN
+            hlim = WELL2(10, m)
+            iqslv = 1
+          END IF
 c
 c   Modify HCOF and RHS arrays
           IF ( iqslv.NE.0 .AND. Kiter.GT.1 .AND. Kiter.LT.NOMOITER )THEN

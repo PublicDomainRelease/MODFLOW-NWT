@@ -33,7 +33,7 @@ C     ------------------------------------------------------------------
 C
 C1------IDENTIFY PACKAGE AND INITIALIZE NWELLS.
       WRITE(IOUT,1)IN
-    1 FORMAT(1X,/1X,'WEL -- WELL PACKAGE, VERSION 7, 5/2/2005',
+    1 FORMAT(1X,/1X,'WEL -- WELL PACKAGE, VERSION 1.0.2, 10/1/2011',
      1' INPUT READ FROM UNIT ',I4)
       NWELLS=0
       NNPWEL=0

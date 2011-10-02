@@ -45,8 +45,8 @@ C1------grids to be defined.
 C
 C2------IDENTIFY PACKAGE AND INITIALIZE NMNW2.
       WRITE(IOUT,1)IN
-    1 format(/,1x,'MNW2 -- MULTI-NODE WELL 2 PACKAGE, VERSION 7,',
-     +' 12/18/2009.',/,4X,'INPUT READ FROM UNIT ',i3)
+    1 format(/,1x,'MNW2 -- MULTI-NODE WELL 2 PACKAGE, VERSION 1.9,',
+     +' 10/01/2011.',/,4X,'INPUT READ FROM UNIT ',i3)
       NMNW2=0
       ntotnod=0
 C
@@ -1936,7 +1936,7 @@ c
       RETURN
       END
 C
-      SUBROUTINE GWF2MNW27FM(KITER,kstp,kper,IGRID)
+      SUBROUTINE GWF2MNW27FM(KITER,Iuupw,kstp,kper,IGRID)
 C     ******************************************************************
 C     ADD MNW2 TERMS TO RHS AND HCOF
 C     ******************************************************************
@@ -1952,7 +1952,7 @@ C     ------------------------------------------------------------------
      2                       CapTable,SMALL,WELLID
 C     ------------------------------------------------------------------
 
-      INTEGER PUMPCAP,firstnode,lastnode
+      INTEGER PUMPCAP,firstnode,lastnode, Iuupw
       DOUBLE PRECISION verysmall,qdes,hlim,hwell,qact,
      & cond,dhc2w,hmax,hsim,ratio,qactCap,Hlift,
      & CapMult,lastQ,qtemp,temppct,lastH,htemp,HWtol,hhnew
@@ -2191,6 +2191,11 @@ C                                      !! or bottom of cell if seepage face cell
                   iqslv = 0
                 endif
               end if
+! Added the next lines to stop BC switching. RGN 7/20/11
+               IF ( Iuupw.GT.0 ) THEN
+                 hlim = MNWNOD(15,INODE)
+                 iqslv = 1
+               END IF
 c
 c   Modify HCOF and RHS arrays
 cdebug replace below line with this if debugging with No Mo Iter

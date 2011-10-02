@@ -18,9 +18,11 @@ C     Last change:  MLM & LFK  10 Oct 2003;  LFK 21 Jan 2004
 C     Previous change:  ERB  13 Sep 2002    9:22 am
 C
       MODULE GWFLAKMODULE
-C------VERSION 7;   CREATED FOR MODFLOW-2005
+C------OLD USGS VERSION 7.1; JUNE 2006 GWFLAKMODULE; 
+C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+C------NEW VERSION NUMBER 1.0.2:  OCTOBER 01, 2011  
         CHARACTER(LEN=64),PARAMETER ::Version_lak =
-     +'$Id: gwf2lak7_dev.f 2370 2011-01-27 17:35:48Z rniswon $'
+     +'$Id: gwf2lak7_NWT.f 2370 2011-10-01 17:35:48Z rniswon $'
         INTEGER,SAVE,POINTER   ::NLAKES,NLAKESAR,ILKCB,NSSITR,LAKUNIT
         INTEGER,SAVE,POINTER   ::MXLKND,LKNODE,ICMX,NCLS,LWRT,NDV,NTRB,
      +                           IRDTAB
@@ -153,8 +155,9 @@ Crsr    Allocate arrays in BD subroutine
 C
       SUBROUTINE GWF2LAK7AR(IN,IUNITSFR,IUNITGWT,IUNITUZF,NSOL,IGRID)
 C
-C------USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
-C        REVISED APRIL-AUGUST 2009  
+C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
+C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+C------NEW VERSION NUMBER 1.0.2:  OCTOBER 01, 2011  
 C     ******************************************************************
 C     INITIALIZE POINTER VARIABLES USED BY SFR1 TO SUPPORT LAKE3 AND
 C     GAGE PACKAGES AND THE GWT PROCESS
@@ -334,7 +337,7 @@ Cdep      IF(ITRSS.LE.0.AND.NSSITR.EQ.0) NSSITR = 50
 Cdep      IF(ITRSS.LE.0.AND.SSCNCR.EQ.0.0) SSCNCR = 0.01
 Cdep      IF(ITRSS.EQ.0) WRITE(IOUT,23) NSSITR, SSCNCR
 Cdep      IF(ITRSS.LT.0) WRITE(IOUT,24) NSSITR, SSCNCR
-1     FORMAT(/1X,'LAK7 -- LAKE PACKAGE, VERSION 7, 6/28/2006',
+1     FORMAT(/1X,'LAK7 -- LAKE PACKAGE, VERSION 1.0.2, 11/01/2011',
      1' INPUT READ FROM UNIT',I3)
 2       FORMAT(1X,' NUMBER OF LAKES=0, ',
      1              ' SO LAKE PACKAGE IS BEING TURNED OFF')
@@ -506,8 +509,9 @@ C
      +                      IUNITSFR,IUNITUZF,IUNITUPW,KKPER,NSOL,
      +                      IOUTS,IGRID)
 C
-C------USGS VERSION 7.1;  JUNE 2006 GWF2LAK7RP
-C        REVISED APRIL-AUGUST 2009  DEP&RGN
+C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
+C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+C------NEW VERSION NUMBER 1.0.2:  OCTOBER 01, 2011  
 C     ******************************************************************
 C       READ INPUT DATA FOR THE LAKE PACKAGE.
 C     ------------------------------------------------------------------
@@ -898,12 +902,12 @@ Cdep  revised print statement to include area
 Cdep Revised estimate of DTHK to be thickness of top most 
 C     layer 6/09/2009
       IF(BOTM(I,J,0).GT.TOPMST) TOPMST = BOTM(I,J,0) 
-      DTHK = BOTM(I,J,0) - BOTM(I,J,1)
-      IF (DTHK.LE.GTSDPH) THEN
-        TOPMST = BOTM(I,J,1)+DTHK
-      ELSE 
-        TOPMST = BOTM(I,J,1)+GTSDPH
-      END IF
+!      DTHK = BOTM(I,J,0) - BOTM(I,J,1)   RGN this was causing problems 7/8/11
+!      IF (DTHK.LE.GTSDPH) THEN
+!        TOPMST = BOTM(I,J,1)+DTHK
+!      ELSE 
+!        TOPMST = BOTM(I,J,1)+GTSDPH
+!      END IF
  1340 CONTINUE
       TBNC = (TOPMST-BOTTMS(L1))/150.0
 Cdep Revised looping for computing lake stage, volume, 
@@ -952,52 +956,7 @@ Cdep PRINT TABLE OF ELEVATION, VOLUME, AND AREA
      +                    AREATABLE(INC,L1) 
         TBELV = TBELV + TBNC 
       END DO
-!      DO  INC=1,151
-
-!        TBELV=DEPTHTABLE(INC,L1)
-!        IF(INC.GT.1.AND.ABS(BOTIJ-TBELV).LT.1.0E-03) THEN
-!           AREATABLE(INC,L1)=(AREATABLE(INC-1,L1)+AREATABLE(INC+1,L1))/2
-!           VOLUMETABLE(INC,L1)=(VOLUMETABLE(INC-1,L1)+
-!     +                         VOLUMETABLE(INC+1,L1))/2
-!        END IF    
-!      END DO
  1315 FORMAT(3(1X,1PE13.5))
-Cdep&rgn Commented out the following 34 lines and replaced with the
-Cdep&rgn previous 45 lines
-Cdep  DO 1325 K=1,150         ! Increased increment by 1.
-C      DO 1325 K=1,151
-C      EVOL=0.0
-Cdep     TBELV = TBELV + TBNC  ! moved end of loop
-C     DO 1320 I=1,NCOL
-C      DO 1320 J=1,NROW
-C      IF(LKARR1(I,J,1).NE.L1) GO TO 1320
-C      DO 1318 K2=1,NLAY
-C      IF(LKARR1(I,J,K2).EQ.0) GO TO 1319
-C 1318 CONTINUE
-C      BOTIJ = BOTM(I,J,LBOTM(NLAY))
-C      GO TO 1313
-C 1319 BOTIJ = BOTM(I,J,LBOTM(K2-1))
-Cdep Add values to area and depth tables
-C      IF(K.EQ.1) THEN
-C        IF(TBELV+TBNC.GT.BOTIJ) THEN
-C          AREATABLE(K,L1)=AREATABLE(K,L1)+DELC(J)*DELR(I)
-C          DEPTHTABLE(K,L1)=TBELV
-C        END IF
-C      ELSE 
-C        IF(TBELV.GT.BOTIJ) THEN
-C          AREATABLE(K,L1)=AREATABLE(K,L1)+DELC(J)*DELR(I)
-C          DEPTHTABLE(K,L1)=TBELV
-C        END IF
-C      END IF  
-C 1313 IF(TBELV.LE.BOTIJ) GO TO 1320
-C      DV = (TBELV-BOTIJ)*DELC(J)*DELR(I)   
-C      EVOL = EVOL + DV
-C 1320 CONTINUE
-Cdep Added printing of area for each lake depth
-Cdep  WRITE(IOUT,1315) TBELV, EVOL
-C      WRITE(IOUT,1315) TBELV, EVOL, AREATABLE(K,L1)
-C      TBELV = TBELV + TBNC
-C 1325 CONTINUE
       WRITE(IOUT,1326)
  1326 FORMAT(120X)
 Cdep  set minimum and maximum lake stages for transient simulations
@@ -1023,19 +982,6 @@ Cdep  revised print statement to include area
           END DO
         END DO      
       END IF
-C
-Cdep initialized arrays to zero where allocated
-C
-C-- INITIALIZE STREAM INFLOW SEGMENT ARRAY TO ZERO.
-Cdep      DO 400 LNUM=1,NLAKES
-Cdep         DO 400 LNP=1,NSS
-Cdep400         ITRB(LNUM,LNP)=0
-C
-C-- INITIALIZE STREAM OUTFLOW SEGMENT ARRAY TO ZERO.
-Cdep      DO 500 LNUM=1,NLAKES
-Cdep         DO 500 LNP=1,NSS
-Cdep500         IDIV(LNUM,LNP)=0
-C
       IF(IUNITSFR.LE.0) THEN
          NDV=0
          NTRB=0
@@ -1206,7 +1152,9 @@ C7------RETURN
 C
       SUBROUTINE GWF2LAK7AD(KKPER,KKSTP,IUNITGWT,IGRID)
 C
-C------VERSION 7.1 JUNE 2006 GWF2LAK7AD; REVISIONS AUGUST 2009 DEP&RGN
+C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AD; 
+C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+C------NEW VERSION NUMBER 1.0.2:  OCTOBER 01, 2011  
 C
 C     ******************************************************************
 C     ADVANCE TO NEXT TIME STEP FOR TRANSIENT LAKE SIMULATION, AND COPY
@@ -1339,10 +1287,9 @@ C3------RETURN
 C
       SUBROUTINE GWF2LAK7FM(KKITER,KKPER,KKSTP,IUNITSFR,IUNITUZF,IGRID)
 C
-C----- USGS VERSION 7.1; JUNE 2006 GWF2LAK7FM
-Cdep  MODIFIED SUBROUTINE TO ITERATIVELY SOLVE FOR LAKE STAGE EVEN
-C       DURING TRANSIENT STRESS PERIODS. REVISIONS MARCH THROUGH
-C       AUGUST 2009  DEP AND RGN
+C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7FM; 
+C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+C------NEW VERSION NUMBER 1.0.2:  OCTOBER 01, 2011  
 C     ******************************************************************
 C     ADD LAKE TERMS TO RHS AND HCOF IF SEEPAGE OCCURS IN MODEL CELLS
 C     ******************************************************************
@@ -1375,7 +1322,7 @@ Cdep  added runoff and flobo3
 Cdep  added unsaturated flow beneath lakes flag as a local variable
       INTEGER ISS, LK, ITRIB, INODE, LAKE, MTER, IICNVG, L1, MAXITER
       INTEGER NCNV, LL, II, L, IC, IR, IL, ITYPE
-      INTEGER LI, INOFLO, IDV, IL1
+      INTEGER LI, INOFLO, IDV, IL1,n
 Cdep  added SURFDPTH, CONDMX,BOTLKUP,BOTLKDN  3/3/2009
       DOUBLE PRECISION BOTLK,BOTCL,CONDUC,H,FLOBOT,STGON,
      1                 FLOBO3,THET1,CLOSEZERO,
@@ -1543,12 +1490,7 @@ C5B------DETERMINE LAKE AND NODAL LAYER,ROW,COLUMN NUMBER.
                 INOFLO = 0
 C
 C9A------CALCULATE SEEPAGE.
-C    
-!       IF (kkper==3.and.kkiter==2.and.lake==2.and.ii==2)then
-!       IF (ic==59.and.ir==55.and.il1==2)then
-!       INOFLO = 0
-!       end if   
-!       end if     
+C           
                 CALL GET_FLOBOT(IC, IR, IL1, ITYPE, INOFLO,CONDUC,
      1                FLOBOT,FLOBO3,FLOTOUZF,DLSTG,CLOSEZERO,H,
      2                THET1,ISS,LAKE,II,SURFDPTH,AREA,IUNITUZF,
@@ -1765,7 +1707,7 @@ C16E----LINEAR CASE. SIMPLY CALCULATE STAGE BASED ON VOLUME.
                   DSTG = ABS(STGNEW(LAKE) - STGITER(LAKE))
                   NCNCVR(LAKE) = 1
                 END IF
-!      IF (kkper==51.and.KKSTP==5.and.lake==2)then
+!      IF (kkiter==26)then
 !      write(iout,222)PRECIP(LAKE),EVAP(LAKE),RUNF,RUNOFF,
 !     1                WITHDRW(LAKE),SURFIN(LAKE),SURFOT(LAKE),
 !     2                SEEP(LAKE),VOLNEW1,VOLOLDD(LAKE),STGNEW(LAKE),
@@ -1827,8 +1769,9 @@ C
       SUBROUTINE GWF2LAK7BD(KSTP,KPER,IUNITGWT,IUNITGAGE,IUNITSFR,
      1                     IUNITUZF,NSOL,IGRID)
 C
-C----- USGS VERSION 7.1; JUNE 2006 GWF2LAK7BD
-C      Revisions MARCH through AUGUST, 2009  DEP&RGN
+C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7BD; 
+C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+C------NEW VERSION NUMBER 1.0.2:  OCTOBER 01, 2011  
 C     ******************************************************************
 C     CALCULATE VOLUMETRIC BUDGET FOR LAKES
 C     ******************************************************************
@@ -3126,7 +3069,7 @@ C     ------------------------------------------------------------------
 C     SPECIFICATIONS:
 C     ------------------------------------------------------------------
       USE GWFLAKMODULE, ONLY: LKNODE, BEDLAK, LKARR1, ILAKE, CNDFCT
-      USE GLOBAL,       ONLY: NLAY, IOUT, DELR, DELC, LAYHDT
+      USE GLOBAL,       ONLY: NLAY, IOUT, DELR, DELC, LAYHDT,NCOL,NROW
       USE GWFBCFMODULE, ONLY: IWDFLG, HY, CVWD, TRPY
 C
       WRITE(IOUT,108)

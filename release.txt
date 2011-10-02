@@ -50,6 +50,63 @@ of a simulation.
 Source files that were modified include: MF_NWT.f, NWT1_solver.f, NWT1_xmd.f,     
 gwf2hfb7_NWT.f, NWT1_gmres.f90, and gwf2bas7.f
 
+o Version 1.0.2 10/03/2011:
+
+MODFLOW-NWT was compiled again because the last release of the program required 
+a large amount of RAM to run models. The reason for this unecessary memory usage
+was not determined but it is assumed that the issue was related to the compiler.
+The new compiled version requires much less memory. For example, a model that
+required 2 Gb of memory to run now requires 120 Mb. This new memory usage
+is consistent with what is required by MODFLOW-2005.
+
+Changes were made to the MODFLOW-NWT source files such that residual-control 
+(backtracking) iterations are no longer counted as outer iterations. This change 
+affects the NWT solver iteration information that is printed to the main List file. 
+
+Another change was made to stop model execution when the convergence criteria are not met.
+In previous versions of MODFLOW-NWT, the model continued to solve after the model
+failed to converge. A keyword option was added to the NWT Package input file to 
+allow the user to control whether the model will stop after convergence failure. 
+If the keyword "CONTINUE" is added following the input variable OPTIONS then the model  
+will not stop after convergence failure. If this keyword is not specified then the 
+model will stop after convergence failure. For example, the key word "CONTINUE" can 
+be added to the first line of the NWT input file as:
+
+1.0E-4 1. 500 1.0e-5  2  1 1 SPECIFIED CONTINUE 0.9 0.00001 0.000  0.10 0  20 2.0 0.6
+
+For this input option, if the model fails to converge during a time step then it 
+will continue to the next time step. However, if the "CONTINUE" is removed
+from this line, then the model will stop after convergence failure.
+
+Another change was made to fix a bug that caused the model to print a blank line
+to the main List file rather than correctly printing the string "SPECIFIC YIELD
+FOR LAYER..." This change does not affect model results.
+
+Another change was made to modify how groundwater heads are reset to the layer-
+bottom altitude when the calculated heads are below the bottom of the deepest layer. 
+In the previous version of the code there was a condition when heads could be 
+reset to an incorrect value, and this caused small oscillations in some problems.   
+This change may have a small affect to improve model convergence if the NWT input 
+variable IBOTAV is equal to 1.
+
+Another change was made to fix oscillatory behavior caused by a feature in the MNW2
+and MNW1 packages. The original versions of these packages switched between
+a specified flux and a head-dependent boundary conditions during outer iterations.
+The MNW1 and MNW2 packages were modified such that the boundary condition is
+fixed as a head-dependent boundary condition.
+
+A small change was made in the XMD source file to allow for double precision
+compilations. This change was to change the statement from real*4 to real. 
+
+Small changes were made to the UZF1 and SFR2 source files to improve standard
+output options.
+
+Changes were made to the MT3DMS linker files (lmt7_NWT.f, and lmt7_NWT.inc) to
+include water balance information for the MNW2 and MNW1 packages.
+
+Source files that were modified include: MF_NWT.f, NWT1_solver.f, NWT1_xmd.f,     
+gwf2MNW27_NWT.f, gwf2MNW17_NWT.f, gwf2sfr7_NWT.f, gwf2upw1.f, gwfsfrmodule_NWT.f, 
+gwf2uzf1_NWT.f, gwfuzfmodule_NWT.f, lmt7_NWT.f, and lmt7_NWT.inc.
 
 Reference:
 
