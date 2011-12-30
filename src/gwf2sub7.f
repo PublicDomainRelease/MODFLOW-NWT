@@ -642,7 +642,7 @@ C       LOC2H=NK+N1
 C4-----RETURN.
       RETURN
       END
-      SUBROUTINE GWF2SUB7FM(IUNITUPW,KPER,KITER,ISIP,IGRID)
+      SUBROUTINE GWF2SUB7FM(KPER,KITER,ISIP,IGRID)
 C     ******************************************************************
 C        ADD INTERBED STORAGE TERMS TO RHS AND HCOF
 C     ******************************************************************
@@ -780,7 +780,7 @@ C
 C11-----RETURN
       RETURN
       END
-      SUBROUTINE GWF2SUB7BD(IUNITUPW,KSTP,KPER,IGRID)
+      SUBROUTINE GWF2SUB7BD(KSTP,KPER,IGRID)
 C     ******************************************************************
 C     CALCULATE VOLUMETRIC BUDGET FOR INTERBED STORAGE
 C     ******************************************************************

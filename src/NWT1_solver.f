@@ -46,7 +46,7 @@
 !1------IDENTIFY PACKAGE AND INITIALIZE.
       WRITE (Iout, 9001) In
  9001 FORMAT (1X, /' NWT1 -- Newton Solver, ',
-     +       'VERSION 1.0.2, 10/01/2011', /, 9X, 'INPUT READ FROM UNIT',
+     +       'VERSION 1.0.3, 12/29/2011', /, 9X, 'INPUT READ FROM UNIT',
      +        I3,/)
       i = 1
       Itreal = 0
@@ -224,15 +224,41 @@ C3B-----GET OPTIONS.
 !3-----ALLOCATE SPACE
       
       ALLOCATE (Icell(Ncol, Nrow, Nlay))
-      ALLOCATE (Diag(Ncol*Nrow*Nlay, 3), II)
+      ALLOCATE (Diag(Ncol*Nrow*Nlay, 3), II, Hiter(Ncol, Nrow, Nlay))
       Numnonzero = 0
       II = 0
       ICELL = 0
       DIAG = 0
+ ! Check heads and set to be above bottom. 
+      Do il = 1, Nlay
+        Do ir = 1, Nrow
+          Do ic = 1, Ncol
+            IF ( IBOUND(ic,ir,il).GT.0 ) THEN
+              IF ( BOTM(ic,ir,LBOTM(il)-1) - 
+     +             BOTM(ic,ir,LBOTM(il)).LT.4.0*Thickfact ) THEN
+                WRITE(IOUT,*) 'Extremely thin cell for Column = ',ic,
+     +                         ' and Row = ',ir,' and Layer = ',il,
+     +                         ' Check input, Setting IBOUND = 0'
+                IBOUND(ic,ir,il) = 0
+              END IF    
+ ! these next three lines could cause slow convergence when using a solution for IC.            
+!              IF ( HNEW(ic,ir,il).LT.BOTM(ic,ir,LBOTM(il)) ) THEN
+!                HNEW(ic,ir,il) = BOTM(ic,ir,LBOTM(il))+HEPS
+!              END IF
+            END IF
+            Hiter(ic,ir,il) = HNEW(ic,ir,il)
+          End do
+        End do
+      End do
  !  Determine the number of active cells and then numnber of elements
  !  in linear matrix for allocating arrays.
       CALL ORDERCELL()
       CALL COUNTACTIVE(jj)
+      IF ( Numactive.LT.2 ) THEN
+        WRITE(Iout,*)'MODFLOW-NWT does run with single-cell models. ',
+     +               'Model Stopping.'
+        CALL USTOP('')
+      END IF
       Numnonzero = jj
       Numcell = Numactive
 ! Allocate global linear solver arrrays
@@ -295,7 +321,7 @@ C
 !  
       ALLOCATE (Cvm1, Hvm1, Hvp1, Crm1, Hrm1, Hrp1, Ccm1)
       ALLOCATE (Hcm1, Hcp1, Ccc, Crr, Cvv, H)
-      ALLOCATE (Hcoff, Rhss, Hiter(Ncol, Nrow, Nlay))
+      ALLOCATE (Hcoff, Rhss)
       ALLOCATE (W, Fhead, Fflux, Fheadsave, NJA)    
 !
       W = 1.0D0
@@ -314,27 +340,6 @@ C
       END IF
 !
 !
-! Check heads and set to be above bottom. 
-      Do il = 1, Nlay
-        Do ir = 1, Nrow
-          Do ic = 1, Ncol
-            IF ( IBOUND(ic,ir,il).GT.0 ) THEN
-              IF ( BOTM(ic,ir,LBOTM(il)-1) - 
-     +             BOTM(ic,ir,LBOTM(il)).LT.Heps) THEN
-                WRITE(IOUT,*) 'Extremely thin cell for Column = ',ic,
-     +                         ' and Row = ',ir,' and Layer = ',il,
-     +                         ' Check input, Setting IBOUND = 0'
-                IBOUND(ic,ir,il) = 0
-              END IF    
- ! these next three lines could cause slow convergence when using a solution for IC.            
-!              IF ( HNEW(ic,ir,il).LT.BOTM(ic,ir,LBOTM(il)) ) THEN
-!                HNEW(ic,ir,il) = BOTM(ic,ir,LBOTM(il))+HEPS
-!              END IF
-            END IF
-            Hiter(ic,ir,il) = HNEW(ic,ir,il)
-          End do
-        End do
-      End do
 C
 ! 
 !
@@ -895,7 +900,7 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
       RMS1 = RMS_func(icfld,irfld,ilfld,kkiter)
       Icnvg = 0
       IF ( RMS1.GT.FTOL .OR. ABS(Fheadsave).GT.Tol .OR. 
-     +                           kkiter+kper.EQ.2 ) THEN
+     +                           kkiter.LT.2 ) THEN
         Ibt = 1
         IF ( BTRACK.EQ.0 .OR. II.GE.Numtrack ) Ibt = 0
         IF ( RMS1.LT.Btol*rmsave .OR. Kkiter.EQ.1 ) Ibt = 0
@@ -936,64 +941,23 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
           ELSEIF(LINMETH.EQ.2)THEN
 C
 C---------CALL XMD SOLVER     
-!            IF(IDSCALE.EQ.1)THEN 
-c           diagonal scaling
-!              call xmddgscl(A, BB, dgscal, ia, ja, Numactive, nja)
-!            ENDIF
-C          
-cmi        IF(IDROPTOL.EQ.0)THEN
-cmi  skip level/drop tolerance preconditioning after 1st n-r iteration
 c
             IF (IDROPTOL.EQ.0 .or.  kkiter.gt.1) THEN
-c           numerical factorization only for level based scheme
-
-cmi
-c              call xmdnfctr(A, af, BB, rwork,
-c     [                ia, ja, iwork, msindx, Numactive, nja, njaf,
-c     [                lrwrk, liwrk, nblack, ierr)
-cmi
               call xmdnfctr(a, bb, ia, ja, nja, numactive, ierr)
-cmi
             ELSE
-c             level/drop tolerance preconditioning
-cmi
-c              call xmdprecd(A, BB, af, rwork, epsrn, ia, ja, iwork,
-c     [                msindx, level, liwrk, lrwrk, nblack,
-c     [                nja, njaf, Numactive, ierr, ldcomb)
-cmi
-
               call xmdprecd(a, bb, epsrn, ia, ja, nja, numactive,
      [                      level, ierr)
 
 cmi
 C
             ENDIF                                                     
-cmi
-c           write (iout,317) minjaf
-c 317  format (10x,'XMD Solver - actual size of af, jaf arrays (njaf):',
-c    [         i19)  
-cmi
 c  -----------------
 c         solve matrix
-            iter = Mxiterxmd
-cmi
-c            call xmdsolv(A, BB, af, HCHANGE, rwork, Hclosexmd, rrctol,
-c     [               ia, ja, iwork, msindx,
-c     [               nblack, Numactive, nja, njaf, north, ITER, lrwrk,
-c     [               liwrk, iacl, ierr)
-cmi
+          iter = Mxiterxmd
           call xmdsolv(a, bb, hchange, hclosexmd, rrctol, ia, ja, nja,
      [                 numactive, north, iter, iacl, ierr)
-cmi
             n_iter = iter
 C     
-            IF(IDSCALE.EQ.1)THEN
-c  ----------------
-c           recover {x} because diagonal scaling subroutine (xmddgscl) is used
-              do jj = 1, Numactive
-                HCHANGE(jj) = HCHANGE(jj) * dgscal(jj)
-              enddo                  
-            ENDIF
 !          ELSE IF ( Linmeth.EQ.3 ) THEN !SAMG solver
 
 c         INPUT DATA
@@ -1112,7 +1076,7 @@ C--Update heads.
      +          '   Max.-Head-Change   ', 
      +          ' Column Row Layer ',
      +          '   Max.-Flux-Residual',
-     +          '           RMS-New               RMS-Old           ',
+     +          '            L2-New               L2-Old           ',
      +          'Solver-Max-Delh' )
   112 FORMAT (1X,'                                ',
      +           '                  Max.-Head-Change',
@@ -1123,7 +1087,7 @@ C--Update heads.
      +          ' Column Row Layer ',   
      +          '   Maximum-Head-Change ', 
      +          ' Column Row Layer ',
-     +          '   Maximum-Flux-Residual          RMS ')
+     +          '   Maximum-Flux-Residual          L2-NORM ')
       itertot = itertot + n_iter
       IF ( IPRNWT.GT.0 ) THEN
         IF ( Icnvg.EQ.0 .OR. ippn.EQ.1) THEN
@@ -1673,11 +1637,11 @@ C--Update heads.
         END IF
 !        I1 = IA(ij)
 !        I2 = IA(ij+1)-1
-!        if ( kper.gt.28)then
+!!        if ( kper.gt.28)then
 !!        if(ic==49.and.ir==236.and.il==1)then
 !        WRITE(IOUT,66)ij,BB(ij),HNEW(ic,ir,il),BOTM(ic,ir,il-1),
 !     +                BOTM(ic,ir,il),HCOFF,RHSS,(A(I),I=I1,I2)
-!        end if
+!!        end if
 !!        end if      
 ! 66      FORMAT(I9,1X,3G15.6,2X,11G15.6)
       END DO

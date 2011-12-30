@@ -7,7 +7,7 @@ C     ALLOCATE ARRAY STORAGE FOR STREAMS
 C     INITIALIZE VARIABLES FOR SFR PACKAGES
 C     READ STREAM DATA THAT IS CONSTANT FOR ENTIRE SIMULATION:
 C     REACH DATA AND PARAMETER DEFINITIONS
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.3:  DECEMBER 29, 2011
 C     ******************************************************************
 C     SPECIFICATIONS:
 C     ------------------------------------------------------------------
@@ -33,12 +33,13 @@ C     ------------------------------------------------------------------
       INTEGER nseg, nreach, krch, irch, jrch, jseg, ireach, ksfropt
       INTEGER krck, irck, jrck, jsegck, ireachck, kkptflg, ib
       INTEGER lstsum, lstbeg, numinst, idum(1), ip, iterp, mstrmar
-      INTEGER nssar, nstrmar, nsegdim, Ltyp, NPP, MXVL, IRFG, ITRFLG
+      INTEGER nssar, nstrmar, Ltyp, NPP, MXVL, IRFG, ITRFLG
+      INTEGER k, kkrch
       REAL r, seglen, sumlen, thsslpe, thislpe, uhcslpe, rchlen, dist
       REAL epsslpe
 C     ------------------------------------------------------------------
       Version_sfr =
-     +'$Id: gwf2sfr7_NWT.f 2359 2011-10-01 00:41:23Z rniswon $'
+     +'$Id: gwf2sfr7_NWT.f 2359 2011-12-29 00:41:23Z rniswon $'
       iterp = 1
       idum(1) = 0
       ALLOCATE (NSS, NSTRM,TOTSPFLOW)
@@ -52,7 +53,7 @@ C     ------------------------------------------------------------------
 C1------IDENTIFY PACKAGE AND INITIALIZE NSTRM.
       WRITE (IOUT, 9001) In
  9001 FORMAT (1X, /, ' SFR7 -- STREAMFLOW ROUTING PACKAGE, '
-     +        ,'VERSION 1.0.2, 2011-10-01', /, 9X, 
+     +        ,'VERSION 1.0.3, 2011-12-29', /, 9X, 
      +         'INPUT READ FROM UNIT', I4)
 C
 C2------READ COMMENT RECORDS, NSTRM, NSS, NSFRPAR, NPARSEG, CONST,
@@ -178,7 +179,8 @@ C4------READ UNSATURATED FLOW VARIABLES WHEN ISFROPT GREATER THAN 1.
       IF (NSS.GT.0) nssar = NSS
       nstrmar = 1
       IF (NSTRM.GT.0) nstrmar = NSTRM
-      nsegdim = NSS + nparseg
+! RGN put NSEGDIM into module for FMP 10/15/11
+      NSEGDIM = NSS + nparseg
       IF (nsegdim.LT.1) nsegdim = 1
 C
 C5------CALCULATE SPACE NEEDED FOR TABULATED DISCHARGE VERSUS FLOW
@@ -199,8 +201,9 @@ Cdep  changed DSTROT to FXLKOT
       ALLOCATE (QSTRM(nstrmar,NUMTIM))
       ALLOCATE (HWTPRM(nstrmar,NUMTIM))
       ALLOCATE (DVRCH(nstrmar),DVEFF(nstrmar))        !cjm
-      ALLOCATE (DVRCELL(100,2,nss))  !cjm
+      ALLOCATE (DVRCELL(500,2,nss))  !cjm
       ALLOCATE (RECHSAVE(NCOL,NROW),DVRPERC(NCOL,NROW))   !cjm
+      ALLOCATE (FNETSEEP(NCOL,NROW)) !rgn printing net recharge in UZF
       STRM = 0.0  
       HSTRM = 0.0
       QSTRM = 0.0
@@ -212,6 +215,7 @@ Cdep  changed DSTROT to FXLKOT
       DVRCELL = 0     !cjm
       RECHSAVE = 0.0  !cjm
       DVRPERC = 0.0   !cjm
+      FNETSEEP = 0.0  !rgn
       ALLOCATE (SEG(26,nsegdim), ISEG(4,nsegdim), IDIVAR(2,nsegdim))
 Cdep  allocate space for stream outflow derivatives for lake package
       ALLOCATE (DLKOTFLW(200,nssar), SLKOTFLW(200,nssar))
@@ -524,7 +528,11 @@ C        AND SPECIFIC YIELD WHEN UNSATURATED FLOW IS ACTIVE.
                 THTR(ii) = THTS(ii) - SC1(jrch, irch, krch)
      +                   /(DELR(jrch)*DELC(irch))
               ELSE
-                THTR(ii) = THTS(ii) - SC2(jrch, irch, krch+1)
+                kkrch = 0
+                DO k = 1, krch
+                IF(LAYCON(K).EQ.3 .OR. LAYCON(K).EQ.2)kkrch = kkrch + 1
+                END DO
+                THTR(ii) = THTS(ii) - SC2(jrch, irch, kkrch)
      +                   /(DELR(jrch)*DELC(irch))
               END IF
             ELSE IF ( Iunithuf.GT.0 ) THEN
@@ -650,7 +658,12 @@ C         AND SPECIFIC YIELD WHEN UNSATURATED FLOW IS ACTIVE.
                       THTR(irch) = THTS(irch) - SC1(jrck, irck, krck)
      +                         /(DELR(jrck)*DELC(irck))
                     ELSE
-                      THTR(irch) = THTS(irch) - SC2(jrck, irck, krck)
+                      kkrch = 0
+                      DO k = 1, krch
+                        IF(LAYCON(K).EQ.3 .OR. LAYCON(K).EQ.2)
+     +                   kkrch = kkrch + 1
+                      END DO
+                      THTR(irch) = THTS(irch) - SC2(jrck, irck, kkrch)
      +                         /(DELR(jrck)*DELC(irck))
                     END IF
                   ELSE IF( Iunithuf.GT.0 ) THEN
@@ -1726,8 +1739,8 @@ CC45-----READ TABLES FOR SPECIFIED INFLOWS
      +        'SFR TABULAR INFLOW FILE. VALUE WILL BE RESET TO ZERO')
  9033 FORMAT('TABULAR INFLOWS WERE READ FOR SEGMENT ',I6,/
      +       'FROM FILE UNIT NUMBER ',I6,/)
- 9031 FORMAT(5X,'TIMES',10X,'INFLOWS')
- 9032 FORMAT(5X,F14.5,1X,F14.5)
+ 9031 FORMAT(10X,'TIMES',20X,'INFLOWS')
+ 9032 FORMAT(5X,F20.10,1X,F20.10)
       RETURN
       END SUBROUTINE GWF2SFR7RP
 C
@@ -1755,6 +1768,8 @@ C     FUNCTIONS
 C     -----------------------------------------------------------------
       REAL CALCUNSATFLOBOT
       EXTERNAL CALCUNSATFLOBOT
+      DOUBLE PRECISION SMOOTH
+      EXTERNAL SMOOTH
 C     -----------------------------------------------------------------
 C     ARGUMENTS
 C     -----------------------------------------------------------------
@@ -1781,7 +1796,7 @@ C     -----------------------------------------------------------------
      +                 runof, runoff, qa, qb, qc, qd, hstrave, fbot
       DOUBLE PRECISION fbcheck, hld, totflwt, sbdthk, thetas, epsilon, 
      +                 thr, thet1, dvrsn, rhsh1, hcofh1, rhsh2, 
-     +                 hcofh2, depthtr
+     +                 hcofh2, depthtr, dwdh, wetpermsmooth,cstrsmooth
 !     DOUBLE PRECISION rhsh1, hcofh1, rhsh2, hcofh2
 !rsr  DOUBLE PRECISION grad, hdiff
       REAL areamax, avhc, errold, fks, ha, qcnst, seep, 
@@ -1870,6 +1885,7 @@ C3------DETERMINE LAYER, ROW, COLUMN OF EACH REACH.
           il = ISTRM(1, l)
           ir = ISTRM(2, l)
           ic = ISTRM(3, l)
+          strtop = STRM(3, l)
 C
 C4------DETERMINE STREAM SEGMENT AND REACH NUMBER.
           istsg = ISTRM(4, l)
@@ -1939,7 +1955,9 @@ C
 C10-----FLOW FROM LAKE COMPUTED USING MANNINGS FORMULA AND ASSUMING A
 C         WIDE RECTANGULAR CHANNEL.
                   IF ( dlkstr.GT.NEARZERO .AND. icalc.EQ.1 ) THEN
-                    flowin = (CONST/roughch)*widthch
+! RGN 10/3/11 added smoothing for constant width channels that go dry
+                    flowin = (CONST/roughch)*widthch*
+     +                        smooth(dlkstr,dwdh)
      +                       *(dlkstr**FIVE_THIRDS)*(DSQRT(slope))
 C
 C11-----FLOW FROM LAKE COMPUTED USING MANNINGS FORMULA AND EIGHT POINT
@@ -2079,6 +2097,7 @@ C24-----INITIALIZE VARIABLES.
           runoff = STRM(24, l)
           strleak = strlen*avhc
           depthx = 0.0D0
+          widthp = 0.0D0
           dbleak = DLEAK
           deps = 0.999*DLEAK
           dlh = deps
@@ -2167,6 +2186,7 @@ Crgn 10/23/06 initialize flowc
             flwmpt = flowin + 0.5D0*(runof+runoff-etstr+precip)
             IF ( flwmpt.LT.NEARZERO ) flwmpt = 0.0D0
             IF ( flowc.LT.NEARZERO ) flowc = 0.0D0
+! RGN might need to correct depth for smooth width
             depth = (flwmpt/qcnst)**0.6D0
             IF ( depth.LT.NEARZERO ) THEN
               depth = 0.0D0
@@ -2220,11 +2240,16 @@ C30-----ESTIMATE DEPTH USING BISECTION METHOD WHEN ICALC IS GREATER THAN 0.
           iflg = 1
 C
 C30b----SKIP NEWTON METHOD WHEN ICALC IS 1 AND SURFACE INFLOW IS ZERO.
-          IF ( icalc.EQ.1 .AND. hstr.LE.strtop ) iflg = 0
+! RGN 10/4/11 need newton to smooth width to zero for drying channels
+          IF ( icalc.EQ.1 .AND. hstr.LE.strtop .AND. h.LE.strtop) 
+     +         iflg = 0
 C30c----SKIP NEWTON METHOD WHEN REACH OUTSIDE ACTIVE AREA AND ISKIP IS 1.
           IF ( iskip.NE.0 ) iflg = 0
           IF ( h.LE.strtop .AND. flowc.LT.NEARZERO ) iflg = 0
           IF ( icalc.GE.1 .AND. iflg.EQ.1 ) THEN
+      IF(kkper==7.and.kkstp==2.and.kkiter==7.and.l==80)then
+      cstrsmooth = cstr
+      end if
 C
 C31-----ESTIMATE INITIAL ENDPOINTS.
             enpt1 = 0.0D0
@@ -2241,6 +2266,7 @@ C31-----ESTIMATE INITIAL ENDPOINTS.
             END IF
 C
 C32-----ESTIMATE FLOW AT ENDPOINT1.
+! RGN might need to smooth width for end points
             IF ( h.GT.strtop ) THEN
               flobot1 = cstr*(strtop-h)
               flwen1 = flwmpt - 0.5D0*flobot1
@@ -2390,21 +2416,30 @@ C
 C41-----CALCULATE FLOBOT1 AND FLOBOT2 FOR ICALC EQUAL TO 1.
 Cdep  Corrected depth1+dlh and depth2+dlh to be depth1 and depth2.
               IF ( icalc.EQ.1 ) THEN
-                flwmdpt1 = qcnst*(depth1**FIVE_THIRDS)
-                flwmdpt2 = qcnst*(depth2**FIVE_THIRDS)
+! RGN 10/4/11 added smoothing for width when icalc=1
+                width1 = width*smooth(depth1,dwdh)
+                width2 = width*smooth(depth2,dwdh)
+                flwmdpt1 = smooth(depth1,dwdh)*
+     +                     qcnst*(depth1**FIVE_THIRDS)
+                flwmdpt2 = smooth(depth2,dwdh)*
+     +                     qcnst*(depth2**FIVE_THIRDS)
                 IF ( h.GT.sbot ) THEN
-                   flobot1 = cstr*((depth1+strtop)-h)
-                   flobot2 = cstr*((depth2+strtop)-h)
+                   flobot1 = smooth(depth1,dwdh)*
+     +                       cstr*((depth1+strtop)-h)
+                   flobot2 = smooth(depth2,dwdh)*
+     +                       cstr*((depth2+strtop)-h)
                 ELSE IF ( icalccheck.EQ.1 ) THEN
                   flobot1 = CALCUNSATFLOBOT(depth1, avhc, fks,
-     +                        width, sbdthk, areamax, strlen, fbcheck,
+     +                        width1, sbdthk, areamax, strlen, fbcheck,
      +                        NWAVST(:,l), maxwav, FOLDFLBT(lfold))
                   flobot2 = CALCUNSATFLOBOT(depth2, avhc, fks,
-     +                        width, sbdthk, areamax, strlen, fbcheck,
+     +                        width2, sbdthk, areamax, strlen, fbcheck,
      +                        NWAVST(:,l), maxwav, FOLDFLBT(lfold))
                 ELSE
-                  flobot1 = cstr*((depth1+strtop)-sbot)
-                  flobot2 = cstr*((depth2+strtop)-sbot)
+                  flobot1 = smooth(depth1,dwdh)*
+     +                      cstr*((depth1+strtop)-sbot)
+                  flobot2 = smooth(depth2,dwdh)*
+     +                      cstr*((depth2+strtop)-sbot)
                 END IF
 C                
 C42-----USE BISECTION WHEN FLOBOT1 IS LIMITED BY FLOW IN CHANNEL.
@@ -2412,12 +2447,16 @@ C42-----USE BISECTION WHEN FLOBOT1 IS LIMITED BY FLOW IN CHANNEL.
                   enpt2 = depthp
                   depthp = (enpt1+enpt2)*0.5D0
                   IF ( h.GT.sbot ) THEN
-                    flobotp = cstr*((depthp+strtop)-h)
+                    flobotp = smooth(depthp,dwdh)*
+     +                        cstr*((depthp+strtop)-h)
                   ELSE
-                    flobotp = cstr*((depthp+strtop)-sbot)
+                    flobotp = smooth(depthp,dwdh)*
+     +                        cstr*((depthp+strtop)-sbot)
                   END IF
                   IF ( 0.5D0*flobotp.GT.flwmpt ) flobotp = flowc
-                  depthx = ((flwmpt-0.5D0*flobotp)/qcnst)**0.6D0
+! might be issue here using depthp for smoothing
+                  depthx = ((flwmpt-0.5D0*flobotp)/
+     +                     (smooth(depthp,dwdh)*qcnst))**0.6D0
                   ibflg = 1
                 ELSE
                   fhstr1 = (flwmpt-0.5D0*flobot1) - (flwmdpt1)
@@ -2684,21 +2723,29 @@ C53-----COMPUTE FLOBOTP ON BASIS OF DEPTHP AND THEN ESTIMATE DEPTHX FROM
 C         FLOBOTP.
                   IF ( icalc.EQ.1 ) THEN
                     IF ( h.GT.sbot ) THEN
-                      flobotp = (cstr*(strtop+depthp-h))
+! RGN smooth width 10/4/11
+                      flobotp = smooth(depthp,dwdh)*
+     +                          cstr*(strtop+depthp-h)
                     ELSE IF ( icalccheck.EQ.1 ) THEN
+! RGN smooth width 10/4/11
+                      widthp = smooth(depthp,dwdh)*width
                       flobotp = CALCUNSATFLOBOT(depthp, avhc, fks, 
-     +                            width, sbdthk, areamax, strlen,
+     +                            widthp, sbdthk, areamax, strlen,
      +                            fbcheck, NWAVST(:,l), maxwav, 
      +                            FOLDFLBT(lfold))
                     ELSE
-                      flobotp = (cstr*(strtop+depthp-sbot))
+                      flobotp = (smooth(depthp,dwdh)*cstr*
+     +                          (strtop+depthp-sbot))
                     END IF
                     IF ( flobotp.GE.flowc ) THEN
                       flobotp = flowc
                       IF ( DABS(enpt1-enpt2).LE.dbleak*0.000001D0 )
-     +                     depthp = ((flwmpt-0.5D0*flobotp)/qcnst)**.6D0
+! RGN smooth width 10/4/11
+     +                     depthp = ((flwmpt-0.5D0*flobotp)/
+     +                              (smooth(depthp,dwdh)*qcnst))**.6D0
                     END IF
-                    depthx = ((flwmpt-0.5D0*flobotp)/qcnst)**0.6D0
+                    depthx = ((flwmpt-0.5D0*flobotp)/
+     +                       (smooth(depthp,dwdh)*qcnst))**0.6D0
                   ELSE IF ( icalc.GE.2 ) THEN
                     IF ( icalc.EQ.2 ) THEN
                       CALL GWF2SFR7FLW(depthp, istsg, roughch, roughbnk,
@@ -2840,8 +2887,9 @@ C         THAN TOLERANCE.
                 depth = depthp
                 flobot = flobotp
                 IF ( icalc.GE.2 ) THEN
-                  width = widthp
+ !                 width = widthp
                   wetperm = wetpermp
+                  IF ( wetperm.GT.width ) width =  wetperm
                   flowc = flowin + runof + runoff - etstr*width + 
      +                    precip*width
                   flwmpt = flowin + 
@@ -2906,7 +2954,7 @@ C          MODEL CELL IS INACTIVE. Revised dep 5/19/2005
               IF( flwmpt.LT.NEARZERO ) flwmpt = 0.0D0
 ! RGN 10/3/07 added check for flwmpt to avoid NaN values.
               IF ( icalc.EQ.1 .AND. flwmpt.GT.NEARZERO ) THEN
-                depth = (flwmpt/qcnst)**0.6D0
+                depth = (flwmpt/(smooth(depth,dwdh)*qcnst))**0.6D0
               ELSE
                 depth = 0.0
               END IF
@@ -2999,8 +3047,10 @@ crgn added next 4 lines.
                 flowc = flowin + runof + runoff + precip - etstr
               ELSE IF ( h.LT.sbot ) THEN
                 flobot = cstr*(hstr-sbot)
+                IF ( icalc.EQ.1 ) flobot = smooth(depth,dwdh)*flobot
               ELSE
                 flobot = cstr*(hstr-h)
+                IF ( icalc.EQ.1 ) flobot = smooth(depth,dwdh)*flobot
               END IF
             ELSE
               flobot = 0.0D0
@@ -3008,9 +3058,10 @@ crgn added next 4 lines.
           END IF
           IF ( flowc.GT.NEARZERO .AND. icalccheck.EQ.1 ) THEN
             IF ( h.LT.sbot ) THEN
-              flobot = CALCUNSATFLOBOT(depth, avhc, fks, wetperm,
-     +                   sbdthk, areamax, strlen, fbcheck, NWAVST(:,l),
-     +                   maxwav, FOLDFLBT(lfold))
+              wetpermsmooth = wetperm*smooth(depth,dwdh)
+              flobot = CALCUNSATFLOBOT(depth, avhc, fks, wetpermsmooth,
+     +                 sbdthk, areamax, strlen, fbcheck, NWAVST(:,l),
+     +                 maxwav, FOLDFLBT(lfold))
             ELSE
               DO i = 1, ISUZN
                 UZSEEP(i, l) = 0.0D0
@@ -3172,6 +3223,9 @@ C76-----ADD TERMS TO RHS AND HCOF IF FLOBOT IS NOT ZERO.
               hstrave = hstrave + HSTRM(l,i)
             END DO
             hstrave = hstrave/FLOAT(numdelt)
+            cstrsmooth = cstr
+            IF ( icalc.EQ.1 ) cstrsmooth = cstr*
+     +                        smooth(hstrave,dwdh)
             IF ( ABS(SUMLEAK(l)).GT.0.0 ) THEN
 C
 C77-----ADD TERMS TO RHS AND HCOF WHEN GROUND-WATER HEAD LESS THAN
@@ -3183,45 +3237,47 @@ C         STREAMBED BOTTOM ELEVATION.
                ELSEIF ( ii.EQ.2 ) THEN
                  rhsh2 = - SUMRCH(l)
                END IF
-!      fin=fin+sumrch(l)
+!      IF ( ii.EQ.1 ) fin=fin+sumrch(l)
 !      IF ( ii.EQ.1 .and.kkiter.eq.43)write(iout,*)l,sumrch(l)
 cdep  changed dbleak to -CLOSEZERO
               ELSE IF ( SUMLEAK(l)-flowc.LT.-CLOSEZERO ) THEN
 C
 C78-----STREAM LEAKAGE IS NOT HEAD DEPENDENT.
-                IF ( iss.EQ.0 ) THEN
+                IF ( iss.EQ.0 ) THEN        
                   IF ( ii.EQ.1 ) THEN
                     RHS(ic, ir, il) = RHS(ic, ir, il) - 
-     +                                        (cstr*hstrave)- SUMRCH(l)
-                    rhsh1 = - (cstr*hstrave)- SUMRCH(l)
+     +                                (cstrsmooth*hstrave)- SUMRCH(l)
+                    rhsh1 = - (cstrsmooth*hstrave)- SUMRCH(l)
                 ELSEIF ( ii.EQ.2 ) THEN
-                  rhsh2 = - (cstr*hstrave)- SUMRCH(l)
+                  rhsh2 = - (cstrsmooth*hstrave)- SUMRCH(l)
                 END IF
+!      IF ( ii.EQ.1 )then
 !      if (hstrave.gt.h)fin=fin+sumrch(l)+cstr*(hstrave-h)
+!      end if
 !      if( hstrave.lt.h)then
- !     fout=fout+cstr*(hstrave-h)
-!      fin=fin+sumrch(l)
+!      IF ( ii.EQ.1 ) fout=fout+cstr*(hstrave-h)
+!      IF ( ii.EQ.1 ) fin=fin+sumrch(l)
 !      end if
                 ELSE
                   IF ( ii.EQ.1 ) THEN
                     RHS(ic, ir, il) = RHS(ic, ir, il) - 
-     +                           (cstr*hstrave)
-                    rhsh1 = - (cstr*hstrave)
+     +                           (cstrsmooth*hstrave)
+                    rhsh1 = - (cstrsmooth*hstrave)
                   ELSEIF ( ii.EQ.2 ) THEN
-                    rhsh2 = - (cstr*hstrave)
+                    rhsh2 = - (cstrsmooth*hstrave)
                   END IF
- !     if (hstrave.gt.h)then
- !     fin=fin+cstr*(hstrave-h)
- !     else
- !     fout=fout+cstr*(hstrave-h)
- !     end if
+!      if (hstrave.gt.h)then
+!      IF ( ii.EQ.1 ) fin=fin+cstr*(hstrave-h)
+!      else
+!      IF ( ii.EQ.1 ) fout=fout+cstr*(hstrave-h)
+!      end if
  !     IF ( ii.EQ.1.and.kkiter.eq.43)write(iout,*)l,cstr*(hstrave-h)
                 END IF
                 IF ( ii.EQ.1 ) THEN
-                  HCOF(ic, ir, il) = HCOF(ic, ir, il) - cstr
-                  hcofh1 = - cstr
+                  HCOF(ic, ir, il) = HCOF(ic, ir, il) - cstrsmooth
+                  hcofh1 = - cstrsmooth
                 ELSEIF ( ii.EQ.2 ) THEN
-                  hcofh2 = - cstr
+                  hcofh2 = - cstrsmooth
                 END IF
               ELSE
 C
@@ -3235,7 +3291,7 @@ C         STREAMBED CONDUCTANCE IN REACH.
                   ELSEIF ( ii.EQ.2 ) THEN
                     rhsh2 = - SUMLEAK(l)- SUMRCH(l)
                   END IF
- !     fin=fin+sumleak(l)+sumrch(l)
+!      IF ( ii.EQ.1 ) fin=fin+sumleak(l)+sumrch(l)
  !     IF ( ii.EQ.1.and.kkiter.eq.43)write(iout,*)l,sumleak(l)+sumrch(l)
                 ELSE
                   IF ( ii.EQ.1 ) THEN
@@ -3244,7 +3300,7 @@ C         STREAMBED CONDUCTANCE IN REACH.
                   ELSEIF ( ii.EQ.2 ) THEN
                     rhsh2 = - SUMLEAK(l)
                   END IF
-!      fin=fin+sumleak(l)
+!      IF ( ii.EQ.1 ) fin=fin+sumleak(l)
 !      IF ( ii.EQ.1.and.kkiter.eq.43)write(iout,*)l,sumleak(l)
                 END IF
 C
@@ -3258,7 +3314,7 @@ C         STREAMBED BOTTOM ELEVATION.
               ELSEIF ( ii.EQ.2 )THEN
                 rhsh2 = - SUMRCH(l)
               END IF
-!      fin=fin+sumrch(l)
+!      IF ( ii.EQ.1 ) fin=fin+sumrch(l)
 !      IF ( ii.EQ.1.and.kkiter.eq.43)write(iout,*)l,sumrch(l)
             END IF
           END IF
@@ -3271,6 +3327,7 @@ C64B----END NEWTON SOLVER LOOP (NWT PACKAGE)
 ! Derivative for RHS
           IF (ij.GT.0)A(IA(ij)) = A(IA(ij)) - (rhsh2 - rhsh1)/Heps
         END IF
+!      write(iout,*)'in fm',l,fin,fout
         END DO !rsr, end l = 1, NSTRM loop
 C        
 C81-----END INTERNAL TIME LOOP FOR ROUTING STREAMFLOWS.
@@ -3305,6 +3362,8 @@ C     FUNCTIONS
 C     ------------------------------------------------------------------
       REAL CALCUNSATFLOBOT
       EXTERNAL CALCUNSATFLOBOT
+      DOUBLE PRECISION SMOOTH
+      EXTERNAL SMOOTH
 C     ------------------------------------------------------------------
 C     ARGUMENTS
 C     ------------------------------------------------------------------
@@ -3329,7 +3388,7 @@ C     ------------------------------------------------------------------
      +                 slope, cdpth, fdpth, hdiff, grad, depth,
      +                 hld, fbcheck, totflwt, totdelstor, totuzstor,
      +                 thetas, epsilon, thr, qa, qb, qc, qd, awdth,
-     +                 bwdth, gwflow, dvrsn, fbot, depthtr, strtop
+     +                 bwdth, gwflow, dvrsn, fbot, depthtr, strtop,dwdh
 C     ------------------------------------------------------------------
 C     LOCAL STATIC VARIABLES
 C     ------------------------------------------------------------------
@@ -3587,6 +3646,10 @@ C26-----DETERMINE LEAKAGE THROUGH STREAMBED.
           END IF
           cstr = STRM(16, l)
           width = HWDTH(l,irt)
+          IF ( icalc.EQ.1 ) THEN
+            cstr = cstr*smooth(depth,dwdh)
+            width = width*smooth(depth,dwdh)
+          END IF
           sbot = STRM(4, l)
           sbdthk = STRM(8, l)
           strlen = STRM(1, l)
@@ -3613,7 +3676,8 @@ C26-----DETERMINE LEAKAGE THROUGH STREAMBED.
                 END DO
               ELSE IF ( icalc.EQ.1 ) THEN
                 wetperm = width
-                WETPER(1, l) = width
+ ! RGN 10/4/11 next line is not correct
+ !               WETPER(1, l) = width
                 UZSEEP(1, l) = 0.0D0
                 areamax = WETPER(1, l)*strlen
               END IF
@@ -3887,8 +3951,6 @@ C39-----ADD FLOBOT TO RATIN WHEN STREAM RECHARGES GROUND WATER.
               totflwt = 0.0
             END IF
           END IF
-!       write(iout,119)l,flowin,flowot,flobot
-!  119 format(i5,3(1x,e20.10))
 C
 C40-----PRINT STREAMFLOWS AND RATES FOR EACH REACH TO MAIN LIST IF
 C         REQUESTED (ISTCB1<0 and IBD<0)AND NO UNSATURATED FLOW.
@@ -3958,6 +4020,8 @@ C         WHEN UNSATRATED FLOW IS ACTIVE.
               END IF
             END IF
           END IF
+C43B----SAVE SEEPAGE TO ARRAY FOR PRINTING NET SEEPAGE IN UZF
+          FNETSEEP(IC,IR) = gwflow
 C
 C44-----SAVE FLOW TO AND FROM GROUND WATER IN A LIST FILE WHEN 
 C         IBD IS EQUAL TO 2. revised dep 5/10/2006--fixed 9/15/2006
@@ -7913,6 +7977,35 @@ C     OF TIME TO CACULATE SPECIFIED INFLOW TO SEGMENTS.
       RETURN
       END FUNCTION FLOWTERP
 C
+C------FUNCTION FXLKOT_TERP FOR SMOOTHING STREAM WIDTH DURING CHANNEL DRYING.
+C
+      DOUBLE PRECISION FUNCTION smooth(h,dwdh)
+! h is the depth 
+! dwdh is the derivative of width with respect to depth
+      IMPLICIT NONE
+      DOUBLE PRECISION h, Bot, s, aa, ad, b, x, y, dy,dwdh
+      smooth = 0.0D0
+      s = 1.0d-5
+      x = h
+      IF ( x-s.GT.0.0 ) THEN
+        smooth = 1.0
+        RETURN
+      END IF
+      aa = -1.0d0/(s**2.0d0)
+      ad = -2.0D0/(s**2.0d0)
+      b = 2.0d0/s
+      y = aa*x**2.0d0 + b*x
+      dwdh = (ad*x + b)
+      IF ( x.LE.0.0 ) THEN
+        y = 0.0D0
+        dy = 0.0D0
+      ELSE IF ( x-s.GT.-1.0e-14 ) THEN
+        y = 1.0D0
+        dy = 0.0D0
+      END IF
+      smooth = y
+      END FUNCTION smooth
+C
 C-------SUBROUTINE GWF2SFR7DA
       SUBROUTINE GWF2SFR7DA(IGRID)
 C  Save SFR data for a grid.
@@ -8018,6 +8111,7 @@ C     ------------------------------------------------------------------
       DEALLOCATE (GWFSFRDAT(IGRID)%TABFLOW)
       DEALLOCATE (GWFSFRDAT(IGRID)%TABTIME)
       DEALLOCATE (GWFSFRDAT(IGRID)%ISFRLIST)
+      DEALLOCATE (GWFSFRDAT(IGRID)%FNETSEEP)
 C
       END SUBROUTINE GWF2SFR7DA
 C
@@ -8126,6 +8220,7 @@ C     ------------------------------------------------------------------
       TABFLOW=>GWFSFRDAT(IGRID)%TABFLOW
       TABTIME=>GWFSFRDAT(IGRID)%TABTIME
       ISFRLIST=>GWFSFRDAT(IGRID)%ISFRLIST
+      FNETSEEP=>GWFSFRDAT(IGRID)%FNETSEEP
 C
       END SUBROUTINE SGWF2SFR7PNT
 C
@@ -8234,5 +8329,6 @@ C     ------------------------------------------------------------------
       GWFSFRDAT(IGRID)%TABFLOW=>TABFLOW
       GWFSFRDAT(IGRID)%TABTIME=>TABTIME
       GWFSFRDAT(IGRID)%ISFRLIST=>ISFRLIST
+      GWFSFRDAT(IGRID)%FNETSEEP=>FNETSEEP
 C
       END SUBROUTINE SGWF2SFR7PSV

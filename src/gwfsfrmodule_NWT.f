@@ -3,7 +3,7 @@
         DOUBLE PRECISION,PARAMETER :: NEARZERO=1.0D-30
         DOUBLE PRECISION,SAVE :: THETAB, FLUXB, FLUXHLD2
         REAL,PARAMETER :: CLOSEZERO=1.0E-15
-        INTEGER, SAVE :: Nfoldflbt, NUMTAB, MAXVAL
+        INTEGER, SAVE :: Nfoldflbt, NUMTAB, MAXVAL, NSEGDIM
         INTEGER,SAVE,  DIMENSION(:),  POINTER:: DVRCH   !(diverted recharge flag; then reharge cell count)
         INTEGER,SAVE,  DIMENSION(:,:,:),POINTER:: DVRCELL !(store cells to apply diverted recharge)
         REAL,   SAVE,  DIMENSION(:,:),POINTER:: RECHSAVE  !(store original recharge values)
@@ -31,6 +31,7 @@
         REAL,   SAVE,  DIMENSION(:,:),POINTER:: AVDPT, AVWAT, WAT1
         REAL,   SAVE,  DIMENSION(:,:),POINTER:: CONCQ, CONCRUN, CONCPPT
         REAL,   SAVE,  DIMENSION(:,:),POINTER:: TABFLOW, TABTIME   !Reading Spedified inflow
+        REAL,   SAVE,  DIMENSION(:,:),POINTER:: FNETSEEP           !writing net seepage in UZF
         INTEGER,SAVE,  DIMENSION(:,:),POINTER:: ISFRLIST           !Reading Spedified inflow
         DOUBLE PRECISION,SAVE,DIMENSION(:),  POINTER:: THTS,THTR,EPS
         DOUBLE PRECISION,SAVE,DIMENSION(:),  POINTER:: FOLDFLBT, THTI
@@ -74,6 +75,7 @@
         REAL,          DIMENSION(:,:),POINTER:: AVDPT, AVWAT, WAT1
         REAL,          DIMENSION(:,:),POINTER:: CONCQ, CONCRUN, CONCPPT
         REAL,          DIMENSION(:,:),POINTER:: TABFLOW, TABTIME  ! Reading SPecified inflow
+        REAL,          DIMENSION(:,:),POINTER:: FNETSEEP          !writing net seepage in UZF
         INTEGER,       DIMENSION(:,:),POINTER:: ISFRLIST
         DOUBLE PRECISION,     DIMENSION(:),  POINTER:: THTS,THTR,EPS
         DOUBLE PRECISION,     DIMENSION(:),  POINTER:: FOLDFLBT, THTI

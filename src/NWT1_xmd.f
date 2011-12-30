@@ -19,7 +19,7 @@ c      nja                size of ja, a, arrays
 c      njaf               size of af, jaf arrays
 c      level              level of ILU
 c      itmax              number of maximum allowable iterations
-c      north              number of orthogonalization for the ORTHOMIN
+c      north              number of orthogonalization
 c      liwrk              size of integer work array
 c      lrwrk              size of real work array
 c
@@ -65,9 +65,8 @@ cmi
       LOGICAL, SAVE, POINTER ::  REDSYS,LDCOMB
       DOUBLE PRECISION, SAVE, POINTER ::  EPSRN,RRCTOL,HCLOSEXMD
       INTEGER, SAVE, POINTER ::  MXITERXMD
-      DOUBLE PRECISION, SAVE, DIMENSION(:), POINTER ::  DGSCAL
       INTEGER, SAVE, POINTER :: IACL,NORDER,LEVEL,NORTH,IDROPTOL,
-     [                          IERR,IDSCALE
+     [                          IERR
       END MODULE XMDMODULE
 C------------------------------------------------------------------
       SUBROUTINE XMD7AR(IN)
@@ -114,7 +113,7 @@ c      ALLOCATE (EPSRN,RRCTOL)
 c      ALLOCATE (REDSYS,LDCOMB)
 cmi
       ALLOCATE (IACL,NORDER,LEVEL,NORTH,IDROPTOL,
-     *  IERR,IDSCALE,HCLOSEXMD,MXITERXMD)
+     *  IERR,HCLOSEXMD,MXITERXMD)
       ALLOCATE (EPSRN,RRCTOL)
       ALLOCATE (REDSYS,LDCOMB)
 !-----XMD INPUT
@@ -186,10 +185,8 @@ C
       if(north.eq.0)north = 7   !!!!
       IF(EPSRN.LT.1.0E-20) EPSRN = 1.0e-3
       REDSYS = .FALSE.
-      IDSCALE = 0
       IF(IREDSYS.EQ.1) THEN
         REDSYS = .TRUE.
-        IDSCALE = 1   ! NEED DIAGONAL SCALING FOR REDUCED SYSTEMS
       ENDIF
 C
       WRITE(IOUT,23) IACL,NORDER,LEVEL,NORTH,IREDSYS,RRCTOL,
@@ -207,9 +204,6 @@ C
 !
 !4-----ALLOCATE SPACE USED BY SOLVER
       NODES = NUMACTIVE
-      ALLOCATE(DGSCAL(NODES))
-      DGSCAL = 0.0
-cmi
 c  -----------------
 c     preprocessor
 c  -----------------

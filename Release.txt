@@ -1,0 +1,257 @@
+release.txt
+
+
+                           MODFLOW-NWT Release Notes
+
+
+This file describes changes introduced into MODFLOW-NWT with each official
+release; these changes may substantially affect users.
+
+
+NOTE: Any use of trade, product or firm names is for descriptive purposes
+only and does not imply endorsement by the U.S. Government.
+
+
+o Version 1.0 05/11/2011:
+
+This version is the initial release. However, a number of changes were required  
+for four additional MODFLOW-2005 Packages that were not explained in the 
+MODFLOW-NWT documentation report (Niswonger and others, 2011). The modified 
+packages include the Horizontal-Flow Barrier, Lake, and Multi-Node Well Packages
+versions 1 and 2.
+
+Changes to the Horizontal-Flow (HFB) Barrier Package were made to the subroutine
+GWF2HFB7FM. If the Newton method is used in MODFLOW-NWT, then horizontal
+conductances do not include the aquifer thickness for unconfined conditions.
+Thus, equations were changed such that the conductances modified in subroutine
+GWF2HFB7FM are not multiplied by the aquifer thickness. This change required that
+a new argument be added to the call statement for subroutine GWF2HFB7FM to include
+the file unit number for the UPW Package.
+
+Changes to the Lake (LAK) Package were made to the subroutine GWF2LAK7RP and a new 
+subroutine was added to the LAK Package called SGWF2LAK7UPW1RPS for calculating
+lakebed conductance values. This change required that a new argument be added to
+the call statement for subroutine GWF2LAK7RP to include the file unit number for
+the UPW Package.
+
+Changes to Versions 1 and 2 of the multi-Node Well (MNW1 and MNW2) Packages were
+made to the subroutines GWF2MNW17RP and GWF2MNW27RP. A new subroutine was added to
+the MNW1 and MNW2 Packages called CEL2WELUPW for calculating well conductance
+values. A new argument was added to the call statement for subroutines GWF2MNW17RP
+and GWF2MNW27RP to include the file unit number for the UPW Package.
+
+o Version 1.0.1 05/27/2011:
+
+Changes were made to the MODFLOW-NWT source files to correct an error in how the
+Horizontal-Flow (HFB) Barrier Package was implemented in MODFLOW-NWT. Additionally,
+changes were made to deallocate arrays in the XMD and GMRES solvers at the termination 
+of a simulation.
+
+Source files that were modified include: MF_NWT.f, NWT1_solver.f, NWT1_xmd.f,     
+gwf2hfb7_NWT.f, NWT1_gmres.f90, and gwf2bas7.f
+
+o Version 1.0.2 10/03/2011:
+
+MODFLOW-NWT was compiled again because the last release of the program required 
+a large amount of RAM to run models. The reason for this unecessary memory usage
+was not determined but it is assumed that the issue was related to the compiler.
+The new compiled version requires much less memory. For example, a model that
+required 2 Gb of memory to run now requires 120 Mb. This new memory usage
+is consistent with what is required by MODFLOW-2005.
+
+Changes were made to the MODFLOW-NWT source files such that residual-control 
+(backtracking) iterations are no longer counted as outer iterations. This change 
+affects the NWT solver iteration information that is printed to the main List file. 
+
+Another change was made to stop model execution when the convergence criteria are not met.
+In previous versions of MODFLOW-NWT, the model continued to solve after the model
+failed to converge. A keyword option was added to the NWT Package input file to 
+allow the user to control whether the model will stop after convergence failure. 
+If the keyword "CONTINUE" is added following the input variable OPTIONS then the model  
+will not stop after convergence failure. If this keyword is not specified then the 
+model will stop after convergence failure. For example, the key word "CONTINUE" can 
+be added to the first line of the NWT input file as:
+
+1.0E-4 1. 500 1.0e-5  2  1 1 SPECIFIED CONTINUE 0.9 0.00001 0.000  0.10 0  20 2.0 0.6
+
+For this input option, if the model fails to converge during a time step then it 
+will continue to the next time step. However, if the "CONTINUE" is removed
+from this line, then the model will stop after convergence failure.
+
+Another change was made to fix a bug that caused the model to print a blank line
+to the main List file rather than correctly printing the string "SPECIFIC YIELD
+FOR LAYER..." This change does not affect model results.
+
+Another change was made to modify how groundwater heads are reset to the layer-
+bottom altitude when the calculated heads are below the bottom of the deepest layer. 
+In the previous version of the code there was a condition when heads could be 
+reset to an incorrect value, and this caused small oscillations in some problems.   
+This change may have a small affect to improve model convergence if the NWT input 
+variable IBOTAV is equal to 1.
+
+Another change was made to fix oscillatory behavior caused by a feature in the MNW2
+and MNW1 packages. The original versions of these packages switched between
+a specified flux and a head-dependent boundary conditions during outer iterations.
+The MNW1 and MNW2 packages were modified such that the boundary condition is
+fixed as a head-dependent boundary condition.
+
+A small change was made in the XMD source file to allow for double precision
+compilations. This change was to change the statement from real*4 to real. 
+
+Small changes were made to the UZF1 and SFR2 source files to improve standard
+output options.
+
+Changes were made to the MT3DMS linker files (lmt7_NWT.f, and lmt7_NWT.inc) to
+include water balance information for the MNW2 and MNW1 packages.
+
+Source files that were modified include: MF_NWT.f, NWT1_solver.f, NWT1_xmd.f,     
+gwf2MNW27_NWT.f, gwf2MNW17_NWT.f, gwf2sfr7_NWT.f, gwf2upw1.f, gwfsfrmodule_NWT.f, 
+gwf2uzf1_NWT.f, gwfuzfmodule_NWT.f, lmt7_NWT.f, and lmt7_NWT.inc.
+
+o Version 1.0.3 12/29/2011:
+
+NWT Solver
+
+The previous version of the NWT solver would take zero outer iterations if the convergence tolerances
+were met during the first calculation of the residuals. However, this condition could result in a poor
+solution for some nonlinear problems. At least one iteration is now required for all time steps. 
+This change could affect convergence for some problems. 
+
+There was a bug that was causing the red-black ordering scheme to fail (NWT solver input variable 
+IREDSYS=1).Red-black ordering can help speed convergence for difficult problems. This change could 
+affect convergence for some problems.
+
+The header written by the NWT solver to the main Listing file was changed slightly. The header previously
+titled "RMS," or if residual control is active "RMS1" and "RMS2," was changed to "L2-NORM," and "L2-NEW" 
+and "L2-OLD," respectively. This change reflects the true definition of the residual terms because they
+are calculated as the L2-NORM and not the root-mean-squared error (RMS error). This change does not 
+affect simulation results.
+
+A few small changes were made to initialize variables and remove unused variables. These changes likely 
+would not affect simulation results.
+
+Unsaturated-Zone Flow Package
+
+A bug was found that was introduced to the UZF1 package after 1.0.1 MODFLOW-NWT release. This 
+bug was causing UZF1 to incorrectly calculate unsaturated-zone ET, which results in much less ET
+than solution prior to the 1.0.2 release. This change does effect solution results as
+compared to the 1.0.2 version but not compared to 1.0.1 version.
+ 
+Three new options were added to this package to allow specification of the residual water content 
+(THTR), to provide the option of specifying initial water content (THTI) for simulations that 
+begin with a steady-state recharge period, and to turn off calculation of surface leakage. 
+These changes were made for the following reasons. 
+
+THTR originally was calculated internally by the UZF Package on the basis of the difference between the 
+saturated water content (THTS) and the specific yield (SY) of the aquifer receiving recharge (Niswonger 
+and others, 2006). However,the ability to specify THTR can be useful for some applications in which the 
+maximum storage in the unsaturated zone (THTS-THTR)is different than the instantaneous drainage from the 
+aquifer (SY). For these cases, specifying THTR based on external calculations provides greater 
+flexibility for parameterizing the unsaturated zone. The option to specify THTR is activated using the 
+key word SPECIFYTHTR. This key word is input on line 1a of the revised UZF1 input file (see revised 
+input instructions below). Values for THTR are input following the variable THTS (see below).
+
+Originally, THTI was not specified for simulations that included both a steady-state and one or more 
+transient stress periods. For this case, THTI was calculated internally by the code on the basis of the 
+steady-state infiltration rate and the unsaturated-zone hydraulic properties (FINF, FKS, EPS, THTS, and 
+THTR). However, in well-drained soils, the steady-state recharge rate corresponds to an initial water 
+content that is too large for coarse sediments. Consequently, drainage from the unsaturated zone during 
+the first transient stress period could result in an unrealistically large recharge rate. Additionally, 
+the head dependency on recharge that does not occur during steady-state stress periods but that can 
+occur during transient stress periods can cause a sudden increase in recharge during the transition 
+between these stress periods. For these circumstances it is more realistic to specify the initial water 
+content for the first transient stress period that follows a steady-state stress period. The option to 
+specify THTI in simulations that include both steady-state and one or more transient stress periods is 
+activated using the key word SPECIFYTHTI. This key word is input on line 1a of the UZF1 input file, and 
+follows the key word SPECIFYTHTR if SPECIFYTHTR is specified. Values for THTI are input following 
+variable THTR if it is input; otherwise, THTI follows THTS (see below). 
+
+UZF1 simulates surface leakage in the uppermost active cell if groundwater head is greater
+than the top of this cell. Surface leakage is a nonlinear boundary condition that can slow model  
+convergence, and in some cases it is beneficial to inactive this boundary condition. Surface leakage  
+is inactivated by the key word NOSURFLEAK that is specified on line 1a of the UZF1 input 
+file. This key word is specified following the key word SPECIFYTHTI (if SPECIFYTHTI is specified). 
+If the key word NOSURFLEAK is specified then water will not be removed from the uppermost active cell 
+when groundwater head rises above the top of this cell. 
+
+In addition to these new input options, the default value for SURFDEP was changed.  
+In prior versions of UZF1, if the value for SURFDEP was specified as 0, it was reset
+internally to 1.0. In this new version of UZF1, SURFDEP is reset to 1.0x10-6. This change 
+could affect simulated results if the value of SURDFEP was specified as 0 in the input file.
+
+Modified input instructions for the UZF1 input file for specifying optional key words
+
+0. Data: [#Text]		(As in previous versions of the code)
+
+1a. Data: [SPECIFYTHTR] [SPECIFYTHTI] [NOSURFLEAK]
+
+SPECIFYTHTR 	key word for specifying optional input variable THTR. 
+SPECIFYTHTI 	key word for specifying optional input variable THTI.
+NOSURFLEAK 	key word for inactivating calculation of surface leakage.
+
+Note that the keywords must be entered in the order shown. For example, if keywords SPECIFYTHTR and 
+NOSURFLEAK are specified, then SPECIFYTHTR must precede NOSURFLEAK. Alternatively, if only SPECIFYTHTI  
+is specified, then the other two keywords should not be specified.
+
+1b. Data: NUZTOP IUZFOPT IRUNFLG IETFLG IUZFCB1 IUZFCB2 NTRAIL2 NSETS2 NUZGAG SURFDEP NUZTOP		
+   (As in previous versions of the code)
+
+Items 2-5:  As in previous versions of the code.
+
+6a. Data:  THTS (NCOL, NROW) -- U2DREL
+Refer to UZF1 documentation report (Niswonger and other, 2006) for definition of THTS.
+
+6b. Data: [THTR (NCOL, NROW)] -- U2DREL
+THTR 	An array of positive real values used to define the residual water content for each vertical 
+column of cells in units of volume of water to total volume (L3L-3). THTR is the irreducible water 
+content and the unsaturated water content cannot drain to water contents less than THTR. This variable 
+is not included unless the key word SPECIFYTHTR is specified.
+
+7. Data: [THTI (NCOL, NROW)] -- U2DREL
+Refer to UZF1 documentation report (Niswonger and others, 2006) for definition of THTI. This variable is 
+not included for simulations with a steady-state stress period unless the key word SPECIFYTHTI is 
+specified.
+
+Items 8-16: As in previous versions of the code.
+
+Streamflow-Routing Package
+ 
+Modifications were made to correct the effects of lakes inundating stream cells. Seepage in inundated 
+stream cells was not being set to zero in the budget routine. This change could affect mass-balance 
+errors for models that include lakes that grow and inundate stream cells.
+
+Modifications were made to correct a bug that occurred when the specific yield specified in  the 
+Block-Centered Flow (BCF7) Package was used for calculating the residual water content for the 
+unsaturated zone beneath streams. Changes were made such that the code searches through model layers 
+to find the corresponding layer that stores the specific yield for the case when the BCF7 input 
+variable LAYCON is 2 or 3.
+
+Modifications were made to add a smoothing function for the calculation of wetted channel area when the 
+SFR2 input variable ICALC is set to 1 (constant stream width). In previous versions of the package, a 
+discontinuity could form if the stream channel became dry during the outer iteration of a time step, 
+because stream width would oscillate between the specified value and zero. To avoid such conditions, a 
+smoothing function was used in SFR2 to smooth the transition between the constant (specified) stream 
+width and a zero stream width over the interval between zero depth and 1.0x10-5 (units defined on the 
+basis of the DIS file input variable LENUNI). Smoothing is applied automatically if ICALC=1 and the 
+stream depth is between zero and 1.0x10-5 and users should refer to the calculated stream depths to 
+determine if smoothing was applied to a particular reach in a simulation. SFR2 smoothes the constant-
+to-zero-width transition using the same smoothing function that is used by the WEL Package to decrease 
+specified pumping rates to zero when unconfined cells are dry (see Niswonger and others, 2011, p. 14). 
+
+Lake Package
+
+A format statement was modified to allow proper printout of the number of dry lake cells to the main 
+Listing file. This change does not affect simulation results.
+
+Source files that were modified include: NWT1_solver.f,NWT1_xmd.f,gwf2uzf1_NWT.f,gwfuzfmodule_NWT.f,
+gwf2sfr7_NWT.f,gwfsfrmodule_NWT.f,gwf2lak7_NWT.f, NWT1_module.f, NWT1_gmres.f90, MF_NWT.f, 
+gwfsfrmodule_NWT.f, gwf2wel7_NWT.f, gwf2upw1.f, gwf2sub7.f, and gwf2hfb7_NWT.f.
+
+References
+
+Niswonger, R.G., Panday, Sorab, and Ibaraki, Motomu, 2011, MODFLOW-NWT, A Newton formulation for 
+MODFLOW-2005: U.S. Geological Survey Techniques and Methods 6-A37, 44 p.
+
+Niswonger, R.G., Prudic, D.E., and Regan, R.S., 2006, Documentation of the Unsaturated-Zone Flow (UZF1) 
+Package for modeling unsaturated flow between the land surface and the water table with MODFLOW-2005: 
+U.S. Geological Survey Techniques and Methods 6-A19, 62 p.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     

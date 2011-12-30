@@ -184,8 +184,8 @@
   !            0 : successful convergence to solution
   !            1 : iteration limit reached without convergence
   !           -1 : initial solution gives residual of zero
-  INTEGER, INTENT(OUT), OPTIONAL :: n_iter           ! ... Total iterations at convergence
-  REAL(kind=kdp), INTENT(OUT), OPTIONAL :: r_norm    ! ... Norm of relative residual at convergence
+  INTEGER, INTENT(OUT):: n_iter           ! ... Total iterations at convergence
+  REAL(kind=kdp), INTENT(OUT) :: r_norm    ! ... Norm of relative residual at convergence
   !
   ! ... Patch since automatic arrays clash with Java using Visual Fortran90 v6.0
 !!$  REAL(KIND=kdp), DIMENSION(n,msdr+1), TARGET :: vv     ! ... work array. stores the Arnoldi
@@ -206,7 +206,7 @@
   REAL(KIND=kdp), DIMENSION(:), ALLOCATABLE :: c, s, rs, mvy
   REAL(KIND=kdp), PARAMETER :: eps_a=1.e-16_kdp   ! *** make multiple of mach eps
   ! ... Set string for use with RCS ident command
-  CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 5436 $'
+  CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 4067 $'
   !     ------------------------------------------------------------------
   !...
   ! ... comments follow Templates p.20 as closely as possible
@@ -237,8 +237,10 @@
 !                '; Norm of residual .... ',ro
 !2001       FORMAT(tr5,a/tr5,a,i4,a,1pe12.5)
 !        END IF
-        IF(PRESENT(n_iter)) n_iter = itno
-        IF(PRESENT(r_norm)) r_norm = 1._kdp
+!        IF(PRESENT(n_iter)) n_iter = itno
+!        IF(PRESENT(r_norm)) r_norm = 1._kdp
+        r_norm = 1._kdp
+        n_iter = itno
         eps1 = stop_tol*ro     ! ... for later convergence test
         eps1 = 1e-3
      END IF
@@ -309,8 +311,10 @@
 !                '; Norm of residual .... ',ro
 !2002       FORMAT(tr5,a,i4,a,1pe12.5)
 !        END IF
-        IF(PRESENT(n_iter)) n_iter = itno
-        IF(PRESENT(r_norm)) r_norm = (ro*stop_tol)/eps1
+!        IF(PRESENT(n_iter)) n_iter = itno
+!        IF(PRESENT(r_norm)) r_norm = (ro*stop_tol)/eps1
+        n_iter = itno
+        r_norm = (ro*stop_tol)/eps1
         IF (ro <= eps1 + eps_a) EXIT     ! ... convergence on relative residual 
      END DO
      i = MIN(i,msdr)
@@ -395,7 +399,7 @@ CONTAINS
     !
     INTEGER :: i, k
     ! ... Set string for use with RCS ident command
-    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 5436 $'
+    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 4067 $'
     !     ------------------------------------------------------------------
     !...
     ! ... forward solve
@@ -430,7 +434,7 @@ CONTAINS
     INTEGER :: i, k
     REAL(KIND=kdp) :: t
     ! ... Set string for use with RCS ident command
-    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 5436 $'
+    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 4067 $'
     !     ------------------------------------------------------------------
     !...
     DO  i = 1,n                ! ... n is known from host

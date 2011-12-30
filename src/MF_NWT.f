@@ -1,5 +1,6 @@
 C     ******************************************************************
 C     MAIN CODE FOR U.S. GEOLOGICAL SURVEY MODULAR MODEL -- MODFLOW-NWT
+C     WITH THE FARM PROCESS
 C     ******************************************************************
 C
 C        SPECIFICATIONS:
@@ -11,6 +12,7 @@ C1------USE package modules.
       USE GWFEVTMODULE, ONLY:NEVTOP
       USE GWFRCHMODULE, ONLY:NRCHOP
       USE GWFLAKMODULE, ONLY:NLAKESAR,THETA,STGOLD,STGNEW,VOL
+!      USE FMPMODULE,    ONLY:IRTFL,ICUFL,IPFL,IEBFL,QBD,MCLOSE           !inserted by SCHMID
       USE GWFSFRMODULE, ONLY:NUMTAB
       USE GWFNWTMODULE, ONLY:LINMETH,ICNVGFLG,ITREAL
       USE PCGMODULE
@@ -23,7 +25,7 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.0.2 10/03/2011')
+      PARAMETER (VERSION='1.0.3 12/29/2011')
       PARAMETER (VERSION2='1.8.00 12/18/2009')
       PARAMETER (MFVNAM='-NWT')
 C
@@ -40,7 +42,7 @@ C
      &           '    ', 'HUF2', 'CHOB', 'ETS ', 'DRT ', '    ', 'GMG ',  ! 42
      &           'HYD ', 'SFR ', '    ', 'GAGE', 'LVDA', '    ', 'LMT6',  ! 49
      &           'MNW2', 'MNWI', 'MNW1', 'KDEP', 'SUB ', 'UZF ', 'gwm ',  ! 56
-     &           'SWT ', 'cfp ', 'PCGN', '    ', '    ', 'UPW ', 'NWT ',  ! 63
+     &           'SWT ', 'cfp ', 'PCGN', '    ', 'FMP ', 'UPW ', 'NWT ',  ! 63
      &           37*'    '/
 C     ------------------------------------------------------------------
 C
@@ -71,7 +73,6 @@ C
 C6------ALLOCATE AND READ (AR) PROCEDURE
       IGRID=1
       NSOL=1
-      
       CALL GWF2BAS7AR(INUNIT,CUNIT,VERSION,24,31,32,MAXUNIT,IGRID,12,
      1                HEADNG,26,MFVNAM)
       IF(IUNIT(50).GT.0 .AND. IUNIT(52).GT.0) THEN
@@ -137,6 +138,11 @@ C6------ALLOCATE AND READ (AR) PROCEDURE
      1                   CALL GWF2HYD7STR7AR(IUNIT(43),IGRID)
       IF(IUNIT(43).GT.0 .AND. IUNIT(44).GT.0)
      1                   CALL GWF2HYD7SFR7AR(IUNIT(43),IGRID)
+!      IF(IUNIT(61).GT.0) THEN
+!        CALL FMP2AR(
+!     1  IUNIT(61),IUNIT(44),IUNIT(52),IUNIT(55),IGRID)                  !FMP2AR CALL ADDED BY SCHMID
+!        CALL FMP2RQ(IUNIT(61),IUNIT(44),IUNIT(52),IGRID)                !FMP2RQ CALL ADDED BY SCHMID
+!      ENDIF
 C
 C  Observation allocate and read
       CALL OBS2BAS7AR(IUNIT(28),IGRID)
@@ -196,6 +202,8 @@ C----------READ USING PACKAGE READ AND PREPARE MODULES.
         IF(IUNIT(52).GT.0) CALL GWF2MNW17RP(IUNIT(52),IUNIT(1),
      1                            IUNIT(23),IUNIT(37),IUNIT(62),KKPER,
      2                            IGRID)
+!        IF(IUNIT(61).GT.0) CALL FMP2RP(IUNIT(61),ISTARTFL,KKPER,        !FMP2AR CALL ADDED BY SCHMID
+!     1                          IUNIT(44),IUNIT(52),IGRID)     
 C
 C7C-----SIMULATE EACH TIME STEP.
         DO 90 KSTP = 1, NSTP(KPER)
@@ -237,6 +245,11 @@ C7C1----CALCULATE TIME STEP LENGTH. SET HOLD=HNEW.
           END IF
           IF(IUNIT(52).GT.0) CALL GWF2MNW17AD(IUNIT(1),IUNIT(23),
      1                                  IUNIT(37),IUNIT(62),IGRID)
+!          IF(IUNIT(61).GT.0) THEN                                       !FMP2AD CALL ADDED BY SCHMID
+!             IF(IRTFL.EQ.3.OR.ICUFL.EQ.3.OR.IPFL.EQ.3
+!     1                           .OR.IEBFL.EQ.1.OR.IEBFL.EQ.3)
+!     2       CALL FMP2AD(ISTARTFL,KKPER,IGRID)
+!          ENDIF     
 C
 C---------INDICATE IN PRINTOUT THAT SOLUTION IS FOR HEADS
           CALL UMESPR('SOLVING FOR HEAD',' ',IOUT)
@@ -290,6 +303,8 @@ C7C2A---FORMULATE THE FINITE DIFFERENCE EQUATIONS.
             IF(IUNIT(19).GT.0) CALL GWF2IBS7FM(KKPER,IGRID)
             IF(IUNIT(39).GT.0) CALL GWF2ETS7FM(IGRID)
             IF(IUNIT(40).GT.0) CALL GWF2DRT7FM(IGRID)
+!            IF(IUNIT(61).GT.0) CALL FMP2FM(KKITER,KKPER,KKSTP,ISTARTFL, !FMP2FM CALL ADDED BY SCHMID
+!     1                              IUNIT(44),IUNIT(52),IUNIT(55),IGRID)
             IF(IUNIT(55).GT.0) CALL GWF2UZF1FM(KKPER,KKSTP,KKITER,
      1                           IUNIT(44),IUNIT(22),IUNIT(58),
      2                           IUNIT(63),IGRID)
@@ -313,7 +328,7 @@ C7C2A---FORMULATE THE FINITE DIFFERENCE EQUATIONS.
             IF(IUNIT(52).GT.0) CALL GWF2MNW17FM(KKITER,IUNIT(1),
      1                               IUNIT(23),IUNIT(37),IUNIT(62),
      2                               IGRID)
-            IF(IUNIT(54).GT.0) CALL GWF2SUB7FM(IUNIT(62),KKPER,KKITER,
+            IF(IUNIT(54).GT.0) CALL GWF2SUB7FM(KKPER,KKITER,
      1                                         IUNIT(9),IGRID)
             IF(IUNIT(57).GT.0) CALL GWF2SWT7FM(KKPER,IGRID)
 C
@@ -475,8 +490,24 @@ C7C4----CALCULATE BUDGET TERMS. SAVE CELL-BY-CELL FLOW TERMS.
           IF(IUNIT(50).GT.0) CALL GWF2MNW27BD(KKSTP,KKPER,IGRID)
           IF(IUNIT(52).GT.0) CALL GWF2MNW17BD(NSTP(KPER),KKSTP,KKPER,
      1                      IGRID)
-         IF(IUNIT(54).GT.0) CALL GWF2SUB7BD(IUNIT(62),KKSTP,KKPER,IGRID)
+          IF(IUNIT(54).GT.0) CALL GWF2SUB7BD(KKSTP,KKPER,IGRID)
           IF(IUNIT(57).GT.0) CALL GWF2SWT7BD(KKSTP,KKPER,IGRID)
+C--FARM DEMAND AND SUPPLY, FARM WELLS, AND FARM NET-RECHARGE
+c	 ...fmp2fm is inserted to allow recalculating FMP-flowrates, which 
+c         may de a function of SFR & MNW flowrates: Q-fmp(h,Q-sfr,Q-mnw).
+!          IF (IUNIT(61).GT.0) THEN                                      !FMP2FM CALL ADDED BY SCHMID
+!             IF(QBD.EQ.1)                              
+!     1         CALL FMP2FM(KKITER,KKPER,KKSTP,ISTARTFL,IUNIT(44),
+!     2                     IUNIT(52),IUNIT(55),IGRID)
+!C      ...ALLOW CONVERGENCE CRITERIA FOR MNW WELL PUMPAGE LINKED TO FARM PROCESS
+!             IF(IUNIT(52).GT.0.AND.MCLOSE.EQ.1) THEN
+!               CALL SFMP2PNT(IGRID)
+!               CALL FMP2QCNVG(IUNIT(52),IUNIT(13),IUNIT(9),             !FMP2QCNVG CALL ADDED BY SCHMID
+!     1                        IUNIT(10),IUNIT(42))          
+!             ENDIF
+!             CALL FMP2WELBD(KKSTP,KKPER,IUNIT(52),IUNIT(55),IGRID)      !FMP2WELBD & FMP2FNRBD CALLS ADDED BY SCHMID
+!             CALL FMP2FNRBD(KKSTP,KKPER,IGRID)
+!	    ENDIF          
 CLMT
 CLMT----CALL LINK-MT3DMS SUBROUTINES TO SAVE FLOW-TRANSPORT LINK FILE
 CLMT----FOR USE BY MT3DMS FOR TRANSPORT SIMULATION
@@ -560,7 +591,16 @@ C9------LAST BECAUSE IT DEALLOCATES IUNIT.
       IF(IUNIT(10).GT.0) CALL DE47DA(IGRID)
       IF(IUNIT(13).GT.0) CALL PCG7DA(IGRID)
 !      IF(IUNIT(59).GT.0) CALL PCGN2DA(IGRID)
-      IF(IUNIT(63).GT.0) CALL GWF2NWT1DA(IGRID)
+      IF(IUNIT(63).GT.0) THEN    
+        IF(LINMETH.EQ.1) THEN
+          CALL GMRES7DA(IGRID)
+        ELSEIF(LINMETH.EQ.2) THEN
+          CALL XMD7DA(IGRID)
+!        ELSEIF(LINMETH.EQ.3) THEN
+!          CALL SAMG7DA(IGRID)
+        END IF
+        CALL GWF2NWT1DA(IGRID)
+      END IF
       IF(IUNIT(62).GT.0) CALL GWF2UPW1DA(IGRID)
       IF(IUNIT(16).GT.0) CALL GWF2FHB7DA(IGRID)
       IF(IUNIT(17).GT.0) CALL GWF2RES7DA(IGRID)
@@ -590,20 +630,12 @@ C9------LAST BECAUSE IT DEALLOCATES IUNIT.
       IF(IUNIT(35).GT.0) CALL OBS2GHB7DA(IGRID)
       IF(IUNIT(38).GT.0) CALL OBS2CHD7DA(IGRID)
       IF(IUNIT(43).GT.0) CALL GWF2HYD7DA(IGRID)
-      IF(IUNIT(63).GT.0)THEN    
-        IF(LINMETH.EQ.1) THEN
-          CALL GMRES7DA(IGRID)
-        ELSEIF(LINMETH.EQ.2) THEN
-          CALL XMD7DA(IGRID)
-!        ELSEIF(LINMETH.EQ.3) THEN
-!          CALL SAMG7DA(IGRID)
-        END IF
-      END IF
+!      IF(IUNIT(61).GT.0) CALL FMP2DA(IGRID)
       CALL GWF2BAS7DA(IGRID)
 C
 C10-----END OF PROGRAM.
       IF(ICNVG.EQ.0) THEN
-        WRITE(*,*) ' Failure to converge'
+        WRITE(*,*) 'FAILED TO MEET SOLVER CONVERGENCE CRITERIA'
       ELSE
         WRITE(*,*) ' Normal termination of simulation'
       END IF

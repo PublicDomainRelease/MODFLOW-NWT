@@ -105,7 +105,7 @@ C
 !1------IDENTIFY PACKAGE AND INITIALIZE.
       WRITE (Iout, 9001) In
  9001 FORMAT (1X, /' UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, ',
-     +       'VERSION 1.0.2, 10/01/2011', /, 9X, 'INPUT READ FROM UNIT',
+     +       'VERSION 1.0.3, 12/29/2011', /, 9X, 'INPUT READ FROM UNIT',
      +        I3,/)
 !  ALLOCATE, READ AND SET DATA FOR CELL PROPERTIES (FROM LPF)
 C1------Allocate scalar data.
@@ -648,14 +648,12 @@ C4A-----IF THE CELL IS EXTERNAL THEN SKIP IT.
 ! Derivative for RHS
             A(IA(ij)) = A(IA(ij)) - THICK*RHO2*dS 
      +                            + THICK*RHO1*dS*HLD 
-     +                            - THICK*RHO1*Sn(ij) - RHO2*dS
              
 C
 C6------ADD STORAGE TERMS TO RHS AND HCOF.
-        HCOF(J,I,K) = HCOF(J,I,K) + RHO2*dS - Sn(ij)*THICK*RHO1
+        HCOF(J,I,K) = HCOF(J,I,K) - Sn(ij)*THICK*RHO1
         RHS(J,I,K) = RHS(J,I,K) + THICK*RHO2*(Sn(ij)-So(ij)) -
-     +                            Sn(ij)*THICK*RHO1*HLD +
-     +                            RHO2*dS*HTMP
+     +                            Sn(ij)*THICK*RHO1*HLD
 C
   180       CONTINUE
 C
@@ -2156,6 +2154,7 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
       factor = Y
       DHORIZUPW = factor     
       END FUNCTION DHORIZUPW
+!
 !
 !     ------------------------------------------------------------------
 !

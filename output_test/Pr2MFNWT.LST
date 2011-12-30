@@ -1,6 +1,6 @@
                                   MODFLOW-NWT      
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.2 10/03/2011
+                            VERSION 1.0.3 12/29/2011
                     BASED ON MODFLOW-2005 VERSION 1.8.00 12/18/2009
 
  LIST FILE: .\Ex_prob2\Pr2MFNWT.LST
@@ -389,7 +389,7 @@
  HEADS WILL BE SAVED ON UNIT   30    DRAWDOWNS WILL BE SAVED ON UNIT    0
  # MODFLOW-NWT data for Prob 2 from McDonald and others (1991)
 
- NWT1 -- Newton Solver, VERSION 1.0.2, 10/01/2011
+ NWT1 -- Newton Solver, VERSION 1.0.3, 12/29/2011
          INPUT READ FROM UNIT 34
 
  SPECIFIED OPTION:
@@ -407,23 +407,27 @@
    A MOMENTUM FACTOR OF    0.100000E+00 .
 
 
- ***BACKTRACKING IS INACTIVE***
+   BACKTRACKING IS ACTIVE 
+   THE MAXIMUM NUMBER OF BACKTRACKS IS    20 AND 
+   THE BACKTRACKING TOLERANCE IS    0.150000E+01 AND
+   THE BACKTRACKING REDUCTION FACTOR IS    0.700000E+00
+
  XMD -- LINEAR SOLUTION BY XMD PACKAGE VERSION 1.30
      BY MOTOMU IBARAKI, OHIO STATE UNIVERSITY, COLOMBUS, OH
                  INPUT READ FROM UNIT 34
  ACCELERATION METHOD                    (IACL) =         2
- NODE ORDERING FLAG                   (NORDER) =         0
+ NODE ORDERING FLAG                   (NORDER) =         1
  LEVEL OF FILL                         (LEVEL) =         3
  MAXIMUM NUMBER OF ORTHOGONALIZATIONS  (NORTH) =         7
  INDEX FOR USING REDUCED SYSTEM      (IREDSYS) =         0
  RESID. REDUCTION CONVERGE CRITERION  (RRCTOL) =  0.000000E+00
  INDEX FOR USING DROP TOLERANCE     (IDROPTOL) =         0
  DROP TOLERANCE VALUE                  (EPSRN) =  0.100000E-03
- CONVERGENCE CRITERIA OF           (HCLOSEXMD) =  0.100000E-03
+ CONVERGENCE CRITERIA OF           (HCLOSEXMD) =  0.100000E-02
  MAX. NUMBER OF LINEAR ITERATIONS  (MXITERXMD) =        50
 
 
- UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.0.2, 10/01/2011
+ UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.0.3, 12/29/2011
          INPUT READ FROM UNIT 35
 
  # UPW data for Prob 2 from McDonald and others (1991)
@@ -677,26 +681,23 @@
        0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           8             1    1     1       0.3353307755E+02       1    1    1         0.7812500078E+03      0.1562500016E+04
-          0                 2           4             1    1     9      -0.2484082197E+02       2    2    6        -0.1256155585E+04      0.6974362709E+04
-          0                 3           5             1    1     9       0.1987528857E+02       2    1    4        -0.3195746698E+04      0.9537471659E+04
-          0                 4           3             1    1     8      -0.1446966411E+02       2    2    7        -0.1061802159E+04      0.4969318127E+04
-          0                 5           3             1    2     4      -0.5590725499E+01       1    1    5        -0.1671560432E+04      0.4639505744E+04
-          0                 6           3             1    2     1      -0.1260046001E+01       1    1    5        -0.2858777583E+03      0.7875062596E+03
-          0                 7           2             1    2     1      -0.2237359983E+00       1    1    5        -0.4889275587E+02      0.1355889909E+03
-          0                 8           2             1    2     1      -0.3939711681E-01       1    1    5        -0.8361627880E+01      0.2341440399E+02
-          0                 9           2             1    2     1      -0.6937662439E-02       1    1    5        -0.1429937843E+01      0.4062119791E+01
-          0                10           2             1    2     1      -0.1223371005E-02       1    1    5        -0.2445252464E+00      0.7086585120E+00
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                11           2             2    1     1      -0.2162258055E-03       1    1    5        -0.4181298560E-01      0.1243495534E+00
-          0                12           1             1    2     1      -0.3843749372E-04       1    1    5        -0.7149581641E-02      0.2192141421E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1          11             1    1     1       0.3884075271E+02       2    1    1       0.7812500000E+03      0.1562500000E+04      0.0000000000E+00      0.3884075271E+02
+          1                 1           0             1    1     1       0.2718852644E+02       2    2    5      -0.1325220439E+04      0.9423690932E+04      0.1562500000E+04      0.3884075271E+02
+          2                 1           0             1    1     1       0.1903196818E+02       2    2    7      -0.1096222508E+04      0.7171328604E+04      0.9423690932E+04      0.3884075271E+02
+          3                 1           0             1    1     1       0.1332237750E+02       2    2    8      -0.9867228073E+03      0.5514560234E+04      0.7171328604E+04      0.3884075271E+02
+          4                 1           0             1    1     1       0.9325664091E+01       2    2    9      -0.9182784812E+03      0.4281985110E+04      0.5514560234E+04      0.3884075271E+02
+          5                 1           0             1    1     1       0.6527964753E+01       2    2    9      -0.8895054598E+03      0.3281521885E+04      0.4281985110E+04      0.3884075271E+02
+          6                 1           0             1    1     1       0.4569575249E+01       1    1    9      -0.8295413594E+03      0.2621444417E+04      0.3281521885E+04      0.3884075271E+02
+          0                 2           3             1    1     1       0.8944671865E+01       1    1    1       0.6802205591E+03      0.2098841858E+04      0.2621444417E+04      0.8944671865E+01
+          0                 3           5             1    1     1      -0.8084283984E+00       1    1    1      -0.6787106172E+02      0.1731162018E+03      0.2098841858E+04     -0.8084283984E+00
+          0                 4           1             2    2     1      -0.9254726837E-03       3    1    9       0.8637946749E-01      0.1573267835E+00      0.1731162018E+03     -0.9254726837E-03
+          0                 5           1             3    2     1       0.9174534625E-05       3    2    9      -0.4773657893E-02      0.1123951005E-01      0.1573267835E+00      0.9174534625E-05
 
     ------------------------------------------------
-       NWT REQUIRED           12 OUTER ITERATIONS 
-       AND A TOTAL OF         37 INNER ITERATIONS.
+       NWT REQUIRED            5 OUTER ITERATIONS 
+       AND A TOTAL OF         21 INNER ITERATIONS.
     ------------------------------------------------
 
  OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   1
@@ -3084,21 +3085,21 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =           0.0000         CONSTANT HEAD =           0.0000
+             STORAGE =       5.7739E-06               STORAGE =       3.0389E-07
+       CONSTANT HEAD =       1.8610E-03         CONSTANT HEAD =       9.7949E-05
             RECHARGE =       59375.0000              RECHARGE =        3125.0000
 
             TOTAL IN =       59375.0000              TOTAL IN =        3125.0000
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =       59375.1875               STORAGE =        3125.0098
-       CONSTANT HEAD =       9.9776E-03         CONSTANT HEAD =       5.2513E-04
+             STORAGE =       59375.6172               STORAGE =        3125.0325
+       CONSTANT HEAD =           0.1012         CONSTANT HEAD =       5.3251E-03
             RECHARGE =           0.0000              RECHARGE =           0.0000
 
-           TOTAL OUT =       59375.1992             TOTAL OUT =        3125.0103
+           TOTAL OUT =       59375.7188             TOTAL OUT =        3125.0378
 
-            IN - OUT =          -0.1992              IN - OUT =      -1.0254E-02
+            IN - OUT =          -0.7188              IN - OUT =      -3.7842E-02
 
  PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
 
@@ -3116,128 +3117,123 @@
 1
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             1    1     9       0.3078826883E+01       1    1    9         0.6116507023E+03      0.1118688547E+04
-          0                 2           3             1    1     8      -0.1160260226E+01       1    1    8        -0.4860527455E+03      0.7615914910E+03
-          0                 3           2             2    2     9       0.1831633182E+00       2    2    9         0.1319644806E+03      0.1330708604E+03
-          0                 4           2             2    2     9       0.1661676957E-01       2    2    9         0.1170809921E+02      0.1179505483E+02
-          0                 5           2             2    2     9       0.1572932940E-02       2    2    9         0.1063690104E+01      0.1071553989E+01
-          0                 6           2             2    2     9       0.1501656974E-03       2    2    9         0.9684796731E-01      0.9762867978E-01
-          0                 7           1             2    2     9       0.1450243964E-04       2    2    9         0.8784093236E-02      0.8877564430E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           5             1    1     9       0.3133190098E+01       1    1    9       0.6116488230E+03      0.1118682337E+04      0.1123951005E-01      0.3133190098E+01
+          0                 2           3             1    1     8      -0.1228912595E+01       1    1    8      -0.4958450955E+03      0.7805029428E+03      0.1118682337E+04     -0.1228912595E+01
+          0                 3           2             2    2     9       0.1946331520E+00       2    2    9       0.1347677648E+03      0.1358682417E+03      0.7805029428E+03      0.1946331520E+00
+          0                 4           2             2    2     9       0.1682927892E-01       2    2    9       0.1180258116E+02      0.1189314876E+02      0.1358682417E+03      0.1682927892E-01
+          0                 5           2             2    2     9       0.1512506076E-02       2    2    9       0.1059785608E+01      0.1067911160E+01      0.1189314876E+02      0.1512506076E-02
+          0                 6           1             2    2     9       0.1362240197E-03       2    2    9       0.9533502311E-01      0.9606693317E-01      0.1067911160E+01      0.1362240197E-03
+          0                 7           1             2    2     9       0.1238059775E-04       2    2    9       0.8592998856E-02      0.8658913068E-02      0.9606693317E-01      0.1238059775E-04
 
     ------------------------------------------------
        NWT REQUIRED            7 OUTER ITERATIONS 
-       AND A TOTAL OF         15 INNER ITERATIONS.
+       AND A TOTAL OF         16 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   2
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             1    1     9       0.2450324655E+01       1    2    9         0.2876623512E+03      0.7283119023E+03
-          0                 2           2             2    2     9       0.2252120445E+00       2    2    9         0.1150292784E+03      0.1423269079E+03
-          0                 3           2             2    2     9      -0.2031970759E-01       2    2    9        -0.1064520930E+02      0.1078801779E+02
-          0                 4           2             2    2    10      -0.1296476956E-03       2    2    9        -0.1677615821E-01      0.3673506822E-01
-          0                 5           1             2    3     9      -0.6384490030E-05       2    3    9        -0.8604845156E-02      0.1444874752E-01
-
-    ------------------------------------------------
-       NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   3
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             1    1     8       0.1775486783E+01       1    1    8         0.3528989284E+03      0.7227368291E+03
-          0                 2           3             1    1     7      -0.7078931750E+00       1    1    7        -0.2745700616E+03      0.2893442379E+03
-          0                 3           2             2    1     1      -0.3225198475E-01       1    2    7        -0.6531858440E+01      0.1036395119E+02
-          0                 4           2             1    1     8       0.6698736967E-02       1    1    8         0.3776210114E+01      0.3781919085E+01
-          0                 5           2             1    1     8       0.6439891765E-03       1    1    8         0.3450497496E+00      0.3454578838E+00
-          0                 6           1             1    1     8       0.6215538805E-04       1    1    8         0.3153472075E-01      0.3158882469E-01
-
-    ------------------------------------------------
-       NWT REQUIRED            6 OUTER ITERATIONS 
-       AND A TOTAL OF         13 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   4
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             2    1     7       0.1116229236E+01       2    1    8         0.2165854874E+03      0.6177220369E+03
-          0                 2           3             2    1     7      -0.5585944800E+00       2    1    7        -0.2086344979E+03      0.3520179189E+03
-          0                 3           2             1    2     8       0.1319179371E+00       1    2    8         0.8000217705E+02      0.1156246819E+03
-          0                 4           2             2    1     8       0.1254520349E-01       1    1   11        -0.1186822051E+02      0.1926712983E+02
-          0                 5           2             2    1     8       0.1218377691E-02       1    1   11        -0.6688232717E+00      0.1326165867E+01
-          0                 6           2             2    1     8       0.1203899427E-03       2    1    8         0.6071507378E-01      0.1208040784E+00
-          0                 7           1             1    1    14       0.1233246058E-04       2    1    8         0.5599782835E-02      0.1110567405E-01
-
-    ------------------------------------------------
-       NWT REQUIRED            7 OUTER ITERATIONS 
-       AND A TOTAL OF         15 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   5
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             1    1     7       0.9772521519E+00       1    1    7         0.2040787676E+03      0.5366350637E+03
-          0                 2           2             1    3     9       0.2922710483E+00       2    2    7        -0.1025555211E+03      0.2113683576E+03
-          0                 3           2             1    3     9      -0.2405265969E-01       3    1    9        -0.9703600756E+01      0.1756512732E+02
-          0                 4           2             1    1    14      -0.3261759331E-03       3    2   10        -0.2724178316E+00      0.7455497262E+00
-          0                 5           1             1    1    14      -0.1178568034E-04       2    2   10         0.5979663070E-02      0.1616470556E-01
-
-    ------------------------------------------------
-       NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   6
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             1    1     7       0.8967685628E+00       1    1    7         0.1660531108E+03      0.4963061142E+03
-          0                 2           2             3    2     9       0.1896262743E+00       2    3    9         0.7991085831E+02      0.1250619224E+03
-          0                 3           2             3    2     9      -0.1624234574E-01       3    2    9        -0.7803135159E+01      0.1147904385E+02
-          0                 4           2             3    2    12      -0.1157121857E-03       2    4   10        -0.1157570796E+00      0.2511445202E+00
-          0                 5           1             1    1    11      -0.5783725764E-05       1    1   11        -0.4687333043E-02      0.9582462341E-02
-
-    ------------------------------------------------
-       NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   7
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             1    1     7       0.7585824965E+00       1    1    7         0.1404210035E+03      0.4759076677E+03
-          0                 2           2             1    1     6      -0.2936606128E+00       1    1    6        -0.1199365641E+03      0.1628741963E+03
-          0                 3           2             2    2     8      -0.1537940081E-01       2    2    8        -0.9084279139E+01      0.9284238864E+01
-          0                 4           1             2    2    10      -0.9670520129E-04       2    1    6         0.3074251487E-01      0.5628021074E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             1    1     9       0.2503079795E+01       2    1    9       0.2876653271E+03      0.7283139935E+03      0.8658913068E-02      0.2503079795E+01
+          0                 2           2             1    1     9      -0.2153854095E+00       2    2    9       0.1188224809E+03      0.1470832683E+03      0.7283139935E+03     -0.2153854095E+00
+          0                 3           2             2    2     9      -0.1791018431E-01       2    2    9      -0.1087059709E+02      0.1108917795E+02      0.1470832683E+03     -0.1791018431E-01
+          0                 4           1             2    3     8       0.3821585514E-04       3    2    8       0.1328845826E-01      0.1930040831E-01      0.1108917795E+02      0.3821585514E-04
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
        AND A TOTAL OF          8 INNER ITERATIONS.
     ------------------------------------------------
 
+ NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   3
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             1    1     8       0.1811972615E+01       1    1    8       0.3528990969E+03      0.7227376928E+03      0.1930040831E-01      0.1811972615E+01
+          0                 2           2             1    1     7      -0.7494461019E+00       1    1    7      -0.2811906382E+03      0.2976627276E+03      0.7227376928E+03     -0.7494461019E+00
+          0                 3           2             1    2     1      -0.2853371024E-01       2    1    7      -0.6929190771E+01      0.1088835709E+02      0.2976627276E+03     -0.2853371024E-01
+          0                 4           1             1    2     1      -0.4524750781E-04       1    2    8      -0.3716694249E-02      0.7488688902E-02      0.1088835709E+02     -0.4524750781E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            4 OUTER ITERATIONS 
+       AND A TOTAL OF          8 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   4
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             2    1     7       0.1139357974E+01       2    1    8       0.2165885911E+03      0.6177240761E+03      0.7488688902E-02      0.1139357974E+01
+          0                 2           3             1    2     7      -0.5854885042E+00       2    1    7      -0.2133137931E+03      0.3601195473E+03      0.6177240761E+03     -0.5854885042E+00
+          0                 3           2             1    2     8       0.1373586756E+00       1    2    8       0.8122499030E+02      0.1175509667E+03      0.3601195473E+03      0.1373586756E+00
+          0                 4           2             1    2     8       0.1204839119E-01       1    1   10      -0.1321436114E+02      0.2044786794E+02      0.1175509667E+03      0.1204839119E-01
+          0                 5           2             1    2     8       0.1083916915E-02       1    2    8       0.6531906215E+00      0.1190927877E+01      0.2044786794E+02      0.1083916915E-02
+          0                 6           1             1    2     8       0.9764490025E-04       1    2    8       0.5875742967E-01      0.1070799548E+00      0.1190927877E+01      0.9764490025E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            6 OUTER ITERATIONS 
+       AND A TOTAL OF         13 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   5
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             1    1     7       0.9940154595E+00       1    1    7       0.2040779975E+03      0.5366468770E+03      0.1070799548E+00      0.9940154595E+00
+          0                 2           2             1    3     9       0.2816757438E+00       2    2    7      -0.1059125404E+03      0.2168093582E+03      0.5366468770E+03      0.2816757438E+00
+          0                 3           2             1    3     9      -0.2644884206E-01       1    3    9      -0.1007268307E+02      0.1798192941E+02      0.2168093582E+03     -0.2644884206E-01
+          0                 4           1             2    3     1       0.7939197360E-04       1    4    2      -0.7591150408E-01      0.1670655766E+00      0.1798192941E+02      0.7939197360E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            4 OUTER ITERATIONS 
+       AND A TOTAL OF          8 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   6
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             1    1     7       0.9168964392E+00       1    1    7       0.1660433282E+03      0.4962960079E+03      0.1670655766E+00      0.9168964392E+00
+          0                 2           2             2    3     9       0.1769482730E+00       2    3    9       0.8177026735E+02      0.1279054957E+03      0.4962960079E+03      0.1769482730E+00
+          0                 3           2             2    3     9      -0.1624951850E-01       3    2    9      -0.8049023073E+01      0.1162226001E+02      0.1279054957E+03     -0.1624951850E-01
+          0                 4           1             3    3     1       0.4195993069E-04       3    3   10      -0.1973824671E-01      0.3076975229E-01      0.1162226001E+02      0.4195993069E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            4 OUTER ITERATIONS 
+       AND A TOTAL OF          8 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   7
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             1    1     7       0.7774436157E+00       1    1    7       0.1404177234E+03      0.4759056385E+03      0.3076975229E-01      0.7774436157E+00
+          0                 2           3             1    1     6      -0.3134739877E+00       1    1    6      -0.1233762560E+03      0.1670915915E+03      0.4759056385E+03     -0.3134739877E+00
+          0                 3           2             2    2     8      -0.1393795197E-01       2    2    8      -0.9264505999E+01      0.9523727483E+01      0.1670915915E+03     -0.1393795197E-01
+          0                 4           1             1    2     6       0.1170656072E-03       2    1    6       0.3404911384E-01      0.5521749713E-01      0.9523727483E+01      0.1170656072E-03
+          0                 5           1             2    1     6       0.1061920873E-04       2    1    6       0.3066197984E-02      0.4921906530E-02      0.5521749713E-01      0.1061920873E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            5 OUTER ITERATIONS 
+       AND A TOTAL OF         10 INNER ITERATIONS.
+    ------------------------------------------------
+
  NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   8
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             1    3     7       0.6713186862E+00       1    3    8         0.1124531491E+03      0.4469860043E+03
-          0                 2           2             3    1     7      -0.4608361994E-01       3    1    8        -0.1137052549E+02      0.4458024240E+02
-          0                 3           2             3    3     1      -0.9717421738E-02       3    3    8        -0.2690105137E+01      0.2711258934E+01
-          0                 4           1             3    3    14      -0.9254865532E-04       3    3    9        -0.5651665302E-02      0.1755840470E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             1    3     7       0.6879983844E+00       1    3    8       0.1124469264E+03      0.4469730980E+03      0.4921906530E-02      0.6879983844E+00
+          0                 2           2             1    3     7      -0.6364397485E-01       3    1    8      -0.1164010946E+02      0.4571609681E+02      0.4469730980E+03     -0.6364397485E-01
+          0                 3           2             3    3     1      -0.9317087478E-02       3    3    8      -0.2788290024E+01      0.2794543749E+01      0.4571609681E+02     -0.9317087478E-02
+          0                 4           1             3    3     1      -0.1164621975E-04       3    3    9      -0.3106010918E-03      0.6314817832E-03      0.2794543749E+01     -0.1164621975E-04
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
@@ -3247,17 +3243,16 @@
  NO OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   9
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           3             3    1     7       0.5983144823E+00       3    1    8         0.9987140343E+02      0.4230022856E+03
-          0                 2           2             1    1     7       0.1921197534E+00       3    3    8        -0.9275196623E+02      0.2076945718E+03
-          0                 3           2             1    1     7      -0.1619889723E-01       1    1    7        -0.6608411360E+01      0.6782794653E+01
-          0                 4           2             1    1    11      -0.1648229546E-03       2    1    8        -0.5600819851E-01      0.1174153658E+00
-          0                 5           1             2    2    11      -0.5734690058E-05       2    2   11        -0.4441509900E-02      0.9500447743E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           3             1    3     7       0.6137045780E+00       1    3    8       0.9986462190E+02      0.4229734729E+03      0.6314817832E-03      0.6137045780E+00
+          0                 2           2             1    1     7       0.1814480118E+00       3    3    8      -0.9534896490E+02      0.2137831678E+03      0.4229734729E+03      0.1814480118E+00
+          0                 3           2             1    1     7      -0.1685824171E-01       1    1    7      -0.6857393732E+01      0.6958856413E+01      0.2137831678E+03     -0.1685824171E-01
+          0                 4           1             1    1     1      -0.1281503343E-04       2    1    6       0.8711202190E-02      0.1661071935E-01      0.6958856413E+01     -0.1281503343E-04
 
     ------------------------------------------------
-       NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
+       NWT REQUIRED            4 OUTER ITERATIONS 
+       AND A TOTAL OF          8 INNER ITERATIONS.
     ------------------------------------------------
 
  OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP  10
@@ -5645,21 +5640,21 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =       2.8301E-02               STORAGE =       2.1926E-04
-       CONSTANT HEAD =           0.0000         CONSTANT HEAD =           0.0000
+             STORAGE =           0.6984               STORAGE =       4.9078E-04
+       CONSTANT HEAD =       1.1602E-02         CONSTANT HEAD =       7.3263E-05
             RECHARGE =      593750.0000              RECHARGE =        3125.0000
 
-            TOTAL IN =      593750.0000              TOTAL IN =        3125.0002
+            TOTAL IN =      593750.6875              TOTAL IN =        3125.0005
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =      593749.7500               STORAGE =        3124.9937
-       CONSTANT HEAD =           0.2142         CONSTANT HEAD =       2.1250E-03
+             STORAGE =      593749.2500               STORAGE =        3124.9912
+       CONSTANT HEAD =           0.9295         CONSTANT HEAD =       3.7194E-03
             RECHARGE =           0.0000              RECHARGE =           0.0000
 
-           TOTAL OUT =      593749.9375             TOTAL OUT =        3124.9958
+           TOTAL OUT =      593750.1875             TOTAL OUT =        3124.9949
 
-            IN - OUT =       6.2500E-02              IN - OUT =       4.3945E-03
+            IN - OUT =           0.5000              IN - OUT =       5.6152E-03
 
  PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
 
@@ -5688,33 +5683,34 @@
  REUSING RECH FROM LAST STRESS PERIOD
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           8             3    1     1       0.4609224896E+01       1    1    6         0.1025321810E+03      0.3984216877E+03
-          0                 2           5             3    1     6      -0.6881676201E+00       3    1    7        -0.1807361332E+03      0.4969083405E+03
-          0                 3           4             1    2     1      -0.1825816634E-01       1    2    8         0.5405220369E+01      0.1107680850E+02
-          0                 4           2             1    1    14      -0.1728646633E-03       1    2    6        -0.2259077046E-02      0.8257111702E-02
-          0                 5           1             2    1    14      -0.3518440009E-05       2    2   14        -0.3553168062E-04      0.2792762112E-03
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           6             1    3     1       0.4689591668E+01       1    1    6       0.1025262236E+03      0.3984148911E+03      0.1661071935E-01      0.4689591668E+01
+          0                 2           5             1    3     6      -0.7795628166E+00       1    3    7      -0.1853120800E+03      0.5104830859E+03      0.3984148911E+03     -0.7795628166E+00
+          0                 3           3             1    1     6       0.2462979489E-01       1    1    6       0.8008408577E+01      0.1689153446E+02      0.5104830859E+03      0.2462979489E-01
+          0                 4           2             1    1     6       0.2156225220E-02       1    2    7      -0.9256026057E+00      0.1925436254E+01      0.1689153446E+02      0.2156225220E-02
+          0                 5           1             1    1     6       0.2040352360E-03       1    1    6       0.6431427797E-01      0.1151607879E+00      0.1925436254E+01      0.2040352360E-03
+          0                 6           1             1    1     6       0.3570086225E-04       1    1    6       0.5782449109E-02      0.1061050018E-01      0.1151607879E+00      0.3570086225E-04
 
     ------------------------------------------------
-       NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         20 INNER ITERATIONS.
+       NWT REQUIRED            6 OUTER ITERATIONS 
+       AND A TOTAL OF         18 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    2   TIME STEP   1
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           5             3    3     7       0.2611886317E+01       1    4    8         0.4523379968E+02      0.2548929972E+03
-          0                 2           4             2    1     5      -0.3503927552E+00       2    1    5        -0.6968752642E+02      0.2419930420E+03
-          0                 3           4             1    2     1      -0.7253411358E-02       6    1    9        -0.2251340089E+01      0.4482005165E+01
-          0                 4           2             2    1     6       0.6698605994E-03       2    1    6         0.2192443676E+00      0.3635443757E+00
-          0                 5           1             2    1     6       0.6000032855E-04       2    1    6         0.1951609623E-01      0.2929906697E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           5             3    3     7       0.2667112213E+01       4    1    8       0.4523379801E+02      0.2548911870E+03      0.1061050018E-01      0.2667112213E+01
+          0                 2           4             1    2     5      -0.3979675877E+00       1    2    5      -0.7206220743E+02      0.2499900924E+03      0.2548911870E+03     -0.3979675877E+00
+          0                 3           2             2    1     1      -0.4377120417E-02       1    2    5      -0.1097696946E+01      0.2240639223E+01      0.2499900924E+03     -0.4377120417E-02
+          0                 4           1             4    4    14      -0.1429230860E-03       2    2    5       0.7240785721E-01      0.8812771450E-01      0.2240639223E+01     -0.1429230860E-03
+          0                 5           1             1    6     8      -0.3294439710E-04       1    6    8      -0.1741487171E-01      0.3843480361E-01      0.8812771450E-01     -0.3294439710E-04
 
     ------------------------------------------------
        NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         16 INNER ITERATIONS.
+       AND A TOTAL OF         13 INNER ITERATIONS.
     ------------------------------------------------
 
  OUTPUT CONTROL FOR STRESS PERIOD    2   TIME STEP   2
@@ -7112,7 +7108,7 @@
         26.39       26.09       25.85       25.66       25.51       25.39       25.30       25.23       25.17       25.13    
         25.10       25.07       25.06       25.04       25.03       25.02       25.02       25.01       25.01       25.01    
         25.01       25.00       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
-   7    30.62       30.40       30.01       29.50       28.94       28.37       27.82       27.33       26.90       26.53    
+   7    30.62       30.40       30.01       29.50       28.94       28.37       27.82       27.33       26.90       26.52    
         26.21       25.96       25.75       25.58       25.45       25.35       25.27       25.21       25.16       25.12    
         25.09       25.07       25.05       25.04       25.03       25.02       25.02       25.01       25.01       25.01    
         25.01       25.00       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -7124,7 +7120,7 @@
         25.88       25.71       25.56       25.44       25.35       25.27       25.21       25.16       25.13       25.10    
         25.07       25.06       25.04       25.03       25.02       25.02       25.01       25.01       25.01       25.01    
         25.00       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
-  10    27.63       27.56       27.42       27.23       27.00       26.76       26.53       26.30       26.09       25.90    
+  10    27.63       27.56       27.42       27.23       27.00       26.76       26.52       26.30       26.09       25.90    
         25.73       25.59       25.48       25.38       25.30       25.23       25.18       25.14       25.11       25.09    
         25.07       25.05       25.04       25.03       25.02       25.02       25.01       25.01       25.01       25.01    
         25.00       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -7938,7 +7934,7 @@
         25.13       25.09       25.07       25.05       25.04       25.03       25.02       25.02       25.01       25.01    
         25.01       25.01       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
    2    41.74       40.46       38.07       35.67       33.60       31.87       30.44       29.28       28.35       27.60    
-        27.00       26.54       26.18       25.90       25.68       25.51       25.39       25.29       25.22       25.17    
+        27.00       26.54       26.18       25.89       25.68       25.51       25.39       25.29       25.22       25.17    
         25.12       25.09       25.07       25.05       25.04       25.03       25.02       25.02       25.01       25.01    
         25.01       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
    3    39.03       38.07       36.35       34.51       32.80       31.32       30.06       29.01       28.15       27.46    
@@ -7953,11 +7949,11 @@
         26.60       26.25       25.97       25.74       25.57       25.44       25.33       25.25       25.19       25.14    
         25.11       25.08       25.06       25.05       25.04       25.03       25.02       25.01       25.01       25.01    
         25.01       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
-   6    32.17       31.87       31.32       30.62       29.86       29.11       28.42       27.79       27.25       26.80    
+   6    32.17       31.87       31.32       30.62       29.86       29.11       28.41       27.79       27.25       26.80    
         26.42       26.12       25.87       25.67       25.52       25.40       25.31       25.23       25.18       25.13    
         25.10       25.08       25.06       25.04       25.03       25.02       25.02       25.01       25.01       25.01    
         25.01       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
-   7    30.66       30.44       30.06       29.55       28.99       28.42       27.87       27.37       26.93       26.56    
+   7    30.66       30.44       30.06       29.55       28.99       28.41       27.87       27.37       26.93       26.56    
         26.24       25.98       25.77       25.60       25.47       25.36       25.28       25.21       25.16       25.12    
         25.09       25.07       25.05       25.04       25.03       25.02       25.02       25.01       25.01       25.01    
         25.01       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
@@ -7985,7 +7981,7 @@
         25.41       25.34       25.28       25.23       25.18       25.15       25.12       25.09       25.07       25.06    
         25.04       25.03       25.03       25.02       25.02       25.01       25.01       25.01       25.01       25.00    
         25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
-  14    25.91       25.90       25.86       25.81       25.74       25.67       25.60       25.53       25.46       25.39    
+  14    25.91       25.89       25.86       25.81       25.74       25.67       25.60       25.53       25.46       25.39    
         25.33       25.27       25.23       25.19       25.15       25.12       25.10       25.08       25.06       25.05    
         25.04       25.03       25.02       25.02       25.01       25.01       25.01       25.01       25.00       25.00    
         25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
@@ -8102,21 +8098,21 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =       2.8301E-02               STORAGE =           0.0000
-       CONSTANT HEAD =           0.0000         CONSTANT HEAD =           0.0000
+             STORAGE =           0.6984               STORAGE =       1.0095E-18
+       CONSTANT HEAD =       1.1602E-02         CONSTANT HEAD =           0.0000
             RECHARGE =     2212500.0000              RECHARGE =        3125.0000
 
-            TOTAL IN =     2212500.0000              TOTAL IN =        3125.0000
+            TOTAL IN =     2212500.7500              TOTAL IN =        3125.0000
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =     2212176.0000               STORAGE =        3123.9585
-       CONSTANT HEAD =         324.1475         CONSTANT HEAD =           1.0408
+             STORAGE =     2212171.0000               STORAGE =        3123.9675
+       CONSTANT HEAD =         325.2075         CONSTANT HEAD =           1.0413
             RECHARGE =           0.0000              RECHARGE =           0.0000
 
-           TOTAL OUT =     2212500.2500             TOTAL OUT =        3124.9993
+           TOTAL OUT =     2212496.2500             TOTAL OUT =        3125.0088
 
-            IN - OUT =          -0.2500              IN - OUT =       7.3242E-04
+            IN - OUT =           4.5000              IN - OUT =      -8.7891E-03
 
  PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
 
@@ -8145,17 +8141,16 @@
  REUSING RECH FROM LAST STRESS PERIOD
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             1    3     5       0.9454726509E+00       1    3    7         0.2839046581E+02      0.2079215243E+03
-          0                 2           4             1    3     6      -0.1381579286E+00       1    3    6        -0.6340990050E+02      0.1400341737E+03
-          0                 3           3             1    5     1      -0.1057714970E-01       2    1    6        -0.3171854607E+01      0.5277428627E+01
-          0                 4           2             1    1    14      -0.1067581958E-03       1    5    8        -0.1611427120E-02      0.8531407062E-02
-          0                 5           1             1    1    14      -0.2853978913E-05       1    1    5        -0.3295023635E-04      0.3506085139E-03
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             1    3     5       0.9712776478E+00       1    3    7       0.2839428711E+02      0.2079168079E+03      0.3843480361E-01      0.9712776478E+00
+          0                 2           4             1    3     6      -0.1637969592E+00       1    3    6      -0.6515760940E+02      0.1448231541E+03      0.2079168079E+03     -0.1637969592E+00
+          0                 3           2             1    5     1      -0.1018204344E-01       2    1    6      -0.3164180125E+01      0.5992877895E+01      0.1448231541E+03     -0.1018204344E-01
+          0                 4           1             1    5    14      -0.7803961947E-04       1    5   14      -0.1902951935E-02      0.1289255867E-01      0.5992877895E+01     -0.7803961947E-04
 
     ------------------------------------------------
-       NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         14 INNER ITERATIONS.
+       NWT REQUIRED            4 OUTER ITERATIONS 
+       AND A TOTAL OF         11 INNER ITERATIONS.
     ------------------------------------------------
 
  OUTPUT CONTROL WAS SPECIFIED FOR A NONEXISTENT TIME STEP
@@ -9550,7 +9545,7 @@
         27.15       26.69       26.32       26.02       25.79       25.61       25.47       25.36       25.27       25.21    
         25.16       25.12       25.09       25.07       25.05       25.04       25.03       25.02       25.02       25.01    
         25.01       25.01       25.01       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90    
-   5    34.90       34.44       33.61       32.61       31.56       30.54       29.61       28.78       28.07       27.47    
+   5    34.90       34.44       33.61       32.61       31.56       30.54       29.61       28.78       28.07       27.46    
         26.96       26.55       26.22       25.95       25.74       25.57       25.44       25.34       25.26       25.20    
         25.15       25.11       25.09       25.07       25.05       25.04       25.03       25.02       25.02       25.01    
         25.01       25.01       25.00       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -9570,7 +9565,7 @@
         26.14       25.92       25.74       25.59       25.47       25.37       25.29       25.23       25.18       25.14    
         25.11       25.08       25.06       25.05       25.04       25.03       25.02       25.02       25.01       25.01    
         25.01       25.01       25.00       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90    
-  10    28.17       28.09       27.93       27.72       27.47       27.19       26.91       26.64       26.39       26.16    
+  10    28.17       28.09       27.93       27.72       27.46       27.19       26.91       26.64       26.39       26.16    
         25.96       25.78       25.63       25.51       25.41       25.32       25.25       25.20       25.16       25.12    
         25.09       25.07       25.06       25.04       25.03       25.03       25.02       25.01       25.01       25.01    
         25.01       25.00       25.00       25.00      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -10050,7 +10045,7 @@
         25.17       25.13       25.10       25.07       25.06       25.04       25.03       25.02       25.02       25.01    
         25.01       25.01       25.01       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
    3    39.93       38.96       37.21       35.35       33.62       32.09       30.78       29.66       28.73       27.96    
-        27.34       26.83       26.43       26.11       25.85       25.66       25.50       25.38       25.29       25.22    
+        27.34       26.83       26.43       26.10       25.85       25.66       25.50       25.38       25.29       25.22    
         25.17       25.13       25.10       25.07       25.05       25.04       25.03       25.02       25.02       25.01    
         25.01       25.01       25.01       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
    4    37.19       36.53       35.35       33.98       32.62       31.37       30.24       29.27       28.44       27.75    
@@ -10093,7 +10088,7 @@
         25.55       25.46       25.38       25.31       25.25       25.20       25.16       25.13       25.10       25.08    
         25.06       25.05       25.04       25.03       25.02       25.02       25.01       25.01       25.01       25.01    
         25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
-  14    26.17       26.15       26.11       26.04       25.97       25.88       25.79       25.70       25.61       25.52    
+  14    26.17       26.15       26.10       26.04       25.97       25.88       25.79       25.70       25.61       25.52    
         25.44       25.37       25.31       25.26       25.21       25.17       25.14       25.11       25.09       25.07    
         25.06       25.04       25.03       25.03       25.02       25.02       25.01       25.01       25.01       25.01    
         25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00       25.00    
@@ -10551,16 +10546,16 @@
 1
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             2    3     5       0.8178554996E+00       4    1    7         0.2367529483E+02      0.1979295150E+03
-          0                 2           3             2    3     5      -0.1090118541E+00       1    5    7        -0.2956170940E+02      0.9223620377E+02
-          0                 3           3             3    2     1      -0.2020200714E-02       3    2    6        -0.9267078429E-01      0.2469700353E+00
-          0                 4           1             1    3    14      -0.5875410906E-04       3    2   14        -0.2634582634E-03      0.5147656820E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             3    2     5       0.8415588044E+00       1    4    7       0.2367801415E+02      0.1979451993E+03      0.1289255867E-01      0.8415588044E+00
+          0                 2           3             3    2     5      -0.1343489507E+00       5    1    7      -0.3047482697E+02      0.9612109668E+02      0.1979451993E+03     -0.1343489507E+00
+          0                 3           1             2    3     1      -0.4417481155E-03       2    3    6      -0.1209047675E+00      0.2416221132E+00      0.9612109668E+02     -0.4417481155E-03
+          0                 4           1             4    2    14      -0.1722979512E-04       3    3    6       0.6332826768E-02      0.1068900747E-01      0.2416221132E+00     -0.1722979512E-04
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         11 INNER ITERATIONS.
+       AND A TOTAL OF          9 INNER ITERATIONS.
     ------------------------------------------------
 
  OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   2
@@ -11430,11 +11425,11 @@
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
-   2    46.31       44.83       40.34      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
+   2    46.31       44.83       40.35      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
-   3    41.45       40.34      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
+   3    41.45       40.35      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -12950,58 +12945,59 @@
 1
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             3    3     6       0.6966280357E+00       4    2    7         0.2001372760E+02      0.1834656821E+03
-          0                 2           4             1    1     4      -0.1002272156E+00       2    2    6         0.2292751597E+02      0.5413924266E+02
-          0                 3           2             2    2     6      -0.2543074298E-02       5    3    8         0.1918763558E+01      0.3774490807E+01
-          0                 4           2             5    3     8       0.1838928381E-03       3    5    8         0.1705056570E+00      0.2689522205E+00
-          0                 5           1             5    3     8       0.1642579626E-04       5    3    8         0.1530620416E-01      0.2523391377E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             3    3     6       0.7171841691E+00       2    4    7       0.2001213547E+02      0.1834602020E+03      0.1068900747E-01      0.7171841691E+00
+          0                 2           3             1    1     4      -0.1173941219E+00       2    2    6       0.2392998377E+02      0.5662427242E+02      0.1834602020E+03     -0.1173941219E+00
+          0                 3           2             3    5     8       0.3265275704E-02       3    5    8       0.1975819558E+01      0.3316713094E+01      0.5662427242E+02      0.3265275704E-02
+          0                 4           1             3    5     8       0.3087484539E-03       3    5    8       0.1779749474E+00      0.2945742420E+00      0.3316713094E+01      0.3087484539E-03
+          0                 5           1             3    5     8       0.4687851264E-04       3    5    8       0.1624291654E-01      0.2722901591E-01      0.2945742420E+00      0.4687851264E-04
 
     ------------------------------------------------
        NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         13 INNER ITERATIONS.
+       AND A TOTAL OF         11 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   3
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             5    3     7       0.6086140819E+00       3    4    7         0.1760136493E+02      0.1744416573E+03
-          0                 2           3             5    3     7      -0.6469251572E-01       5    3    7        -0.2413002902E+02      0.6047962596E+02
-          0                 3           2             3    4    14      -0.1222392125E-02       3    5    7        -0.3117950489E-01      0.1460662899E+00
-          0                 4           1             4    1    14      -0.4090251464E-04       1    5   14        -0.1830337387E-03      0.4197644118E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             3    5     7       0.6267475423E+00       3    4    7       0.1759857357E+02      0.1744352288E+03      0.2722901591E-01      0.6267475423E+00
+          0                 2           3             3    5     7      -0.8384482727E-01       3    5    7      -0.2488094822E+02      0.6246444370E+02      0.1744352288E+03     -0.8384482727E-01
+          0                 3           1             3    5     1      -0.1691933692E-03       5    3    7      -0.4158641924E-01      0.7819253368E-01      0.6246444370E+02     -0.1691933692E-03
+          0                 4           1             3    2     9      -0.8793115059E-05       2    2    5       0.3886921477E-03      0.1960261282E-02      0.7819253368E-01     -0.8793115059E-05
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
+       AND A TOTAL OF          9 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   4
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             5    4     7       0.5451166194E+00       4    5    8         0.1551811090E+02      0.1660634451E+03
-          0                 2           4             1    6     7      -0.5285802958E-01       6    1    7        -0.1595864352E+02      0.5260786543E+02
-          0                 3           2             1    6    14      -0.8312065004E-03       2   10    9         0.4467737648E+00      0.9486831070E+00
-          0                 4           1             5    4     8       0.3002823367E-04       4    5    8         0.3258200571E-01      0.5387507140E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             4    5     7       0.5614190198E+00       5    4    8       0.1551750205E+02      0.1660565881E+03      0.1960261282E-02      0.5614190198E+00
+          0                 2           3             1    6     7      -0.7015153139E-01       1    6    7      -0.1657624440E+02      0.5467741036E+02      0.1660565881E+03     -0.7015153139E-01
+          0                 3           2             4    5     8       0.1395731890E-02       5    9    9       0.1249280187E+01      0.2520586350E+01      0.5467741036E+02      0.1395731890E-02
+          0                 4           1             4    5     8       0.1318012401E-03       5    9    9       0.8399654304E-01      0.1773115810E+00      0.2520586350E+01      0.1318012401E-03
+          0                 5           1             4    5     8       0.2055119363E-04       5    9    9       0.7641349006E-02      0.1619716137E-01      0.1773115810E+00      0.2055119363E-04
 
     ------------------------------------------------
-       NWT REQUIRED            4 OUTER ITERATIONS 
+       NWT REQUIRED            5 OUTER ITERATIONS 
        AND A TOTAL OF         11 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   5
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             1    7     7       0.4874636792E+00       4    5    8         0.1395477744E+02      0.1572961440E+03
-          0                 2           4             1    4     6      -0.4368218366E-01       5    4    8         0.1532657454E+02      0.5653987905E+02
-          0                 3           2             5    4     8      -0.3681740177E-02       5    4    8        -0.1401017707E+01      0.2046519969E+01
-          0                 4           1             3    1    14      -0.2783803972E-04       4    5    8        -0.5112614454E-03      0.3521379842E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             1    7     7       0.5018290365E+00       5    4    8       0.1392647275E+02      0.1572828617E+03      0.1619716137E-01      0.5018290365E+00
+          0                 2           4             1    4     6      -0.5948974239E-01       5    4    8       0.1577852999E+02      0.5870305623E+02      0.1572828617E+03     -0.5948974239E-01
+          0                 3           2             5    4     8      -0.1795880230E-02       5    4    8      -0.1303618542E+01      0.2086674056E+01      0.5870305623E+02     -0.1795880230E-02
+          0                 4           1             1    1    14      -0.2349956816E-05       5    5    7       0.6742611222E-03      0.8927461347E-03      0.2086674056E+01     -0.2349956816E-05
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
@@ -13011,167 +13007,167 @@
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   6
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             5    5     7       0.4550396934E+00       3    6    8         0.1271495758E+02      0.1507149840E+03
-          0                 2           4             1    2     4      -0.9334253716E-01       1    2    4        -0.1988072069E+02      0.5244856977E+02
-          0                 3           3             1    1    14      -0.1368028746E-02       1    2    4        -0.7595286405E-01      0.2014356129E+00
-          0                 4           1             1    3    14      -0.4081642378E-04       1    1   14        -0.1904217133E-03      0.4064847170E-02
-
-    ------------------------------------------------
-       NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         12 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   7
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             5    5     7       0.4155397609E+00       5    5    8         0.1159780858E+02      0.1448729590E+03
-          0                 2           3             2    4     6      -0.4572008826E-01       2    4    6        -0.1513257790E+02      0.4831998487E+02
-          0                 3           2             7    1     1      -0.3328686372E-02       1    7    7        -0.4664778920E+00      0.6830783607E+00
-          0                 4           1             7    1    14      -0.4190763606E-04       7    1    8        -0.4213000684E-03      0.4459619979E-02
-
-    ------------------------------------------------
-       NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   8
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    4     7       0.3847850755E+00       4    6    8         0.1064583615E+02      0.1384918784E+03
-          0                 2           3             1    7     7      -0.3928700842E-01       7    1    7        -0.1324140808E+02      0.4201074051E+02
-          0                 3           2             6    1    14      -0.7953369894E-03       4    6    7        -0.9550493538E-02      0.1100134378E+00
-          0                 4           1             5    1    14      -0.2790360301E-04       7    1   14        -0.1259252313E-03      0.3476984198E-02
-
-    ------------------------------------------------
-       NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   9
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    5     7       0.3591784554E+00       6    5    8         0.9881364955E+01      0.1341770580E+03
-          0                 2           3             9    8     8      -0.2830534382E-01       9    8    8        -0.7713195980E+01      0.2418463742E+02
-          0                 3           2             3    7     1      -0.2582023149E-02       3    7    7        -0.4118523875E+00      0.6017803788E+00
-          0                 4           1             7    3    14      -0.3325270702E-04       7    3    8        -0.3070804305E-03      0.3976602709E-02
-
-    ------------------------------------------------
-       NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  10
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    5     7       0.3364190205E+00       3    7    8         0.9238388662E+01      0.1300186398E+03
-          0                 2           4             1    3     5      -0.6594376535E-01       1    3    5        -0.1745549630E+02      0.4151357027E+02
-          0                 3           3             4    3     7       0.1826769192E-02       4    3    7         0.8213252622E+00      0.1221238148E+01
-          0                 4           2             3    4     7       0.1609721538E-03       3    4    7         0.7330948399E-01      0.1056841024E+00
-          0                 5           1             4    3     7       0.1459830437E-04       3    4    7         0.6581918045E-02      0.9600590834E-02
-
-    ------------------------------------------------
-       NWT REQUIRED            5 OUTER ITERATIONS 
-       AND A TOTAL OF         14 INNER ITERATIONS.
-    ------------------------------------------------
-
- NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  11
- 
- SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    6     7       0.3156767379E+00       7    4    8         0.8619028577E+01      0.1260033598E+03
-          0                 2           4             2    2     4      -0.3045427186E-01       4    3    7         0.9874355373E+01      0.3116311453E+02
-          0                 3           2             4    3     7      -0.2240924242E-02       3    4    7        -0.9148600828E+00      0.1792701084E+01
-          0                 4           1             4    7     8       0.8306735189E-04       4    7    8         0.5454792954E-01      0.8184913521E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             5    5     7       0.4689963041E+00       3    6    8       0.1271464177E+02      0.1507083183E+03      0.8927461347E-03      0.4689963041E+00
+          0                 2           4             1    2     4      -0.1062912297E+00       1    2    4      -0.2068542523E+02      0.5438939336E+02      0.1507083183E+03     -0.1062912297E+00
+          0                 3           2            11    1     1      -0.5422152616E-02       1   11    8      -0.9157117137E+00      0.1316526734E+01      0.5438939336E+02     -0.5422152616E-02
+          0                 4           1             4    4    14      -0.2254370750E-04       2    2    4       0.5207677925E-02      0.8204903413E-02      0.1316526734E+01     -0.2254370750E-04
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
        AND A TOTAL OF         11 INNER ITERATIONS.
     ------------------------------------------------
 
+ NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   7
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             5    5     7       0.4283176226E+00       5    5    8       0.1159794431E+02      0.1448714801E+03      0.8204903413E-02      0.4283176226E+00
+          0                 2           3             2    4     6      -0.5989358011E-01       4    2    6      -0.1571518926E+02      0.5021158236E+02      0.1448714801E+03     -0.5989358011E-01
+          0                 3           2             7    1     8       0.2438617755E-02       7    1    8       0.1295855703E+01      0.2097750341E+01      0.5021158236E+02      0.2438617755E-02
+          0                 4           1             1    7     8       0.2257687730E-03       7    1    8       0.1166391447E+00      0.1887535739E+00      0.2097750341E+01      0.2257687730E-03
+          0                 5           1             7    1     8       0.3005648472E-04       7    1    8       0.1054029888E-01      0.1713330245E-01      0.1887535739E+00      0.3005648472E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            5 OUTER ITERATIONS 
+       AND A TOTAL OF         11 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   8
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             4    6     7       0.3967771985E+00       6    4    8       0.1064481316E+02      0.1384819413E+03      0.1713330245E-01      0.3967771985E+00
+          0                 2           3             1    7     7      -0.5189603587E-01       1    7    7      -0.1366907113E+02      0.4359034427E+02      0.1384819413E+03     -0.5189603587E-01
+          0                 3           1             6    4     1      -0.8470906032E-04       6    4    7      -0.1322286423E-01      0.3122412221E-01      0.4359034427E+02     -0.8470906032E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            3 OUTER ITERATIONS 
+       AND A TOTAL OF          8 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP   9
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             5    6     7       0.3703260195E+00       5    6    8       0.9881992967E+01      0.1341866584E+03      0.3122412221E-01      0.3703260195E+00
+          0                 2           3             9    8     8      -0.3802688359E-01       9    8    8      -0.8015049447E+01      0.2525793068E+02      0.1341866584E+03     -0.3802688359E-01
+          0                 3           2             7    3     8       0.1630666832E-02       3    7    8       0.1075891616E+01      0.1741642255E+01      0.2525793068E+02      0.1630666832E-02
+          0                 4           1             3    7     8       0.1553887682E-03       7    3    8       0.9689975227E-01      0.1568138724E+00      0.1741642255E+01      0.1553887682E-03
+          0                 5           1             3    7     8       0.2201248382E-04       7    3    8       0.8816892969E-02      0.1432679577E-01      0.1568138724E+00      0.2201248382E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            5 OUTER ITERATIONS 
+       AND A TOTAL OF         11 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  10
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             5    6     7       0.3469836444E+00       3    7    8       0.9246260197E+01      0.1300099229E+03      0.1432679577E-01      0.3469836444E+00
+          0                 2           3             1    3     5      -0.7699296507E-01       1    3    5      -0.1815423477E+02      0.4326627947E+02      0.1300099229E+03     -0.7699296507E-01
+          0                 3           2            12    4     1      -0.3372903915E-02       3    4    7       0.8586965037E+00      0.1595947246E+01      0.4326627947E+02     -0.3372903915E-02
+          0                 4           1             3    4     7       0.2226015582E-03       3    4    7       0.7740675118E-01      0.1144237708E+00      0.1595947246E+01      0.2226015582E-03
+          0                 5           1             3    4     7       0.3395887531E-04       3    4    7       0.7157900069E-02      0.1079121578E-01      0.1144237708E+00      0.3395887531E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            5 OUTER ITERATIONS 
+       AND A TOTAL OF         11 INNER ITERATIONS.
+    ------------------------------------------------
+
+ NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  11
+ 
+ SOLVING FOR HEAD 
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             6    6     7       0.3254545886E+00       7    4    8       0.8619030875E+01      0.1260017283E+03      0.1079121578E-01      0.3254545886E+00
+          0                 2           3             2    2     4      -0.3907804937E-01       4    3    7       0.1021611420E+02      0.3230365094E+02      0.1260017283E+03     -0.3907804937E-01
+          0                 3           2             7    4     8       0.1315477630E-02       4    3    7      -0.8533533208E+00      0.2324264667E+01      0.3230365094E+02      0.1315477630E-02
+          0                 4           1             7    4     8       0.1224829019E-03       7    4    8       0.5704009032E-01      0.1436496198E+00      0.2324264667E+01      0.1224829019E-03
+          0                 5           1             7    4     8       0.1749318453E-04       7    4    8       0.5180342188E-02      0.1305234737E-01      0.1436496198E+00      0.1749318453E-04
+
+    ------------------------------------------------
+       NWT REQUIRED            5 OUTER ITERATIONS 
+       AND A TOTAL OF         11 INNER ITERATIONS.
+    ------------------------------------------------
+
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  12
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    6     7       0.3005949644E+00       4    7    8         0.8242932939E+01      0.1232401608E+03
-          0                 2           3             7    4     7      -0.3073432801E-01       7    4    7        -0.1095273712E+02      0.3718860417E+02
-          0                 3           2             5    1    14      -0.6537001970E-03       4    7    7        -0.6791156120E-02      0.9703535570E-01
-          0                 4           1             4    1    14      -0.2438190626E-04       1    5   14        -0.1118631335E-03      0.3171534870E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             4    7     7       0.3101003086E+00       4    7    8       0.8195779557E+01      0.1232279244E+03      0.1305234737E-01      0.3101003086E+00
+          0                 2           3             4    7     7      -0.4085270876E-01       4    7    7      -0.1130580293E+02      0.3857505777E+02      0.1232279244E+03     -0.4085270876E-01
+          0                 3           1             7    4     1      -0.6708196870E-04       7    4    7      -0.9358003776E-02      0.2369558841E-01      0.3857505777E+02     -0.6708196870E-04
 
     ------------------------------------------------
-       NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
+       NWT REQUIRED            3 OUTER ITERATIONS 
+       AND A TOTAL OF          8 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  13
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    6     7       0.2848680623E+00       6    6    8         0.7729504678E+01      0.1191884160E+03
-          0                 2           3             2    8     7      -0.2656917166E-01       2    8    7        -0.8202378808E+01      0.2944452140E+02
-          0                 3           2             7    1    14      -0.5442776790E-03       6    6    8         0.2814677092E+00      0.3008015187E+00
-          0                 4           1             1    4    14      -0.2064770705E-04       6    6    8         0.2241708739E-01      0.2517019027E-01
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             6    6     7       0.2939483549E+00       6    6    8       0.7730426549E+01      0.1191969355E+03      0.2369558841E-01      0.2939483549E+00
+          0                 2           3             8    2     7      -0.3620221425E-01       2    8    7      -0.8524194730E+01      0.3052395797E+02      0.1191969355E+03     -0.3620221425E-01
+          0                 3           1             6    6     8       0.7919999002E-03       6    6    8       0.3058750018E+00      0.3110384369E+00      0.3052395797E+02      0.7919999002E-03
+          0                 4           1             6    6     8       0.8569039467E-04       6    6    8       0.2769825105E-01      0.2824473893E-01      0.3110384369E+00      0.8569039467E-04
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
+       AND A TOTAL OF          9 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  14
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             8    3     7       0.2687474746E+00       6    6    8         0.7352006931E+01      0.1162967306E+03
-          0                 2           3             2    3     4      -0.3813894436E-01       6    6    8         0.7806882789E+01      0.2517986978E+02
-          0                 3           2             6    6     8      -0.1574288454E-02       6    6    8        -0.6660442858E+00      0.7363386488E+00
-          0                 4           1             4    1    14      -0.2283920091E-04       6    6    8        -0.2259735556E-03      0.3051146975E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             3    8     7       0.2773295941E+00       6    6    8       0.7355384084E+01      0.1162879833E+03      0.2824473893E-01      0.2773295941E+00
+          0                 2           3             2    3     4      -0.4750686010E-01       6    6    8       0.8047260928E+01      0.2652067239E+02      0.1162879833E+03     -0.4750686010E-01
+          0                 3           1             6    6     8      -0.3709305594E-03       6    6    8      -0.3380354363E+00      0.4301837781E+00      0.2652067239E+02     -0.3709305594E-03
+          0                 4           1             6    6    14      -0.1360324333E-04       5    5   11       0.8689484894E-03      0.3034197474E-02      0.4301837781E+00     -0.1360324333E-04
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
+       AND A TOTAL OF          9 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  15
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    7     7       0.2565088108E+00       6    7    8         0.6940901391E+01      0.1130781656E+03
-          0                 2           3            10   10     8      -0.1953136979E-01       2    3    6         0.6423643989E+01      0.1926158156E+02
-          0                 3           2             2    3     6      -0.1424356829E-02       2    3    6        -0.5874511388E+00      0.9185206993E+00
-          0                 4           1             9    1    14      -0.1632359111E-04       2    3    6        -0.2001573375E-03      0.2687613687E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             7    6     7       0.2645878647E+00       6    7    8       0.6941076266E+01      0.1130756345E+03      0.3034197474E-02      0.2645878647E+00
+          0                 2           3            10   10     8      -0.2648881376E-01       2    3    6       0.6732828441E+01      0.2008056357E+02      0.1130756345E+03     -0.2648881376E-01
+          0                 3           1             3    2     6      -0.5955871341E-03       3    2    6      -0.5505708250E+00      0.1003009403E+01      0.2008056357E+02     -0.5955871341E-03
+          0                 4           1             3    3    14      -0.4863791808E-04      13    6    9       0.1979738554E-01      0.3265627039E-01      0.1003009403E+01     -0.4863791808E-04
 
     ------------------------------------------------
        NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
+       AND A TOTAL OF          9 INNER ITERATIONS.
     ------------------------------------------------
 
  NO OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  16
  
  SOLVING FOR HEAD 
-                                                   Max.-Head-Change                         Max.-Flux-Residual
-  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Maximum-Head-Change  Column Row Layer    Maximum-Flux-Residual          RMS 
-          0                 1           4             6    7     7       0.2454408082E+00       7    6    8         0.6631866635E+01      0.1108051884E+03
-          0                 2           3             4    4     6      -0.2260586476E-01      13    6    8        -0.6979248399E+01      0.2566362855E+02
-          0                 3           2             4    4    14      -0.5073341777E-03       4    4    6        -0.3575328446E-02      0.8566541297E-01
-          0                 4           1             4    1    14      -0.1971046294E-04       4    5   14        -0.1047190526E-03      0.2810814758E-02
+                                                   Max.-Head-Change                        Max.-Flux-Residual
+  Residual-Control   Outer-Iter.   Inner-Iter.     Column Row Layer    Max.-Head-Change    Column Row Layer    Max.-Flux-Residual            L2-New               L2-Old           Solver-Max-Delh
+          0                 1           4             7    6     7       0.2533055090E+00       6    7    8       0.6632421804E+01      0.1108084410E+03      0.3265627039E-01      0.2533055090E+00
+          0                 2           3             4    4     6      -0.3128965971E-01      13    6    8      -0.7180263822E+01      0.2660361242E+02      0.1108084410E+03     -0.3128965971E-01
+          0                 3           1             4    4     1      -0.4845407093E-04       4    4    6      -0.5187945524E-02      0.1355425608E-01      0.2660361242E+02     -0.4845407093E-04
 
     ------------------------------------------------
-       NWT REQUIRED            4 OUTER ITERATIONS 
-       AND A TOTAL OF         10 INNER ITERATIONS.
+       NWT REQUIRED            3 OUTER ITERATIONS 
+       AND A TOTAL OF          8 INNER ITERATIONS.
     ------------------------------------------------
 
  OUTPUT CONTROL FOR STRESS PERIOD    3   TIME STEP  17
@@ -13700,11 +13696,11 @@
            21          22          23          24          25          26          27          28          29          30
            31          32          33          34          35          36          37          38          39          40
  ........................................................................................................................
-   1    53.80       52.21      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
+   1    53.80       52.20      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
-   2    52.21       50.85      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
+   2    52.20       50.85      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -14376,7 +14372,7 @@
            21          22          23          24          25          26          27          28          29          30
            31          32          33          34          35          36          37          38          39          40
  ........................................................................................................................
-   1    50.75       49.25       46.00       43.22       40.98       39.11       37.50       36.09       34.85       33.74    
+   1    50.75       49.25       46.00       43.22       40.98       39.11       37.50       36.09       34.85       33.73    
         32.74       31.84       31.04       30.31      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -14412,7 +14408,7 @@
         30.29      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
-  10    33.74       33.62       33.40       33.10       32.72       32.28       31.82       31.33       30.83       30.34    
+  10    33.73       33.62       33.40       33.10       32.72       32.28       31.82       31.33       30.83       30.34    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
        -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90      -99.90    
@@ -14559,7 +14555,7 @@
         25.36       25.29       25.24       25.19       25.15       25.11       25.08       25.05       25.03      -99.90    
    4    43.17       42.54       41.41       40.09       38.75       37.46       36.24       35.10       34.06       33.10    
         32.22       31.41       30.68       30.01       29.41       28.87       28.38       27.94       27.55       27.21    
-        26.90       26.63       26.39       26.19       26.01       25.85       25.72       25.61       25.51       25.42    
+        26.90       26.63       26.39       26.19       26.01       25.85       25.72       25.60       25.51       25.42    
         25.35       25.29       25.23       25.19       25.15       25.11       25.08       25.05       25.03      -99.90    
    5    40.96       40.52       39.73       38.75       37.68       36.60       35.55       34.55       33.60       32.72    
         31.90       31.15       30.46       29.83       29.25       28.74       28.27       27.85       27.47       27.14    
@@ -14653,7 +14649,7 @@
         25.53       25.49       25.46       25.42       25.39       25.35       25.32       25.29       25.26       25.23    
         25.21       25.19       25.16       25.14       25.13       25.11       25.10       25.08       25.07       25.06    
         25.05       25.04       25.04       25.03       25.02       25.02       25.01       25.01       25.00      -99.90    
-  28    25.63       25.62       25.62       25.61       25.59       25.57       25.55       25.53       25.50       25.47    
+  28    25.63       25.62       25.62       25.60       25.59       25.57       25.55       25.53       25.50       25.47    
         25.44       25.42       25.39       25.36       25.33       25.30       25.27       25.25       25.22       25.20    
         25.18       25.16       25.14       25.12       25.11       25.09       25.08       25.07       25.06       25.05    
         25.04       25.04       25.03       25.03       25.02       25.02       25.01       25.01       25.00      -99.90    
@@ -14722,7 +14718,7 @@
         32.65       31.77       30.98       30.27       29.62       29.05       28.53       28.07       27.66       27.30    
         26.98       26.69       26.45       26.23       26.05       25.89       25.75       25.63       25.52       25.44    
         25.36       25.30       25.24       25.19       25.15       25.12       25.08       25.05       25.03       25.00    
-   3    45.70       44.80       43.15       41.39       39.72       38.20       36.82       35.57       34.44       33.41    
+   3    45.70       44.80       43.15       41.39       39.72       38.20       36.82       35.57       34.43       33.41    
         32.47       31.63       30.86       30.16       29.54       28.97       28.47       28.02       27.62       27.26    
         26.95       26.67       26.43       26.22       26.03       25.87       25.74       25.62       25.52       25.43    
         25.36       25.29       25.24       25.19       25.15       25.11       25.08       25.05       25.03       25.00    
@@ -14738,15 +14734,15 @@
         31.54       30.85       30.20       29.61       29.07       28.58       28.14       27.74       27.38       27.06    
         26.78       26.53       26.31       26.12       25.95       25.81       25.68       25.57       25.48       25.40    
         25.33       25.27       25.22       25.18       25.14       25.11       25.08       25.05       25.02       25.00    
-   7    37.49       37.25       36.82       36.23       35.55       34.81       34.04       33.28       32.54       31.82    
-        31.14       30.51       29.92       29.37       28.86       28.41       27.99       27.61       27.27       26.97    
+   7    37.49       37.25       36.82       36.23       35.55       34.81       34.04       33.28       32.53       31.82    
+        31.14       30.51       29.92       29.37       28.86       28.40       27.99       27.61       27.27       26.97    
         26.70       26.47       26.26       26.07       25.91       25.78       25.66       25.55       25.46       25.39    
         25.32       25.26       25.21       25.17       25.14       25.10       25.07       25.05       25.02       25.00    
    8    36.09       35.91       35.57       35.10       34.55       33.93       33.28       32.62       31.97       31.33    
         30.72       30.15       29.61       29.10       28.64       28.21       27.82       27.47       27.16       26.87    
         26.62       26.40       26.20       26.02       25.87       25.74       25.63       25.53       25.44       25.37    
         25.31       25.25       25.21       25.17       25.13       25.10       25.07       25.05       25.02       25.00    
-   9    34.84       34.70       34.44       34.06       33.60       33.09       32.54       31.97       31.40       30.84    
+   9    34.84       34.70       34.43       34.06       33.60       33.09       32.53       31.97       31.40       30.84    
         30.29       29.78       29.29       28.83       28.40       28.01       27.65       27.32       27.03       26.76    
         26.53       26.32       26.13       25.97       25.83       25.70       25.60       25.50       25.42       25.35    
         25.29       25.24       25.20       25.16       25.12       25.10       25.07       25.04       25.02       25.00    
@@ -14774,7 +14770,7 @@
         27.91       27.67       27.43       27.20       26.98       26.77       26.58       26.40       26.24       26.09    
         25.95       25.83       25.72       25.62       25.53       25.46       25.39       25.33       25.28       25.23    
         25.20       25.16       25.13       25.11       25.09       25.07       25.05       25.03       25.02       25.00    
-  16    29.08       29.05       28.97       28.87       28.74       28.58       28.41       28.21       28.01       27.80    
+  16    29.08       29.05       28.97       28.87       28.74       28.58       28.40       28.21       28.01       27.80    
         27.59       27.37       27.17       26.97       26.77       26.59       26.42       26.26       26.12       25.98    
         25.86       25.75       25.65       25.56       25.48       25.42       25.35       25.30       25.26       25.21    
         25.18       25.15       25.12       25.10       25.08       25.06       25.04       25.03       25.01       25.00    
@@ -14887,7 +14883,7 @@
         32.74       31.85       31.04       30.32       29.67       29.09       28.56       28.10       27.68       27.32    
         26.99       26.71       26.46       26.24       26.06       25.89       25.75       25.63       25.53       25.44    
         25.36       25.30       25.24       25.20       25.15       25.12       25.08       25.05       25.03       25.00    
-   2    48.14       46.95       44.71       42.47       40.49       38.77       37.25       35.91       34.70       33.62    
+   2    48.14       46.95       44.71       42.47       40.49       38.77       37.25       35.90       34.70       33.62    
         32.65       31.77       30.98       30.27       29.63       29.05       28.53       28.07       27.66       27.30    
         26.98       26.70       26.45       26.24       26.05       25.89       25.75       25.63       25.53       25.44    
         25.36       25.30       25.24       25.19       25.15       25.12       25.08       25.05       25.03       25.00    
@@ -14911,7 +14907,7 @@
         31.15       30.51       29.92       29.37       28.87       28.41       27.99       27.61       27.28       26.97    
         26.71       26.47       26.26       26.08       25.92       25.78       25.66       25.55       25.46       25.39    
         25.32       25.26       25.22       25.17       25.14       25.10       25.08       25.05       25.02       25.00    
-   8    36.08       35.91       35.57       35.10       34.55       33.93       33.28       32.62       31.97       31.33    
+   8    36.08       35.90       35.57       35.10       34.55       33.93       33.28       32.62       31.97       31.33    
         30.73       30.15       29.61       29.11       28.64       28.22       27.83       27.48       27.16       26.87    
         26.62       26.40       26.20       26.03       25.88       25.74       25.63       25.53       25.44       25.37    
         25.31       25.25       25.21       25.17       25.13       25.10       25.07       25.05       25.02       25.00    
@@ -15052,12 +15048,12 @@
            21          22          23          24          25          26          27          28          29          30
            31          32          33          34          35          36          37          38          39          40
  ........................................................................................................................
-   1    49.24       47.93       45.50       43.05       40.91       39.07       37.48       36.08       34.84       33.74    
+   1    49.23       47.93       45.50       43.05       40.91       39.07       37.48       36.08       34.84       33.74    
         32.74       31.85       31.05       30.32       29.67       29.09       28.57       28.10       27.69       27.32    
         27.00       26.71       26.46       26.25       26.06       25.90       25.75       25.63       25.53       25.44    
         25.36       25.30       25.24       25.20       25.15       25.12       25.08       25.05       25.03       25.00    
    2    47.93       46.77       44.63       42.44       40.48       38.76       37.25       35.90       34.70       33.62    
-        32.65       31.77       30.98       30.27       29.63       29.05       28.54       28.07       27.66       27.30    
+        32.65       31.77       30.98       30.27       29.63       29.05       28.53       28.07       27.66       27.30    
         26.98       26.70       26.45       26.24       26.05       25.89       25.75       25.63       25.53       25.44    
         25.36       25.30       25.24       25.19       25.15       25.12       25.08       25.05       25.03       25.00    
    3    45.50       44.63       43.07       41.35       39.71       38.19       36.81       35.57       34.43       33.41    
@@ -15116,7 +15112,7 @@
         27.59       27.38       27.17       26.97       26.78       26.60       26.43       26.27       26.12       25.99    
         25.86       25.75       25.65       25.57       25.49       25.42       25.36       25.30       25.26       25.22    
         25.18       25.15       25.12       25.10       25.08       25.06       25.04       25.03       25.01       25.00    
-  17    28.57       28.54       28.48       28.39       28.28       28.14       27.99       27.83       27.66       27.47    
+  17    28.57       28.53       28.48       28.39       28.28       28.14       27.99       27.83       27.66       27.47    
         27.29       27.11       26.93       26.75       26.58       26.43       26.27       26.13       26.00       25.89    
         25.78       25.68       25.59       25.51       25.44       25.38       25.32       25.28       25.23       25.20    
         25.17       25.14       25.11       25.09       25.07       25.06       25.04       25.03       25.01       25.00    
@@ -15390,7 +15386,7 @@
            21          22          23          24          25          26          27          28          29          30
            31          32          33          34          35          36          37          38          39          40
  ........................................................................................................................
-   1    48.99       47.72       45.41       43.02       40.90       39.06       37.48       36.08       34.84       33.74    
+   1    48.99       47.72       45.41       43.02       40.90       39.06       37.47       36.08       34.84       33.74    
         32.74       31.85       31.05       30.32       29.67       29.09       28.57       28.10       27.69       27.32    
         27.00       26.71       26.47       26.25       26.06       25.90       25.76       25.63       25.53       25.44    
         25.37       25.30       25.24       25.20       25.15       25.12       25.09       25.06       25.03       25.00    
@@ -15414,7 +15410,7 @@
         31.55       30.85       30.21       29.62       29.08       28.59       28.15       27.75       27.39       27.07    
         26.79       26.54       26.32       26.13       25.96       25.81       25.69       25.58       25.48       25.40    
         25.33       25.27       25.22       25.18       25.14       25.11       25.08       25.05       25.02       25.00    
-   7    37.48       37.24       36.81       36.23       35.55       34.81       34.04       33.28       32.54       31.83    
+   7    37.47       37.24       36.81       36.23       35.55       34.81       34.04       33.28       32.54       31.83    
         31.15       30.51       29.92       29.38       28.87       28.41       28.00       27.62       27.28       26.98    
         26.71       26.47       26.26       26.08       25.92       25.78       25.66       25.56       25.47       25.39    
         25.32       25.27       25.22       25.17       25.14       25.10       25.08       25.05       25.02       25.00    
@@ -15559,21 +15555,21 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =       2.8309E-02               STORAGE =       9.5292E-20
-       CONSTANT HEAD =       8.1194E-05         CONSTANT HEAD =       6.1673E-09
+             STORAGE =           0.6985               STORAGE =       8.7818E-19
+       CONSTANT HEAD =       1.1602E-02         CONSTANT HEAD =           0.0000
             RECHARGE =     8218751.5000              RECHARGE =        3125.0000
 
-            TOTAL IN =     8218751.5000              TOTAL IN =        3125.0000
+            TOTAL IN =     8218752.0000              TOTAL IN =        3125.0000
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =     8147147.0000               STORAGE =        3010.0840
-       CONSTANT HEAD =       71607.9141         CONSTANT HEAD =         114.9187
+             STORAGE =     8147171.5000               STORAGE =        3010.1924
+       CONSTANT HEAD =       71607.3594         CONSTANT HEAD =         114.9155
             RECHARGE =           0.0000              RECHARGE =           0.0000
 
-           TOTAL OUT =     8218755.0000             TOTAL OUT =        3125.0027
+           TOTAL OUT =     8218779.0000             TOTAL OUT =        3125.1079
 
-            IN - OUT =          -3.5000              IN - OUT =      -2.6855E-03
+            IN - OUT =         -27.0000              IN - OUT =          -0.1079
 
  PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
 
@@ -15590,6 +15586,6 @@
          TOTAL TIME 2.27232E+08 3.78720E+06  63120.      2630.0      7.2005    
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2011/10/03  9:19:18
- Elapsed run time:  9.330 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2011/12/21 14:24:02
+ Elapsed run time:  7.380 Seconds
 

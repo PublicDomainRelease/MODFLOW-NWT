@@ -19,7 +19,7 @@
       DOUBLE PRECISION, SAVE, POINTER :: Hcoff, Rhss, Fflux, Fhead
       DOUBLE PRECISION, SAVE, POINTER :: Fheadsave
       INTEGER, SAVE, POINTER :: Numnonzero, II, Itreal, Ibt, NJA
-      INTEGER, SAVE, POINTER :: Ilinal, IFDPARAM, ICNVGFLG
+      INTEGER, SAVE, POINTER :: IFDPARAM, ICNVGFLG
       INTEGER, SAVE, POINTER :: Btrack, Iierr
       DOUBLE PRECISION, SAVE, POINTER :: Tol, Ftol, RELAX, RMS2, RMS1
       DOUBLE PRECISION, SAVE, POINTER :: Thickfact, Breduc, Btol, RMSAVE
@@ -48,7 +48,7 @@
         DOUBLE PRECISION, POINTER :: Hcoff, Rhss, Fflux, Fhead
         DOUBLE PRECISION, POINTER :: Fheadsave
         INTEGER, POINTER :: Numnonzero, II, Itreal, Ibt, NJA
-        INTEGER, POINTER :: Ilinal, IFDPARAM, ICNVGFLG
+        INTEGER, POINTER :: IFDPARAM, ICNVGFLG
         DOUBLE PRECISION, POINTER :: Tol, Ftol, RMS2, RMS1
         DOUBLE PRECISION, POINTER :: Thickfact, Breduc, Btol, RMSAVE
         INTEGER, POINTER :: Numactive, Numcell
@@ -90,7 +90,6 @@
       DEALLOCATE (Gwfnwtdat(Igrid)%Itreal)
       DEALLOCATE (Gwfnwtdat(Igrid)%Ibt)
       DEALLOCATE (Gwfnwtdat(Igrid)%II)
-      DEALLOCATE (Gwfnwtdat(Igrid)%Ilinal)
       DEALLOCATE (Gwfnwtdat(Igrid)%IFDPARAM) 
       DEALLOCATE (Gwfnwtdat(Igrid)%ICNVGFLG)
       DEALLOCATE (Gwfnwtdat(Igrid)%Tol)
@@ -165,7 +164,6 @@
       Itreal => Gwfnwtdat(Igrid)%Itreal
       Ibt => Gwfnwtdat(Igrid)%Ibt
       II => Gwfnwtdat(Igrid)%II
-      Ilinal => Gwfnwtdat(Igrid)%Ilinal
       IFDPARAM => Gwfnwtdat(Igrid)%IFDPARAM   
       ICNVGFLG => Gwfnwtdat(Igrid)%ICNVGFLG
       Tol => Gwfnwtdat(Igrid)%Tol
@@ -239,7 +237,6 @@
       Gwfnwtdat(Igrid)%Itreal => Itreal
       Gwfnwtdat(Igrid)%Ibt => Ibt
       Gwfnwtdat(Igrid)%II => II
-      Gwfnwtdat(Igrid)%Ilinal => Ilinal
       Gwfnwtdat(Igrid)%IFDPARAM => IFDPARAM   
       Gwfnwtdat(Igrid)%ICNVGFLG => ICNVGFLG
       Gwfnwtdat(Igrid)%Tol => Tol
