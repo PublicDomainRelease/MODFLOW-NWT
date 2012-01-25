@@ -1,6 +1,7 @@
 C     ******************************************************************
 C     MAIN CODE FOR U.S. GEOLOGICAL SURVEY MODULAR MODEL -- MODFLOW-NWT
-C     WITH THE FARM PROCESS
+!rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
 C     ******************************************************************
 C
 C        SPECIFICATIONS:
@@ -25,7 +26,7 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.0.3 12/29/2011')
+      PARAMETER (VERSION='1.0.4 01/25/2012')
       PARAMETER (VERSION2='1.8.00 12/18/2009')
       PARAMETER (MFVNAM='-NWT')
 C

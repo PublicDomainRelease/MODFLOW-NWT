@@ -6,8 +6,8 @@ C     ******************************************************************
 C     ALLOCATE ARRAY STORAGE FOR STREAMS
 C     INITIALIZE VARIABLES FOR SFR PACKAGES
 C     READ STREAM DATA THAT IS CONSTANT FOR ENTIRE SIMULATION:
-C     REACH DATA AND PARAMETER DEFINITIONS
-C     VERSION 1.0.3:  DECEMBER 29, 2011
+!rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
 C     ******************************************************************
 C     SPECIFICATIONS:
 C     ------------------------------------------------------------------
@@ -48,6 +48,7 @@ C     ------------------------------------------------------------------
       ALLOCATE (NUZST, NSTOTRL, NUMAVE)
       ALLOCATE (ITMP, IRDFLG, IPTFLG, NP)
       ALLOCATE (CONST, DLEAK, IRTFLG, NUMTIM, WEIGHT, FLWTOL)
+      ALLOCATE (NSEGDIM)
       ALLOCATE (SFRRATIN, SFRRATOUT)
       ALLOCATE (STRMDELSTOR_CUM, STRMDELSTOR_RATE)
 C1------IDENTIFY PACKAGE AND INITIALIZE NSTRM.
@@ -62,6 +63,7 @@ C         DLEAK, ISTCB1, ISTCB2.
       IUZT = 0
       IRTFLG = 0
       NUMTIM = 1
+      NSEGDIM = 1
       FLWTOL = 1.0E-4
       STRMDELSTOR_CUM = 0.0E0
       STRMDELSTOR_RATE = 0.0E0
@@ -120,11 +122,13 @@ C         DLEAK, ISTCB1, ISTCB2.
       CALL URWORD(line, lloc, istart, istop, 2, ISTCB1, r, IOUT, In)
       CALL URWORD(line, lloc, istart, istop, 2, ISTCB2, r, IOUT, In)
       IF ( NSTRM.LT.0 ) THEN
-        WRITE(IOUT, 9036)
- 9036   FORMAT (//, 'NSTRM IS NEGATIVE AND THIS METHOD FOR ',
-     +          'SPECIFYING INFORMATION BY REACH HAS BEEN REPLACED BY ',
-     +          'THE KEYWORD OPTION "REACHINPUT"--PROGRAM STOPPING ',/)
-        CALL USTOP(' ')
+!        WRITE(IOUT, 9036)
+! 9036   FORMAT (//, 'NSTRM IS NEGATIVE AND THIS METHOD FOR ',
+!     +          'SPECIFYING INFORMATION BY REACH HAS BEEN REPLACED BY ',
+!     +          'THE KEYWORD OPTION "REACHINPUT"--PROGRAM STOPPING ',/)
+!        CALL USTOP(' ')
+        IRFG = 1
+        NSTRM = ABS(NSTRM)
       END IF
 C
 C3------READ ISFROPT FLAGS WHEN NSTRM IS LESS THAN ZERO.
@@ -136,7 +140,7 @@ C3------READ ISFROPT FLAGS WHEN NSTRM IS LESS THAN ZERO.
      +  'SUPPORT PARAMETERS--PROGRAM STOPPING ',/)
           CALL USTOP(' ')
         END IF
-        NSTRM = ABS(NSTRM)
+!        NSTRM = ABS(NSTRM)
         CALL URWORD(line, lloc, istart, istop, 2, ISFROPT, r, IOUT, In)
 C
 C4------READ UNSATURATED FLOW VARIABLES WHEN ISFROPT GREATER THAN 1.
@@ -174,7 +178,16 @@ C4------READ UNSATURATED FLOW VARIABLES WHEN ISFROPT GREATER THAN 1.
         nparseg = 0
       END IF
       IF ( nparseg.LT.0 ) nparseg = 0
-
+! RGN if ISFROPT=2 or 4 then you cannot use BCF Package.
+      IF ( Iunitbcf.GT.0 ) THEN
+        IF ( ISFROPT.EQ.2 .OR. ISFROPT.EQ.4 ) THEN
+          WRITE(IOUT, 9045)
+ 9045  FORMAT (//, 'If the BCF Package is used and unsaturated ',
+     +  'flow is active then ISFROPT must equal 3 or 5. ',
+     +  '--PROGRAM STOPPING ',/)
+          CALL USTOP(' ')
+        END IF
+      END IF
       nssar = 1
       IF (NSS.GT.0) nssar = NSS
       nstrmar = 1
@@ -1450,13 +1463,13 @@ C        IN FARM PROCESS.
             sumlen = 0.0
             DO irch = 1, NSTRM
               IF( IDIVAR(1, ISTRM(4, irch)).EQ.IDIVAR(1, nseg) ) THEN
-                icalc = ISEG(1, nseg)  !rsr, icalc needs a value
+                icalc = ISEG(1, nseg)  
                 rchlen = STRM(1, irch)
                 dist = sumlen + (0.5 * rchlen)
                 sumlen = sumlen + rchlen
                 ic = ISTRM(3, irch)
                 ir = ISTRM(2, irch)
-                updiff = 0.0   !rsr, added to make sure updiff has a value
+                updiff = 0.0   
                 IF( ISTRM(5, irch).EQ.1 ) updiff = BOTM(ic, ir, 0) -
      +                                    SEG(8, ISTRM(4, irch))
                 dndiff = SEG(13, ISTRM(4, irch))
@@ -1537,9 +1550,8 @@ C
 C31-----SKIP IF CELL IS OUTSIDE ACTIVE BOUNDARY OR IS NOT WATER TABLE.
 Cdep
 C31B-----SEARCH FOR UPPER MOST ACTIVE CELL IN STREAM REACH.
-          ilay = il   !rsr, moved before IF to be sure ilay has a value
+          ilay = il   
           IF ( IBOUND(ic, ir, il).GT.0 ) THEN
-!rsr        ilay = il
             TOPCELL: DO WHILE ( ilay.LE.NLAY )
               IF ( HNEW(ic, ir, ilay).LE.BOTM(ic,ir,ilay) ) THEN
                 ilay = ilay + 1
@@ -1749,7 +1761,8 @@ C-------SUBROUTINE GWF2SFR7FM
      +                      Iunitrch, Iunituzf, Igrid)
 C     *****************************************************************
 C     ADD STREAM TERMS TO RHS AND HCOF IF FLOW OCCURS IN MODEL CELL
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+!rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
 C     *****************************************************************
       USE GWFRCHMODULE,ONLY:RECH  !cjm
       USE GWFUZFMODULE,ONLY:FINF  !cjm
@@ -1797,8 +1810,6 @@ C     -----------------------------------------------------------------
       DOUBLE PRECISION fbcheck, hld, totflwt, sbdthk, thetas, epsilon, 
      +                 thr, thet1, dvrsn, rhsh1, hcofh1, rhsh2, 
      +                 hcofh2, depthtr, dwdh, wetpermsmooth,cstrsmooth
-!     DOUBLE PRECISION rhsh1, hcofh1, rhsh2, hcofh2
-!rsr  DOUBLE PRECISION grad, hdiff
       REAL areamax, avhc, errold, fks, ha, qcnst, seep, 
      +     stgon, strlen, roughch, roughbnk, widthch, deltinc, qlat, 
      +     fltest, Transient_bd, dvt, dum, totdum  !CJM
@@ -2085,7 +2096,6 @@ C24-----INITIALIZE VARIABLES.
           h = HNEW(ic, ir, il)
           hld = HLDSFR(l)
 ! Added code to test for BCF or LPF 11/19/07
-          !rsr, modified as hld is double and hdry single
           IF ( ABS(SNGL(hld)-HDRY).LT.CLOSEZERO ) hld = h
           avhc = STRM(6, l)
           sbdthk = STRM(8, l)
@@ -2104,13 +2114,6 @@ C24-----INITIALIZE VARIABLES.
           dlhold = 1.0D6
           itot = 0
           iskip = 0
-!          IF ( h.LT.sbot ) THEN
-!            hdiff = hstr - sbot
-!rsr        grad = (hdiff)/sbdthk
-!          ELSE
-!            hdiff = hstr - h
-!rsr        grad = (hdiff)/sbdthk
-!          END IF
           IF ( icalc.EQ.1 ) THEN
             qcnst = CONST*width*SQRT(slope)/roughch
           ELSE IF ( icalc.EQ.3 ) THEN
@@ -2247,9 +2250,6 @@ C30c----SKIP NEWTON METHOD WHEN REACH OUTSIDE ACTIVE AREA AND ISKIP IS 1.
           IF ( iskip.NE.0 ) iflg = 0
           IF ( h.LE.strtop .AND. flowc.LT.NEARZERO ) iflg = 0
           IF ( icalc.GE.1 .AND. iflg.EQ.1 ) THEN
-      IF(kkper==7.and.kkstp==2.and.kkiter==7.and.l==80)then
-      cstrsmooth = cstr
-      end if
 C
 C31-----ESTIMATE INITIAL ENDPOINTS.
             enpt1 = 0.0D0
@@ -3392,8 +3392,6 @@ C     ------------------------------------------------------------------
 C     ------------------------------------------------------------------
 C     LOCAL STATIC VARIABLES
 C     ------------------------------------------------------------------
-!rsr  DOUBLE PRECISION FIVE_THIRDS
-!rsr  PARAMETER (FIVE_THIRDS=5.0D0/3.0D0)
       CHARACTER*16 text, strtxt, txtlst
       DATA text/'  STREAM LEAKAGE'/
       DATA strtxt/'STREAMFLOW OUT  '/
@@ -3503,7 +3501,7 @@ C5b------DETERMINE LAYER, ROW, COLUMN OF EACH REACH.
           IF ( Nfoldflbt==1 ) lfold = 1
           gwflow = 0.0D0
           dvrsn = 0.0D0
-          flowin = 0.0D0   !rsr, flowin may need a value
+          flowin = 0.0D0  
           depthtr = 0.0
           IF ( irt.EQ.1 ) THEN
             SUMLEAK(l) = 0.0D0
@@ -3716,7 +3714,6 @@ C27-----COMPUTE HEAD DIFFERENCE ACROSS STREAMBED.
             h = HNEW(ic, ir, il)
             hld = HLDSFR(l)
 ! Added code to test for BCF or LPF 11/19/07
-          !rsr, modified as hld is double and hdry single
             IF ( ABS(SNGL(hld)-HDRY).LT.CLOSEZERO ) hld = h
             IF ( irt.EQ.numdelt ) HLDSFR(l) = h
             IF ( h.LT.sbot ) THEN
@@ -3730,7 +3727,7 @@ C
 C28-----COMPUTE LEAKAGE ACROSS STREAMBED.
             flobot = cstr*(hdiff)
 C
-C29-----STREAMFLOW OUT EQUALS STREAMFLOW IN MINUS LEAKAGE. Revised RSR
+C29-----STREAMFLOW OUT EQUALS STREAMFLOW IN MINUS LEAKAGE.
           ELSE
             flobot = 0.0D0
             grad = 0.0D0
@@ -5674,6 +5671,10 @@ c rgn added else and write statement.
      +                         , SEG(13, nseg), SEG(16, nseg), 
      +                         SEG(17, nseg)
  9018       FORMAT (I6, 1X, 1P6E10.3, 40X, 1P2E10.3)
+ !  RGN this condition was missing 1/15/12
+          ELSE IF ( ISFROPT.GE.1 .AND. ISFROPT.LT.4 ) THEN
+            WRITE (IOUT, 9019) nn, SEG(16, nseg),SEG(17, nseg)
+ 9019       FORMAT (I6, 40X, 1P2E10.3)
           ELSE IF ( ISFROPT.EQ.4 ) THEN
             IF ( Kkper.EQ.1 ) THEN
               WRITE (IOUT, 9020) nn, SEG(6, nseg), SEG(11, nseg), 
@@ -6002,7 +6003,6 @@ C-------SUBROUTINE UZMASSBAL written MAY 24, 2004
      +                     Totuzstor, Totdelstor, Iwidthcheck, Avdpt, 
      +                     Avwat, Wat1, Ibd, Icalc, Deltinc, Imassroute,
      +                     Iunitgage, Gwflow)
-!rsr unused arguments Kkper, Kkstp, Irt
 C     ******************************************************************
 C     COMPUTE INFLOW, OUTFLOW, AND CHANGE IN STORAGE IN UNSATURATED
 C     ZONE BENEATH STREAMBED.
@@ -6038,7 +6038,6 @@ C     ------------------------------------------------------------------
       REAL depthinc, depthsave, fhold, hdif, htest1, htest2, seep, 
      +     totalwc, totalwc1, uzstorhold, widthsave, ftheta1, ftheta2, 
      +     eps_m1
-!rsr  REAL tottot
       INTEGER i, ick, icounter, iflag, ii, iset, j, jj, jk, k, kk, 
      +        numwavhld, nwavecheck, iuznhold, ntotuzn, jm1
       DOUBLE PRECISION strtop, fm, fluxdif
@@ -7631,7 +7630,7 @@ C       AND CALCULATE EQUATION OF EACH LINE.
      +         XSEC(mark(ll)-1, Istsg)).LT.1.0E-30 )THEN
             WRITE (*, *) 'two cross-section points are identical,', 
      +                   ' check input. Segment number ', Istsg
-            slope = 0.0  !rsr, slope needs a value
+            slope = 0.0 
           ELSE IF ( ABS(XSEC(8+mark(ll), Istsg)-
      +              XSEC(8+mark(ll)-1, Istsg)).LT.1.0E-30) THEN
             slope = 1.0E-5
@@ -8112,6 +8111,7 @@ C     ------------------------------------------------------------------
       DEALLOCATE (GWFSFRDAT(IGRID)%TABTIME)
       DEALLOCATE (GWFSFRDAT(IGRID)%ISFRLIST)
       DEALLOCATE (GWFSFRDAT(IGRID)%FNETSEEP)
+      DEALLOCATE (GWFSFRDAT(IGRID)%NSEGDIM)
 C
       END SUBROUTINE GWF2SFR7DA
 C
@@ -8221,6 +8221,7 @@ C     ------------------------------------------------------------------
       TABTIME=>GWFSFRDAT(IGRID)%TABTIME
       ISFRLIST=>GWFSFRDAT(IGRID)%ISFRLIST
       FNETSEEP=>GWFSFRDAT(IGRID)%FNETSEEP
+      NSEGDIM=>GWFSFRDAT(IGRID)%NSEGDIM
 C
       END SUBROUTINE SGWF2SFR7PNT
 C
@@ -8330,5 +8331,6 @@ C     ------------------------------------------------------------------
       GWFSFRDAT(IGRID)%TABTIME=>TABTIME
       GWFSFRDAT(IGRID)%ISFRLIST=>ISFRLIST
       GWFSFRDAT(IGRID)%FNETSEEP=>FNETSEEP
+      GWFSFRDAT(IGRID)%NSEGDIM=>NSEGDIM
 C
       END SUBROUTINE SGWF2SFR7PSV

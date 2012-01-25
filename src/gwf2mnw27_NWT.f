@@ -26,6 +26,8 @@
       SUBROUTINE GWF2MNW27AR(IN,IGRID)
 C     ******************************************************************
 C     ALLOCATE ARRAY STORAGE FOR MNW2 PACKAGE.
+!rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
 C     ******************************************************************
 C
 C     SPECIFICATIONS:

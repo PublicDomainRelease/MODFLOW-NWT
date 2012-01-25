@@ -3,7 +3,9 @@
 !-------SUBROUTINE GWF2NWT1AR
 !
       SUBROUTINE GWF2NWT1AR(In, Mxiter, Iunitlak, Igrid)
- 
+!
+!------NEWTON SOLVER VERSION NUMBER 1.0.4:  JANUARY 25, 2012
+!      RICHARD G. NISWONGER
       USE GLOBAL,     ONLY:NCOL,NROW,NLAY,ITRSS,LAYHDT,LAYHDS,LAYCBD,
      1                     NCNFBD,IBOUND,BUFF,BOTM,NBOTM,DELR,DELC,IOUT,
      2                     LBOTM,HNEW
@@ -708,7 +710,7 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
 !ij is the number of active cells (row in sol. vector)
 !jj is the number of non-zero elements in the Jacobian
 !IA() is the pointer to a new row in Jacobian (CRS)
-!JA() is the order of unknowns (CRS)
+!JA() points to the vector of unknowns for each entry in Jacobian (CRS)
       IA = 0
       JA = 0
       jj = 1
@@ -758,6 +760,14 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
         END IF
       ENDDO
       IA(Numactive+1) = jj
+!      DO ij = 1, Numactive+1
+!      write(iout,*)ia(ij)
+!      end do
+!      DO ij = 1, Numactive
+!      DO jj = IA(ij),IA(ij+1)-1
+!      write(iout,*)ja(jj)
+!      end do 
+!      end do
       RETURN     
       END SUBROUTINE FILLINDEX
 !
@@ -1378,7 +1388,7 @@ C--Update heads.
 !
 !
 !     -----------------------------------------------------------------
-!     Return value of root mean square error of GW equation, max flux
+!     Return value of L2-Norm of GW equation, max flux
 !     and head residuals
       DOUBLE PRECISION FUNCTION RMS_func(icfld,irfld,ilfld,kkiter)
       USE GWFNWTMODULE, ONLY: Fflux,Numactive,Diag

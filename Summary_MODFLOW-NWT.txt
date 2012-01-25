@@ -47,6 +47,9 @@ HISTORY
        MODFLOW-NWT Version 1.0.3 01/03/2012 - Also see the file
         ‘release.txt’ for additional release notes.
 
+       MODFLOW-NWT Version 1.0.4 01/25/2012 - Also see the file
+        ‘release.txt’ for additional release notes.
+        
 SYSTEM REQUIREMENTS
 
      MODFLOW-NWT is written in Fortran 90 programming language.The code has 
@@ -86,7 +89,6 @@ FUNTIONALITY
          SIP -- Strongly Implicit Procedure Package (Picard only)
          UZF -- Unsaturated-Zone Package
          WEL -- Well Package
-         FMP -- Farm Process, version 2
                                     
 DOCUMENTATION
 

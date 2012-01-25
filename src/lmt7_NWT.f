@@ -21,6 +21,8 @@ C THE MODFLOW-MT3DMS LINK FILE FOR USE IN MT3DMS TRANSPORT SIMULATION.
 C NOTE THE 'STANDARD' HEADER OPTION IS NO LONGER SUPPORTED. INSTEAD,
 C THE 'EXTENDED' HEADER OPTION IS THE DEFAULT. THE RESULTING LINK FILE 
 C IS ONLY COMPATIBLE WITH MT3DMS VERSION [4.00] OR LATER.
+!rgn------REVISION NUMBER CHANGED TO INDICATE MODIFICATIONS FOR NWT 
+!rgn------RELEASE. NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
 C **********************************************************************
 C last modified: 08-08-2008
 C      
@@ -2631,60 +2633,60 @@ C--NORMAL RETURN
       END
 C
 C
-!      SUBROUTINE LMT7MNW7(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
+      SUBROUTINE LMT7MNW7(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
 C *********************************************************************
 C SAVE MNW LOCATIONS AND VOLUMETRIC FLOW RATES FOR USE BY MT3D.
 C *********************************************************************
 C Modified from MNW by Halford and Hanson (2002)
 C last modification: 08-08-2008
 C
-!      USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND
-!      USE GWFMNWMODULE,ONLY:NWELL2,WELL2
-!      CHARACTER*16 TEXT
+      USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND
+      USE GWFMNW1MODULE,ONLY:NWELL2,WELL2
+      CHARACTER*16 TEXT
 C
 C--SET POINTERS FOR THE CURRENT GRID
-!      CALL SGWF2MNW7PNT(IGRID)
+      CALL SGWF2MNW1PNT(IGRID)
 C      
-!      TEXT='MNW'
-!      ZERO=0.
+      TEXT='MNW'
+      ZERO=0.
 C
 C--WRITE AN IDENTIFYING HEADER
-!      IF(ILMTFMT.EQ.0) THEN
-!        WRITE(IUMT3D) KPER,KSTP,NCOL,NROW,NLAY,TEXT,NWELL2
-!      ELSEIF(ILMTFMT.EQ.1) THEN
-!        WRITE(IUMT3D,*) KPER,KSTP,NCOL,NROW,NLAY
-!        WRITE(IUMT3D,*) TEXT,NWELL2
-!      ENDIF
+      IF(ILMTFMT.EQ.0) THEN
+        WRITE(IUMT3D) KPER,KSTP,NCOL,NROW,NLAY,TEXT,NWELL2
+      ELSEIF(ILMTFMT.EQ.1) THEN
+        WRITE(IUMT3D,*) KPER,KSTP,NCOL,NROW,NLAY
+        WRITE(IUMT3D,*) TEXT,NWELL2
+      ENDIF
 C
 C--IF THERE ARE NO WELLS RETURN
-!      IF(NWELL2.LE.0) GO TO 9999
+      IF(NWELL2.LE.0) GO TO 9999
 C
 C--PROCESS WELL LIST
-!      DO m = 1,nwell2
-!        n = ifrl( well2(1,m) )
-!        il = (n-1) / (ncol*nrow) + 1
-!        ir = mod((n-1),ncol*nrow)/ncol + 1
-!        ic = mod((n-1),ncol) + 1
-!        IDwell = ifrl(well2(18,m))  !IDwell in well2(18,m); cdl 4/19/05
-!        Q = well2(17,m)
+      DO m = 1,nwell2
+        n = ifrl( well2(1,m) )
+        il = (n-1) / (ncol*nrow) + 1
+        ir = mod((n-1),ncol*nrow)/ncol + 1
+        ic = mod((n-1),ncol) + 1
+        IDwell = ifrl(well2(18,m))  !IDwell in well2(18,m); cdl 4/19/05
+        Q = well2(17,m)
 C
 C--IF CELL IS EXTERNAL Q=0
-!        IF(IBOUND(IC,IR,IL).LE.0) Q=ZERO
+        IF(IBOUND(IC,IR,IL).LE.0) Q=ZERO
 C
 C--DUMMY VARIABLE QSW NOT USED, SET TO 0
-!        QSW=ZERO
+        QSW=ZERO
 C
 C--SAVE TO OUTPUT FILE
-!        IF(ILMTFMT.EQ.0) THEN
-!          WRITE(IUMT3D) IL,IR,IC,Q,IDwell,QSW
-!        ELSEIF(ILMTFMT.EQ.1) THEN
-!          WRITE(IUMT3D,*) IL,IR,IC,Q,IDwell,QSW
-!        ENDIF
-!      ENDDO
+        IF(ILMTFMT.EQ.0) THEN
+          WRITE(IUMT3D) IL,IR,IC,Q,IDwell,QSW
+        ELSEIF(ILMTFMT.EQ.1) THEN
+          WRITE(IUMT3D,*) IL,IR,IC,Q,IDwell,QSW
+        ENDIF
+      ENDDO
 C
 C--RETURN
-! 9999 RETURN
-!      END
+ 9999 RETURN
+      END
 C
 C
 C

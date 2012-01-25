@@ -247,6 +247,33 @@ Source files that were modified include: NWT1_solver.f,NWT1_xmd.f,gwf2uzf1_NWT.f
 gwf2sfr7_NWT.f,gwfsfrmodule_NWT.f,gwf2lak7_NWT.f, NWT1_module.f, NWT1_gmres.f90, MF_NWT.f, 
 gwfsfrmodule_NWT.f, gwf2wel7_NWT.f, gwf2upw1.f, gwf2sub7.f, and gwf2hfb7_NWT.f.
 
+o Version 1.0.4 01/25/2012:
+
+Multi-Node Well (MNW1) Package and the lmt7_NWT.f and lmt7_NWT.inc source files
+
+The name of the data module for in MNW1 was changed from GWFMNWMODULE to GWFMNW1MODULE to discriminate
+it from the module in the MNW2 package. This change was required because data used in the lmt7_NWT.f
+and lmt7_NWT.inc were being confused with data in the MNW2 Package module. Both the lmt7_NWT.f and
+lmt7_NWT.inc files were changed to reflect the new module name.
+
+Streamflow-Routing Package
+
+Modifications were made to allow for negative NSTRM values to be specified in the SFR2 input file.
+In versions of SFR2 prior to the version released with MODFLOW-NWT 1.0.3, a negative value of NSTRM 
+could be specified to simulate unsaturated flow beneath streams and for specfying streambed 
+information by reach. However, SFR2 released with MODFLOW-NWT 1.0.3 was changed such that negative
+values specified for NSTRM would cause an error and the program would stop. SFR2 release with
+MODFLOW-NWT 1.0.4 supports both the key word option and a negative value for NSTRM. 
+
+See the modified input instructions for SFR2 titled "Updated_SFR2_input_instructions_NWT.pdf"
+in the "doc" directory of this release.
+
+The SFR2 variable NUMSEG was added to the Module GWFSFRMODULE.
+
+Source files that were modified include: lmt7_NWT.f, lmt7_NWT.inc, gwf2mnw17_NWT.f, gwf2sfr7_NWT.f 
+and gwfsfrmodule_NWT.f
+
+
 References
 
 Niswonger, R.G., Panday, Sorab, and Ibaraki, Motomu, 2011, MODFLOW-NWT, A Newton formulation for 

@@ -5,7 +5,8 @@ C-------SUBROUTINE GWF2UZF1AR
 C     ******************************************************************
 C     ALLOCATE ARRAY STORAGE FOR UNSATURATED FLOW, RECHARGE, AND ET
 C     READ AND CHECK VARIABLES THAT REMAIN CONSTANT
-C     VERSION 1.0.3:  DECEMBER 29, 2011
+!rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
 C     ******************************************************************
       USE GWFUZFMODULE
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, IOUT, ITRSS, ISSFLG, 
@@ -1117,7 +1118,7 @@ C15------SET FLAGS FOR STEADY STATE OR TRANSIENT SIMULATIONS.
 C
 C16-----SEARCH FOR UPPERMOST ACTIVE CELL.
             IF ( IUZFBND(ic, ir).GT.0 ) THEN
-              il = 0 !rsr, added to be sure il is set
+              il = 0 
               IF ( NUZTOP.EQ.1 .OR. NUZTOP.EQ.2 ) THEN
                 il = IUZFBND(ic, ir)
                 IF ( il.GT.0 ) THEN
@@ -1374,7 +1375,6 @@ C     ARGUMENTS
 C     -----------------------------------------------------------------
       INTEGER Kkper, Iunitsfr, Iunitlak, Igrid, Kkstp, Iunitcfp, Kkiter
       INTEGER Iunitnwt
-      !rsr KKITER and KKSTP not used
 C     -----------------------------------------------------------------
 C     LOCAL VARIABLES
 C     -----------------------------------------------------------------
@@ -1993,14 +1993,6 @@ C
 C4------CLEAR BUFFERS.
 CDEP 05/05/2006
       CALL INITARRAY(TOTCELLS, HNOFLO, BUFF(:,:,1))
-!      DO il = 1, NLAY
-!        DO ir = 1, NROW
-!          DO ic = 1, NCOL
-!            BUFF(ic, ir, il) = HNOFLO
-!            LAYNUM(ic, ir) = 1 !rsr, set below
-!          END DO
-!        END DO
-!      END DO
       DO iuzrat = 1, 7
         UZTSRAT(iuzrat) = 0.0D0
       END DO
@@ -2137,7 +2129,7 @@ C8------SET NWAVES TO 1 WHEN IUZFOPT IS NEGATIVE.
             fluxdif = ABS(finfhold-UZOLSFLX(ic, ir))
             nwaves = NWAVST(ic, ir)
           ELSE
-            fluxdif = 0.0 !rsr, added to be sure fluxdif has a value
+            fluxdif = 0.0
             nwaves = 1
           END IF
 ! Suppress unsaturated ET beneath a lake
@@ -3714,7 +3706,6 @@ C     ------------------------------------------------------------------
       DOUBLE PRECISION eps_m1, timenew, feps3
       DOUBLE PRECISION thsrinv, epsfksths, timedt, big, f7, f8
       DOUBLE PRECISION ttt, diff, comp1, comp2, ftheta1, ftheta2
-Crsr  REAL timedif
       INTEGER idif, iflag, iflag2, iflx, iremove, itrwaveb, j, jj, k, 
      +        kk, l, jpnwavesm1
       INTEGER jpntm1, jpntm2, jpntm3, jpntp1, nwavp1, jjj, km1
@@ -4162,7 +4153,6 @@ C18-----ROUTE TRAILING WAVES.
 C
 C19-------REMOVE WAVES THAT WERE INTERCEPTED OR REACHED WATER TABLE.
         Numwaves = Numwaves - iremove
-Crsr timedif = timenew - time
         Time = timenew
         diff = Delt - Time
         IF ( Numwaves.EQ.1 ) THEN

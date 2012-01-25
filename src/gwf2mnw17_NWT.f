@@ -38,6 +38,8 @@ c-------------------------------------------------------------------------
 c
       SUBROUTINE GWF2MNW17AR(In, Iusip, Iude4, Iusor, Iupcg, Iulmg,
      +                      Iugmg, Fname, Igrid)
+!rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
+!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
 C     VERSION 20020819 KJH
 c
 c----- MNW by K.J. Halford        1/31/98
