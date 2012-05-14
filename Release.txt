@@ -53,7 +53,7 @@ gwf2hfb7_NWT.f, NWT1_gmres.f90, and gwf2bas7.f
 o Version 1.0.2 10/03/2011:
 
 MODFLOW-NWT was compiled again because the last release of the program required 
-a large amount of RAM to run models. The reason for this unecessary memory usage
+a large amount of RAM to run models. The reason for this unnecessary memory usage
 was not determined but it is assumed that the issue was related to the compiler.
 The new compiled version requires much less memory. For example, a model that
 required 2 Gb of memory to run now requires 120 Mb. This new memory usage
@@ -144,7 +144,7 @@ These changes were made for the following reasons.
 
 THTR originally was calculated internally by the UZF Package on the basis of the difference between the 
 saturated water content (THTS) and the specific yield (SY) of the aquifer receiving recharge (Niswonger 
-and others, 2006). However,the ability to specify THTR can be useful for some applications in which the 
+and others, 2006). However, the ability to specify THTR can be useful for some applications in which the 
 maximum storage in the unsaturated zone (THTS-THTR)is different than the instantaneous drainage from the 
 aquifer (SY). For these cases, specifying THTR based on external calculations provides greater 
 flexibility for parameterizing the unsaturated zone. The option to specify THTR is activated using the 
@@ -260,7 +260,7 @@ Streamflow-Routing Package
 
 Modifications were made to allow for negative NSTRM values to be specified in the SFR2 input file.
 In versions of SFR2 prior to the version released with MODFLOW-NWT 1.0.3, a negative value of NSTRM 
-could be specified to simulate unsaturated flow beneath streams and for specfying streambed 
+could be specified to simulate unsaturated flow beneath streams and for specifying streambed 
 information by reach. However, SFR2 released with MODFLOW-NWT 1.0.3 was changed such that negative
 values specified for NSTRM would cause an error and the program would stop. SFR2 release with
 MODFLOW-NWT 1.0.4 supports both the key word option and a negative value for NSTRM. 
@@ -273,8 +273,163 @@ The SFR2 variable NUMSEG was added to the Module GWFSFRMODULE.
 Source files that were modified include: lmt7_NWT.f, lmt7_NWT.inc, gwf2mnw17_NWT.f, gwf2sfr7_NWT.f 
 and gwfsfrmodule_NWT.f
 
+o Version 1.0.5 05/14/2012:
+
+Newton Solver
+
+Changes were made to fix a bug that caused Hdry to be printed for confined cells that
+have heads below the cell bottom altitude. Hdry only will be printed for unconfined
+layers.
+
+Changes were made to default input values when the key word options are used. These
+changes reflect information gained from testing using numerous groundwater models 
+The defaults values for "SIMPLE," "MODERATE," and "COMPLEX" are now as follows:
+
+"SIMPLE"
+IACL = 1, NORDER = 0, LEVEL = 3, NORTH = 5, IREDSYS = 1, RRCTOLS = 0.0, IDROPTOL = 1
+EPSRNS = 1.0e-3, HCLOSEXMDDUM = 1.0e-4, MXITERXMD = 50, All other values remain the same.
+
+"MODERATE"
+IACL = 2, NORDER = 1, LEVEL = 5, NORTH = 5, IREDSYS = 1, RRCTOLS = 0.0, IDROPTOL = 1
+EPSRNS = 1.0e-3, HCLOSEXMDDUM = 1.0e-4, MXITERXMD = 50, All other values remain the same.
+
+"COMPLEX"
+IACL = 2, NORDER = 1, LEVEL = 5, NORTH = 7, IREDSYS = 1, RRCTOLS = 0.0, IDROPTOL = 1
+EPSRNS = 1.0e-5, HCLOSEXMDDUM = 1.0e-5, MXITERXMD = 50, All other values remain the same.
+
+xMD Matrix Solver
+
+Some initialization issues associated with Bi-cgstab and Orthomin were resolved, and some 
+minor changes were made.
+
+
+Well Package
+
+Changes were made to report wells with reduced pumping due to dewatered conditions
+to a separate output file or to the main listing file. If the wells with reduced pumping 
+rates are written to a separate output file then a file of type "DATA" must be included
+in the Name file with a unit number that matches the unit number specified in the 
+Well file (following the variable PHIRAMP in Item 2b). For example, a value of
+PHIRAMP (see MODFLOW-NWT documentation report) of 0.3 and a unit number of 50 can be 
+specified in the second line of the Well file using the key word "SPECIFY" as:
+
+SPECIFY  0.3  50
+
+The following line must be added to the Name file:
+
+DATA     50    Reduced_wells.out
+
+Thus, wells with reduced pumping will be written for each time step to the output file
+"Reduced_wells.out" with unit number 50. For example, wells with reduced pumping will
+be reported to file "reduced_wells.out" as:
+
+ WELLS WITH REDUCED PUMPING FOR STRESS PERIOD     6 TIME STEP     2
+   LAY   ROW   COL         APPL.Q          ACT.Q        GW-HEAD       CELL-BOT
+     4    91    69  -0.104400E+04  -0.104399E+04   0.208142E+04   0.205380E+04
+     4    91    69  -0.208800E+04  -0.208798E+04   0.208142E+04   0.205380E+04
+     4    91    69  -0.208800E+04  -0.208798E+04   0.208142E+04   0.205380E+04
+ 
+ 
+ WELLS WITH REDUCED PUMPING FOR STRESS PERIOD     6 TIME STEP     3
+   LAY   ROW   COL         APPL.Q          ACT.Q        GW-HEAD       CELL-BOT
+     4    91    69  -0.104400E+04  -0.967118E+03   0.207686E+04   0.205380E+04
+     4    91    69  -0.208800E+04  -0.193424E+04   0.207686E+04   0.205380E+04
+     4    91    69  -0.208800E+04  -0.193424E+04   0.207686E+04   0.205380E+04
+
+Streamflow-Routing Package
+
+A small bug was fixed that stopped the stream width from being set equal to the  
+wetted perimeter for ICALC=2. This change only affects the printout of stream
+width, and calculations dependent on stream width were made using the correct
+value in previous versions of SFR2. 
+
+Changes were made to printout all stream reaches with streambed altitudes below
+the cell bottom before the model stops due to this error. Previous versions
+of the code printed out the first reach encountered with an altitude error 
+and stopped. This version prints information for all reaches with altitude 
+errors to the List file before stopping the simulation. An example of this
+error printout extracted from the List file is shown below.
+
+  REACHES WITH ALTITUDE ERRORS:
+    LAY    ROW    COL    SEG  REACH      STR.ELEV.      CELL-BOT.
+      1      4     57      1     57     -1.7500000      0.0000000
+      1      4     58      1     58     -4.2500000      0.0000000
+      1      4     59      1     59     -6.7500000      0.0000000
+      1      4     60      1     60     -9.2500000      0.0000000
+      1      4     61      1     61    -11.7500000      0.0000000
+      1      4     62      1     62    -14.2500000      0.0000000
+      1      4     63      1     63    -16.7500000      0.0000000
+      1      4     64      1     64    -19.2500000      0.0000000
+      1      4     65      1     65    -21.7500000      0.0000000
+ MODEL STOPPING DUE TO REACH ALTITUDE ERROR
+
+
+Multi-Node Well Package version 2 (MNW2)
+
+Changes were made to the MNW2 Package by the authors of the package 
+(Konikow and others, 2009) for version 1.9 of MODFLOW-2005. These changes also
+were made to this release of MODFLOW-NWT. These changes are:
+
+A bug was fixed that affected simulations when both MNW2 and the HUF Package 
+were used in the same simulation in conjunction with the partial penetration
+correction. The variable KY is now declared as a Double Precision variable 
+instead of being implicitly assumed (incorrectly) to be an Integer variable.  
+
+A number of minor changes were made in Format statements to produce a cleaner 
+output file.
+
+In Subroutines GWF2MNW27BCF and GWF2MNW27HUF, corrections were made to assure 
+the correct check is made for steady-state or transient conditions and to prevent 
+a divide by zero error if a cell is dry. 
+
+A bug was fixed for the calculation of angles theta and omega for slanted wells 
+with an orientation into the southwest directional quadrant.
+
+A bug was fixed that caused erroneous values to be written to the compact budget 
+file (specifically, for inactive MNW wells), although the numerical solution itself 
+was accurate, as were the budget numbers written to the main listing file.  
+
+Additional changes were made to the MNW2 Package for MODFLOW-NWT. These changes do not  
+affect simulations using the MNW2 Package with solvers other than the NWT solver within 
+MODFLOW-NWT. These changes were required to solve instabilities created by seepage face 
+conditions within a MNW2 well and when a cell containing a MNW2 well becomes dry. The first 
+change resets the head in a well to the bottom of the cell when it falls below the bottom 
+of the cell for each node. For certain circumstances this was not occurring. The second 
+change applies smoothing of the cell-to-well conductance as a cell dries. These changes 
+may cause small changes to simulation results if these conditions arise (that is, cell 
+drying or seepage face conditions).
+
+Drain (DRN) Package
+
+A check was added for drain altitudes set below the cell bottom. If this occurs, then
+an error is printed to the List file and the model is stopped.
+
+General Head Boundary (GHB) Package
+
+A check was added for head boundaries set to altitudes below the cell bottom. If this occurs, then
+an error is printed to the List file and the model is stopped.
+
+River (RIV) Package
+
+A check was added for river heads set to altitudes below the cell bottom. If this occurs, then
+an error is printed to the List file and the model is stopped.
+
+Link-MT3DMS (LMT) Package
+
+Changes were made to the Link-MT3DMS file to accommodate the MNW2 fluxes. There was 
+a bug in the previous version of this file caused by a conflict between MNW1 and MNW2
+and the header for the MT3DMS FTL file did not include MNW2. This bug was causing
+MT3DMS to read the FTL file incorrectly.
+
+Source files that were modified include: lmt7_NWT.f, lmt7_NWT.inc, gwf2mnw27_NWT.f, gwf2sfr7_NWT.f 
+gwfsfrmodule_NWT.f, NWT1_xmd.f, and  NWT1_xmdlib.f, MF_NWT.f, gwf2drn7_NWT.f, gwf2ghb7_NWT.f,
+gwf2riv7_NWT.f
 
 References
+
+Konikow, L.F., Hornberger, G.Z., Halford, K.J., and Hanson, R.T., 2009,  
+Revised multi-node well (MNW2) package for MODFLOW ground-water flow  
+model: U.S. Geological Survey Techniques and Methods 6–A30, 67 p.
 
 Niswonger, R.G., Panday, Sorab, and Ibaraki, Motomu, 2011, MODFLOW-NWT, A Newton formulation for 
 MODFLOW-2005: U.S. Geological Survey Techniques and Methods 6-A37, 44 p.

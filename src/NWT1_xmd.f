@@ -1,5 +1,5 @@
 
-c      for XMD package for NWT solver (NWT version 1.4; 01-25-12)
+c      for XMD package for NWT solver (NWT version 1.5; 04-05-12)
 c
 c                     M. Ibaraki
 c
@@ -132,11 +132,11 @@ cmi
       CALL URWORD(line, lloc, istart, istop, 3, I,HCLOSEXMDDUM,Iout, In)
       CALL URWORD(line, lloc, istart, istop, 2, MXITERXMD,r,Iout,In)  !---added this 12/29/10
       ELSEIF ( IFDPARAM.EQ.1 ) THEN
-        IACL = 2
-        NORDER = 1
-        LEVEL = 1
-        NORTH = 2
-        IREDSYS = 0
+        IACL = 1
+        NORDER = 0
+        LEVEL = 3
+        NORTH = 5
+        IREDSYS = 1
         RRCTOLS = 0.0
         IDROPTOL = 1
         EPSRNS = 1.0e-3
@@ -145,9 +145,9 @@ cmi
       ELSEIF ( IFDPARAM.EQ.2 ) THEN
         IACL = 2
         NORDER = 1
-        LEVEL = 1
-        NORTH = 2
-        IREDSYS = 0
+        LEVEL = 5
+        NORTH = 5
+        IREDSYS = 1
         RRCTOLS = 0.0
         IDROPTOL = 1
         EPSRNS = 1.0e-3
@@ -155,14 +155,14 @@ cmi
         MXITERXMD = 50
       ELSEIF ( IFDPARAM.EQ.3 ) THEN
         IACL = 2
-        NORDER = 0
-        LEVEL = 3
+        NORDER = 1
+        LEVEL = 5
         NORTH = 7
-        IREDSYS = 0
+        IREDSYS = 1
         RRCTOLS = 0.0
         IDROPTOL = 1
-        EPSRNS = 1.0e-3
-        HCLOSEXMDDUM = 1.0e-4
+        EPSRNS = 1.0e-5
+        HCLOSEXMDDUM = 1.0e-5
         MXITERXMD = 50
       END IF    
       HCLOSEXMD = dble(HCLOSEXMDDUM)

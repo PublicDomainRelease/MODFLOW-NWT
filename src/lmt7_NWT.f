@@ -22,7 +22,7 @@ C NOTE THE 'STANDARD' HEADER OPTION IS NO LONGER SUPPORTED. INSTEAD,
 C THE 'EXTENDED' HEADER OPTION IS THE DEFAULT. THE RESULTING LINK FILE 
 C IS ONLY COMPATIBLE WITH MT3DMS VERSION [4.00] OR LATER.
 !rgn------REVISION NUMBER CHANGED TO INDICATE MODIFICATIONS FOR NWT 
-!rgn------RELEASE. NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
+!rgn------RELEASE. NEW VERSION NUMBER 1.0.5:  April 5, 2012
 C **********************************************************************
 C last modified: 08-08-2008
 C      
@@ -37,6 +37,7 @@ C
      &              MTRIV,MTSTR,MTGHB,MTRES,MTFHB,MTDRT,MTETS,MTSUB,
      &              MTIBS,MTLAK,MTMNW,MTSWT,MTSFR,MTUZF
      &             /22*0/
+      INTEGER  MTMNW1,MTMNW2
 C     -----------------------------------------------------------------    
 C
 C--USE FILE SPECIFICATION of MODFLOW-2005
@@ -84,8 +85,10 @@ C--CHECK for OPTIONS/PACKAGES USED IN CURRENT SIMULATION
           MTIBS=IUNIT(IU)
         ELSEIF(CUNIT(IU).EQ.'LAK ') THEN
           MTLAK=IUNIT(IU)
-        ELSEIF(CUNIT(IU).EQ.'MNW1'.OR.CUNIT(IU).EQ.'MNW2') THEN
-          MTMNW=IUNIT(IU)
+        ELSEIF(CUNIT(IU).EQ.'MNW1') THEN   !rgn
+          MTMNW1=IUNIT(IU)
+        ELSEIF(CUNIT(IU).EQ.'MNW2') THEN   !rgn
+          MTMNW2=IUNIT(IU)
         ELSEIF(CUNIT(IU).EQ.'SWT ') THEN
           MTSWT=IUNIT(IU)        
         ELSEIF(CUNIT(IU).EQ.'SFR ') THEN
@@ -93,7 +96,13 @@ C--CHECK for OPTIONS/PACKAGES USED IN CURRENT SIMULATION
         ELSEIF(CUNIT(IU).EQ.'UZF ') THEN
           MTUZF=IUNIT(IU)
         ENDIF
-      ENDDO            
+      ENDDO 
+! rgn ADDED FOLLOWING CODE TO DEAL WITH TWO VERSIONS OF MNW.
+      IF ( MTMNW1.GT.0 ) THEN
+        MTMNW = MTMNW1  
+      ELSEIF ( MTMNW2.GT.0 ) THEN
+        MTMNW = MTMNW2
+      END IF          
 C
 C--IF LMT7 PACKAGE IS NOT ACTIVATED, SKIP TO END AND RETURN
       IF(INLMT.EQ.0) GOTO 9999
@@ -2690,73 +2699,75 @@ C--RETURN
 C
 C
 C
-      SUBROUTINE LMT7MNW2(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
+      SUBROUTINE LMT7MNW27(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
 C *********************************************************************
 C SAVE MNW LOCATIONS AND VOLUMETRIC FLOW RATES FOR USE BY MT3D.
 C *********************************************************************
 C Modified from MNW by Halford and Hanson (2002)
 C last modification: 08-08-2008
+C Modified from MNW2 by Konikow and Hornberger (2009)
+C modification: 10-21-2010:  swm  
+C last modification: 2-16-2012:  awh
 C
       USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND
-      USE GWFMNW2MODULE,ONLY:NMNWVL,MNWMAX,MNW2,MNWNOD
+      USE GWFMNW2MODULE,ONLY:NMNW2,NTOTNOD,MNW2,MNWNOD,MNWMAX
+      INTEGER firstnode, lastnode
       CHARACTER*16 TEXT
 C
 C--SET POINTERS FOR THE CURRENT GRID
-      CALL SGWF2MNW2PNT(IGRID)
+c swm: already set in GWF2MNW7BD      CALL SGWF2MNW7PNT(IGRID)
 C      
       TEXT='MNW'
-      qqq1=0.
-      qqq2=0.
-      IOUT = IUMT3D
+      ZERO=0.
+c swm: SET NUMBER OF ACTIVE WELL NODES BASED ON NMNW2 AND NTOTNOD
+      NACTW=NTOTNOD
+      IF(NMNW2.LE.0) NACTW=0
 C
 C--WRITE AN IDENTIFYING HEADER
       IF(ILMTFMT.EQ.0) THEN
-        WRITE(IOUT) KPER,KSTP,NCOL,NROW,NLAY,TEXT,NUMMNW2
+        WRITE(IUMT3D) KPER,KSTP,NCOL,NROW,NLAY,TEXT,NACTW
       ELSEIF(ILMTFMT.EQ.1) THEN
-        WRITE(IOUT,*) KPER,KSTP,NCOL,NROW,NLAY
-        WRITE(IOUT,*) TEXT,NUMMNW2
+        WRITE(IUMT3D,*) KPER,KSTP,NCOL,NROW,NLAY
+        WRITE(IUMT3D,*) TEXT,NACTW
       ENDIF
 C
 C--IF THERE ARE NO WELLS RETURN
-      IF(NUMMNW2.LE.0) RETURN
+      IF(NMNW2.LE.0) GO TO 9999
 C
-C--PROCESS WELL LIST
-      iii=0
-      do iw=1,MNWMAX
-        if (MNW2(1,iw).EQ.1) then
-          firstnode=MNW2(4,iw)
-          lastnode=MNW2(4,iw)+ABS(MNW2(2,iw))-1
-          do INODE=firstnode,lastnode
-            iii=iii+1
-            il=MNWNOD(1,INODE)              
-            ir=MNWNOD(2,INODE)              
-            ic=MNWNOD(3,INODE)              
-            Q = MNWNOD(4,INODE) !well2(17,m)
+C--PROCESS WELL LIST -- write Q for all nodes even if inactive
+c  Loop over all wells
+      DO iw=1,MNWMAX
+        IDwell = iw
+c  active well check
+        firstnode=MNW2(4,iw)
+        lastnode=MNW2(4,iw)+ABS(MNW2(2,iw))-1
+c   Loop over nodes in well
+        do INODE=firstnode,lastnode
+          il=MNWNOD(1,INODE)              
+          ir=MNWNOD(2,INODE)              
+          ic=MNWNOD(3,INODE)              
 C
-C--IF CELL IS EXTERNAL Q=0
-            IF(IBOUND(ic,ir,il).LE.0) Q=0.
-            if(q.le.0.) then 
-              qqq1=qqq1+q
-            else
-              qqq2=qqq2+q
-            endif
+C--IF CELL IS EXTERNAL OR WELL INACTIVE Q=0
+          IF(IBOUND(IC,IR,IL).LE.0 .OR. MNW2(1,iw).LE.0.) then
+            Q=ZERO
+          else
+            Q=MNWNOD(4,INODE)
+          end if
 C
 C--DUMMY VARIABLE QSW NOT USED, SET TO 0
-            QSW=0.
+          QSW=ZERO
 C
 C--SAVE TO OUTPUT FILE
-            IF(ILMTFMT.EQ.0) THEN
-              WRITE(IOUT) IL,IR,IC,Q,INODE,QSW
-            ELSEIF(ILMTFMT.EQ.1) THEN
-              WRITE(IOUT,*) IL,IR,IC,Q,INODE,QSW
-            ENDIF
-C
-          ENDDO
-        endif
+          IF(ILMTFMT.EQ.0) THEN
+            WRITE(IUMT3D) IL,IR,IC,Q,IDwell,QSW
+          ELSEIF(ILMTFMT.EQ.1) THEN
+            WRITE(IUMT3D,*) IL,IR,IC,Q,IDwell,QSW
+          ENDIF
+        enddo
       ENDDO
 C
 C--RETURN
-      RETURN
+ 9999 RETURN
       END
 C
 C

@@ -376,22 +376,26 @@ C2------THE INTERPOLATION RECALCULATED
 C2------IDRY = # OBS OMITTED; JDRY = # INTERPOLATIONS CHANGED
       ML = 0
       DO 30 N = 1, NH
-        IF((IHOBWET(N).LT. 0) .OR.
-     &     (ITS.NE.NDER(4,N) .AND. ITS.NE.NDER(4,N)+1)) GO TO 30
         K = NDER(1,N)
-        II = NDER(2,N)
-        JJ = NDER(3,N)
-        IO = IOFF(N)
-        JO = JOFF(N)
         MM = 1
         IF (K.LT.0) THEN
           ML = ML + 1
-          MM = MAXM
+          MM = -K
         ENDIF
+        IF((IHOBWET(N).LT. 0) .OR.
+     &     (ITS.NE.NDER(4,N) .AND. ITS.NE.NDER(4,N)+1)) GO TO 30
+        II = NDER(2,N)
+        JJ = NDER(3,N)
+C  Moved the following to inside the DO 20 loop so updates of IOFF and
+C  JOFF by SOBS2BAS7HIB will be applied.
+C        IO = IOFF(N)
+C        JO = JOFF(N)
 C
 C4------CHECK FOR DRY OBSERVATIONS OR INTERPOLATIONS AFFECTED BY DRY
 C4------CELLS
         DO 20 M = 1, MM
+          IO = IOFF(N)
+          JO = JOFF(N)
           KK = K
           IF (K.LT.0) KK = MLAY(M,ML)
           IF (KK.EQ.0) GOTO 30
@@ -413,10 +417,15 @@ C5------CHECK TO SEE IF A CELL USED IN INTERPOLATION IS INACTIVE
             IF(M.GT.1) THEN
               IDRY = IDRY + 1
               IHOBWET(N)=-1
-              WRITE (IOUT,500) N, OBSNAM(N)
-  500 FORMAT (/,' HEAD OBS#',I5,', ID ',A,
-     &' OMITTED BECAUSE IBOUND=0 FOR CELL(S)',/,' REQUIRED FOR',
-     &' MULTILAYER INTERPOLATION (OBS2BAS7SE)')
+C              WRITE (IOUT,500) N, OBSNAM(N)
+C  500 FORMAT (/,' HEAD OBS#',I5,', ID ',A,
+C     &' OMITTED BECAUSE IBOUND=0 FOR CELL(S)',/,' REQUIRED FOR',
+C     &' MULTILAYER INTERPOLATION (OBS2BAS7SE)')
+              WRITE (IOUT,500) N, OBSNAM(N),KK 
+  500 FORMAT (/,' HEAD OBS#',I5,', ID ',A, 
+     &' OMITTED BECAUSE IBOUND=0 FOR CELL(S) IN MODEL LAYER',I10,/,
+     &' REQUIRED FOR MULTILAYER INTERPOLATION (OBS2BAS7SE)') 
+C
               GOTO 30
             ENDIF
             WRITE (IOUT,505) N, OBSNAM(N)
@@ -520,9 +529,11 @@ C
 C1------WRITE OBSERVATIONS TO LISTING FILE.
       WRITE(IOUT,17)
    17 FORMAT(1X,/,1X,'HEAD AND DRAWDOWN OBSERVATIONS',/,
-     1  1X,'OBSERVATION     OBSERVED      SIMULATED',/
-     2  1X,'  NAME            VALUE         VALUE      DIFFERENCE',/
-     3  1X,'-------------------------------------------------------')
+     1  1X,'OBSERVATION       OBSERVED           SIMULATED',/
+     2  1X,'  NAME              VALUE              VALUE',
+     3     '             DIFFERENCE',/
+     4  1X,'-----------------------------------------------',
+     5     '---------------------')
       SUMSQ=0.
       DO 100 N=1,NH
       IF(IHOBWET(N).LT.0) THEN
@@ -534,7 +545,7 @@ C1------WRITE OBSERVATIONS TO LISTING FILE.
         SUMSQ=SUMSQ+SQ
         WRITE(IOUT,27) OBSNAM(N),HOBS(N),H(N),DIFF
       END IF
-   27 FORMAT(1X,A,1P,3G14.6)
+   27 FORMAT(1X,A,1P,3G20.11)
   100 CONTINUE
       WRITE(IOUT,28) SUMSQ
    28 FORMAT(1X,/,1X,'SUM OF SQUARED DIFFERENCE:',1P,E15.5)
@@ -882,13 +893,13 @@ C
 C
 C1------WRITE LABEL IF "LABEL" IS NOT 0
         IF(LABEL.NE.0) WRITE(IUOBSSV,18)
-   18   FORMAT('"SIMULATED EQUIVALENT"',3X,'"OBSERVED VALUE"',4X,
-     1       '"OBSERVATION NAME"')
+   18   FORMAT('"SIMULATED EQUIVALENT"',3X,'"OBSERVED VALUE"',
+     1       4X,'"OBSERVATION NAME"')
 C
 C2------WRITE OBSERVATIONS
         DO 100 N=1,NOBS
           WRITE(IUOBSSV,28) H(N),HOBS(N),OBSNAM(N)
-   28     FORMAT(1P,1P,E15.6,3X,E15.6,2X,A)
+   28     FORMAT(1X,1P,E19.11,E20.11,2X,A)
   100   CONTINUE
       END IF
 C

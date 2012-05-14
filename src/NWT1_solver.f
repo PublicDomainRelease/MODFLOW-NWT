@@ -4,7 +4,7 @@
 !
       SUBROUTINE GWF2NWT1AR(In, Mxiter, Iunitlak, Igrid)
 !
-!------NEWTON SOLVER VERSION NUMBER 1.0.4:  JANUARY 25, 2012
+!------NEWTON SOLVER VERSION NUMBER 1.0.5:  APRIL 5, 2012
 !      RICHARD G. NISWONGER
       USE GLOBAL,     ONLY:NCOL,NROW,NLAY,ITRSS,LAYHDT,LAYHDS,LAYCBD,
      1                     NCNFBD,IBOUND,BUFF,BOTM,NBOTM,DELR,DELC,IOUT,
@@ -48,7 +48,7 @@
 !1------IDENTIFY PACKAGE AND INITIALIZE.
       WRITE (Iout, 9001) In
  9001 FORMAT (1X, /' NWT1 -- Newton Solver, ',
-     +       'VERSION 1.0.3, 12/29/2011', /, 9X, 'INPUT READ FROM UNIT',
+     +       'VERSION 1.0.5, 04/05/2012', /, 9X, 'INPUT READ FROM UNIT',
      +        I3,/)
       i = 1
       Itreal = 0
@@ -632,7 +632,8 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
       SUBROUTINE ORDERCELL()
 ! Order system for MODFLOW storage scheme by relating Row, Col, and Lay to
 ! Jacobian order
-      USE GLOBAL, ONLY:Ncol, Nrow, Nlay, Ibound, Iout
+      USE GLOBAL, ONLY:Ncol, Nrow, Nlay, Ibound, Iout, HNEW
+      USE GWFBASMODULE, ONLY: HDRY
       USE GWFNWTMODULE
       IMPLICIT NONE
 !     ------------------------------------------------------------------
@@ -682,6 +683,7 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
             WRITE(IOUT,*)'ROW=',ir,'COL=',ic,'LAY=',il
             WRITE(IOUT,*)
             Ibound(ic, ir, il) = 0
+            HNEW(ic,ir,il) = HDRY
           END IF
         ENDIF
         ic = ic + 1
@@ -907,7 +909,7 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
       END IF
       IF ( II.EQ.0 ) RMSAVE = RMS1
       RMS2 = RMS1
-      RMS1 = RMS_func(icfld,irfld,ilfld,kkiter)
+      RMS1 = RMS_func(icfld,irfld,ilfld)
       Icnvg = 0
       IF ( RMS1.GT.FTOL .OR. ABS(Fheadsave).GT.Tol .OR. 
      +                           kkiter.LT.2 ) THEN
@@ -1130,7 +1132,8 @@ C--Update heads.
 !     -----------------------------------------------------------------
 !     Set the head in dewatered cells to Hdry.
       SUBROUTINE GWF2NWT1BD()
-      USE GLOBAL, ONLY:Hnew, Nrow, Ncol, Nlay, BOTM, LBOTM, IBOUND, iout
+      USE GLOBAL, ONLY:Hnew, Nrow, Ncol, Nlay, BOTM, LBOTM, IBOUND,
+     +                 LAYHDT, IOUT  
       USE GWFBASMODULE,ONLY:HDRY
       USE GWFUPWMODULE,ONLY:IPHDRY
       IMPLICIT NONE
@@ -1146,14 +1149,16 @@ C--Update heads.
 !      end do
 ! 222  format(113e20.10)
       DO il = 1, Nlay
-        DO ir = 1, Nrow
-          DO ic = 1, Ncol
-            IF ( IBOUND(ic,ir,il).GT.0 .AND. IPHDRY.GT.0 ) THEN
-              IF ( Hnew(ic, ir, il)-BOTM(ic,ir,LBOTM(il)).LT.2.0e-3 ) 
-     +             Hnew(ic, ir, il) = Hdry
-            END IF
+        IF ( LAYHDT(il).GT.0 ) THEN
+          DO ir = 1, Nrow
+            DO ic = 1, Ncol
+              IF ( IBOUND(ic,ir,il).GT.0 .AND. IPHDRY.GT.0 ) THEN
+                IF ( Hnew(ic, ir, il)-BOTM(ic,ir,LBOTM(il)).LT.2.0e-3 )
+     +               Hnew(ic, ir, il) = Hdry
+              END IF
+            ENDDO
           ENDDO
-        ENDDO
+        END IF
       ENDDO
 !      do ir=1,nrow
 !      write(iout,101)(Hnew(ic, ir, 1),ic=1,ncol)
@@ -1383,6 +1388,11 @@ C--Update heads.
       term2 = (-Cvm1-Ccm1-Crm1-Crr-Ccc-Cvv+Hcoff)*H
       term3 = Crr*Hcp1 + Ccc*Hrp1 + Cvv*Hvp1 - Rhss
       GW_func = term1 + term2 + term3
+!      if(ic==271)then
+!      write(iout,222)ic,ir,il,cvm1*(Hvm1-h),ccm1*(hrm1-h),crm1*(hcm1-h),
+!     +cvv*(hvp1-h),ccc*(hrp1-h),crr*(hcp1-h),rhss,gw_func
+!      end if
+!  222 format(3i5,8e20.10)
       END FUNCTION GW_func
 !
 !
@@ -1390,7 +1400,7 @@ C--Update heads.
 !     -----------------------------------------------------------------
 !     Return value of L2-Norm of GW equation, max flux
 !     and head residuals
-      DOUBLE PRECISION FUNCTION RMS_func(icfld,irfld,ilfld,kkiter)
+      DOUBLE PRECISION FUNCTION RMS_func(icfld,irfld,ilfld)
       USE GWFNWTMODULE, ONLY: Fflux,Numactive,Diag
       USE GWFUPWMODULE, ONLY: Laytypupw
       USE GLOBAL,      ONLY:Iout,Hnew,Ibound
@@ -1402,7 +1412,6 @@ C--Update heads.
       DOUBLE PRECISION, EXTERNAL :: GW_func
 !     -----------------------------------------------------------------
 !     ARGUMENTS
-      INTEGER kkiter
 !     -----------------------------------------------------------------
 !     -----------------------------------------------------------------
 !     LOCAL VARIABLES

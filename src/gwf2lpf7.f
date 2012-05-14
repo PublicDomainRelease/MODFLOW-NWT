@@ -1542,7 +1542,7 @@ C     ******************************************************************
 C
 C      SPECIFICATIONS:
 C     ------------------------------------------------------------------
-      USE GLOBAL,      ONLY:NCOL,NROW,IBOUND,CR,CC,DELR,DELC
+      USE GLOBAL,      ONLY:NCOL,NROW,IBOUND,CR,CC,DELR,DELC,iout,cv
       USE GWFLPFMODULE,ONLY:HK,CHANI,HANI
 C     ------------------------------------------------------------------
 C
@@ -1600,6 +1600,17 @@ C3D-----IF THIS IS THE LAST ROW, SET BRANCH CONDUCTANCE=0.
          END IF
       END IF
   100 CONTINUE
+!!!
+!      DO 300 I=1,NROW
+!      DO 300 J=1,NCOL
+!C
+!C2------IF CELL IS DRY OR HK=0., SET CONDUCTANCE EQUAL TO 0 AND GO ON
+!C2------TO NEXT CELL.
+!      IF(IBOUND(J,I,K).GT.0)THEN
+!        write(iout,999)j,i,k,CR(J,I,K),CC(J,I,K),CV(J,I,K)
+!      END IF
+!  999 format(3i5,5e20.10)
+!  300 end do
 C
 C4------RETURN
       RETURN

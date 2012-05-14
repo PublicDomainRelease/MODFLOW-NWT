@@ -20,9 +20,9 @@ C
       MODULE GWFLAKMODULE
 C------OLD USGS VERSION 7.1; JUNE 2006 GWFLAKMODULE; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012  
+C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
         CHARACTER(LEN=64),PARAMETER ::Version_lak =
-     +'$Id: gwf2lak7_NWT.f 2370 2011-01-24 17:35:48Z rniswon $'
+     +'$Id: gwf2lak7_NWT.f 2370 2012-04-05 17:35:48Z rniswon $'
         INTEGER,SAVE,POINTER   ::NLAKES,NLAKESAR,ILKCB,NSSITR,LAKUNIT
         INTEGER,SAVE,POINTER   ::MXLKND,LKNODE,ICMX,NCLS,LWRT,NDV,NTRB,
      +                           IRDTAB
@@ -157,7 +157,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
+!rgn------NEW VERSION NUMBER 1.0.5:  April 5, 2012
 C     ******************************************************************
 C     INITIALIZE POINTER VARIABLES USED BY SFR1 TO SUPPORT LAKE3 AND
 C     GAGE PACKAGES AND THE GWT PROCESS
@@ -511,7 +511,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012  
+C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
 C     ******************************************************************
 C       READ INPUT DATA FOR THE LAKE PACKAGE.
 C     ------------------------------------------------------------------
@@ -1154,7 +1154,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AD; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012  
+C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
 C
 C     ******************************************************************
 C     ADVANCE TO NEXT TIME STEP FOR TRANSIENT LAKE SIMULATION, AND COPY
@@ -1289,7 +1289,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7FM; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012  
+C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
 C     ******************************************************************
 C     ADD LAKE TERMS TO RHS AND HCOF IF SEEPAGE OCCURS IN MODEL CELLS
 C     ******************************************************************
@@ -1771,7 +1771,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7BD; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012  
+C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
 C     ******************************************************************
 C     CALCULATE VOLUMETRIC BUDGET FOR LAKES
 C     ******************************************************************
@@ -3231,7 +3231,7 @@ c   skip if zero vk
         CAQ=VK*DELR(I)*DELC(J)/((TTOP-BBOT)*0.5)
         IF(LAYCBD(K-1).GT.0) THEN
 c   skip if zero vkcb
-          IF(VKCB(I,J,LAYCBD(K)).LE.0.0) GO TO 350
+          IF(VKCB(I,J,LAYCBD(K-1)).LE.0.0) GO TO 350
           BBOT=BOTM(I,J,LBOTM(K)-1)
           TTOP=BOTM(I,J,LBOTM(K-1))
           CCB=VKCB(I,J,LAYCBD(K-1))*DELR(I)*DELC(J)/(TTOP-BBOT)

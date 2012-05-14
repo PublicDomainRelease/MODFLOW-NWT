@@ -24,7 +24,7 @@
       DOUBLE PRECISION, SAVE, POINTER :: Tol, Ftol, RELAX, RMS2, RMS1
       DOUBLE PRECISION, SAVE, POINTER :: Thickfact, Breduc, Btol, RMSAVE
       INTEGER, SAVE, POINTER :: Numactive, Numcell   
-      INTEGER, SAVE, POINTER :: Consthick, Nonmeth
+      INTEGER, SAVE, POINTER :: Nonmeth
       INTEGER, SAVE, POINTER :: Linmeth
       INTEGER, SAVE, POINTER :: IPRNWT
       INTEGER, SAVE, POINTER :: IBOTAV
@@ -52,7 +52,7 @@
         DOUBLE PRECISION, POINTER :: Tol, Ftol, RMS2, RMS1
         DOUBLE PRECISION, POINTER :: Thickfact, Breduc, Btol, RMSAVE
         INTEGER, POINTER :: Numactive, Numcell
-        INTEGER, POINTER :: Consthick, Nonmeth
+        INTEGER, POINTER :: Nonmeth
         INTEGER, POINTER :: Linmeth
         INTEGER, POINTER :: IPRNWT
         INTEGER, POINTER :: IBOTAV
@@ -131,7 +131,6 @@
       DEALLOCATE (Gwfnwtdat(Igrid)%RMS2) 
       DEALLOCATE (Gwfnwtdat(Igrid)%RMS1) 
       DEALLOCATE (Gwfnwtdat(Igrid)%Iierr)
-      DEALLOCATE (Gwfnwtdat(Igrid)%Consthick)
       DEALLOCATE (Gwfnwtdat(Igrid)%Nonmeth)
       DEALLOCATE (Gwfnwtdat(Igrid)%Linmeth)
       DEALLOCATE (Gwfnwtdat(Igrid)%IPRNWT)
@@ -205,7 +204,6 @@
       RMS2 => Gwfnwtdat(Igrid)%RMS2 
       RMS1 => Gwfnwtdat(Igrid)%RMS1   
       Iierr => Gwfnwtdat(Igrid)%Iierr
-      Consthick => Gwfnwtdat(Igrid)%Consthick
       Nonmeth => Gwfnwtdat(Igrid)%Nonmeth
       Linmeth => Gwfnwtdat(Igrid)%Linmeth 
       IPRNWT => Gwfnwtdat(Igrid)%IPRNWT
@@ -278,7 +276,6 @@
       Gwfnwtdat(IGRID)%RMS2=>RMS2
       Gwfnwtdat(IGRID)%RMS1=>RMS1
       Gwfnwtdat(IGRID)%Iierr=>Iierr
-      Gwfnwtdat(IGRID)%Consthick=>Consthick
       Gwfnwtdat(IGRID)%Nonmeth=>Nonmeth
       Gwfnwtdat(IGRID)%Linmeth=>Linmeth
       Gwfnwtdat(IGRID)%IPRNWT=>IPRNWT

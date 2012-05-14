@@ -6,7 +6,7 @@ C     ******************************************************************
 C     ALLOCATE ARRAY STORAGE FOR UNSATURATED FLOW, RECHARGE, AND ET
 C     READ AND CHECK VARIABLES THAT REMAIN CONSTANT
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
+!rgn------NEW VERSION NUMBER 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, IOUT, ITRSS, ISSFLG, 
@@ -45,7 +45,7 @@ C     ------------------------------------------------------------------
       DATA aname(8)/'  RESIDUAL WATER CONTENT'/
 C     ------------------------------------------------------------------
       Version_uzf =
-     +'$Id: gwf2uzf1_NWT.f 4021 2011-12-05 21:16:07Z rniswon $'
+     +'$Id: gwf2uzf1_NWT.f 4021 2012-05-04 21:16:07Z rniswon $'
       ALLOCATE(NUMCELLS, TOTCELLS, Iseepsupress, IPRCNT)
       Iseepsupress = 0   ! Iseepsupress =1 means seepout not calculated
       NUMCELLS = NCOL*NROW
@@ -56,13 +56,14 @@ C     ------------------------------------------------------------------
       ALLOCATE (IUZFCB1, IUZFCB2, NTRAIL, NWAV, NSETS, IUZFB22, IUZFB11)
       ALLOCATE (NUZGAG, NUZGAGAR, NUZCL, NUZRW, TOTRUNOFF)
       ALLOCATE (SURFDEP,IGSFLOW, RTSOLUTE)
-      ALLOCATE (ITHTIFLG, ITHTRFLG)
+      ALLOCATE (ITHTIFLG, ITHTRFLG, IETBUD)
       ITHTIFLG = 0
       ITHTRFLG = 0
+      IETBUD = 0
 C
 C1------IDENTIFY PACKAGE AND INITIALIZE.
       WRITE (IOUT, 9001) In
- 9001 FORMAT (1X, /' UZF1 -- UNSATURATED FLOW PACKAGE, VERSION 1.0.2', 
+ 9001 FORMAT (1X, /' UZF1 -- UNSATURATED FLOW PACKAGE, VERSION 1.0.5', 
      +        ', 10/01/2011', /, 9X, 'INPUT READ FROM UNIT', I3)
       CALL URDCOM(In, IOUT, line)
 ! Check for alternate input.
@@ -106,6 +107,15 @@ C1------IDENTIFY PACKAGE AND INITIALIZE.
          WRITE(IOUT,'(A)')' SURFACE LEAKAGE WILL NOT BE SIMULATED '
          WRITE(iout,*)
       END IF
+ ! lloc = llocsave
+ ! CALL URWORD(LINE,LLOC,ISTART,ISTOP,1,I,R,IOUT,IN)
+ ! IF(LINE(ISTART:ISTOP).EQ.'ONLYET') THEN
+ !    IETBUD = 1
+ !    WRITE(iout,*)
+ !    WRITE(IOUT,'(A)')' ONLY ET WILL BE WRITTEN TO THE UNFORMATTED 
+ !+                      BUDGET FILES '
+ !    WRITE(iout,*)
+ ! END IF
       IF ( ITHTIFLG.GT.0 .OR. ITHTRFLG.GT.0 .OR. Iseepsupress.GT.0 ) 
      +     CALL URDCOM(In, IOUT, line)
       lloc = 1
@@ -240,10 +250,16 @@ C7------ALLOCATE SPACE FOR ARRAYS AND INITIALIZE.
       THTR = 0.0
       ALLOCATE (FINF(NCOL,NROW),PETRATE(NCOL,NROW),UZFETOUT(NCOL,NROW))
       ALLOCATE (GWET(NCOL,NROW), FNETEXFIL(NCOL,NROW))
+      IF ( IETBUD.GT.0 ) THEN
+        ALLOCATE (CUMGWET(NCOL,NROW))
+      ELSE
+        ALLOCATE (CUMGWET(1,1))
+      END IF
       FINF = 0.0
       PETRATE = 0.0
       UZFETOUT = 0.0
       GWET = 0.0
+      CUMGWET = 0.0
       FNETEXFIL = 0.0
       ALLOCATE (FBINS(52))
       FBINS = 0.0
@@ -759,7 +775,7 @@ C     ******************************************************************
 C     ASSIGN SATURATED VERTICAL HYDRAULIC CONDUCTIVITY ARRAY 
 C     (VKS) IN UZF TO EQUAL VERTICAL HYDRAULIC CONDUCTIVITY IN LAYER-
 C     PROPERTY FLOW PACKAGE
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE, ONLY: VKS, IUZFBND, CLOSEZERO, NUZTOP
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, IOUT, IBOUND, BOTM
@@ -869,7 +885,7 @@ C-------SUBROUTINE GWF2UZF1RP
       SUBROUTINE GWF2UZF1RP(In, Kkper, Iunitsfr, Igrid)
 C     ******************************************************************
 C     READ AND CHECK VARIABLES EACH STRESS PERIOD 
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, IOUT, ISSFLG, IBOUND, 
@@ -1277,6 +1293,7 @@ C         STEADY STATE PERIOD IN STRESS PERIOD 1.
                   ELSE IF ( iflginit.EQ.2 ) THEN
                     IF ( celtop.GT.h ) THEN
                       UZDPST(1, l) = celtop - h
+                      HLDUZF(ic,ir) = h
 C
 C26-----CALCULATE INITIAL WATER CONTENT AND FLUX FROM STEADY STATE
 C         SIMULATION.
@@ -1355,7 +1372,7 @@ C--------SUBROUTINE GWF2UZF1FM
 C     ******************************************************************
 C     COMPUTE UNSATURATED ZONE FLOW AND STORAGE, RECHARGE, ET, AND
 C     SURFACE LEAKAGE AND ADD OR SUBTRACT TERMS RHS AND HCOF
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, HNEW, ISSFLG, DELR,
@@ -1798,7 +1815,7 @@ C--------SUBROUTINE SGWF2UZF1OLF
       SUBROUTINE SGWF2UZF1OLF(Iunitsfr, Iunitlak, Iunitcfp)
 C     ******************************************************************
 C     ASSIGN OVERLAND RUNOFF AS INFLOW TO STREAMS AND LAKES
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE, ONLY: IRUNBND, SEEPOUT, EXCESPP, TOTRUNOFF,
      +                        REJ_INF, IRUNBIG, IGSFLOW
@@ -1882,7 +1899,7 @@ C------SUBROUTINE GWF2UZF1BD
       SUBROUTINE GWF2UZF1BD(Kkstp, Kkper, Iunitlak, Iunitsfr, Igrid)
 C     ******************************************************************
 C     CALCULATE VOLUMETRIC BUDGETS FOR RECHARGE, ET, AND SURFACE LEAKAGE
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, IOUT, ISSFLG, IBOUND, 
@@ -2000,9 +2017,6 @@ CDEP 05/05/2006
       DO ll = 1, NUMCELLS
         ir = IUZHOLD(1, ll)
         ic = IUZHOLD(2, ll)
-!      IF(IR==111.AND.IC==203.AND.KKSTP==3)THEN
-!      ibnd = IUZFBND(ic, ir)
-!      END IF
         ibnd = IUZFBND(ic, ir)
         volinflt = 0.0D0
         IF ( ibnd.GT.0 ) l = l + 1
@@ -2887,6 +2901,8 @@ C29-----ACCUMULATE INFLOW AND OUTFLOW VOLUMES FROM CELLS.
           CUMUZVOL(3) = CUMUZVOL(3) + volflwtb
           totbet = totbet + GWET(ic, ir)
           UZTSRAT(7) = UZTSRAT(7) + GWET(ic, ir)
+          IF ( IETBUD.GT.0 )
+     +         CUMGWET(ic,ir) = CUMGWET(ic,ir) + GWET(ic, ir)
           cumapplinf = cumapplinf + cellarea*FINF(ic, ir)
           UZTSRAT(1) = UZTSRAT(1) + volinflt/DELT
           UZTSRAT(2) = UZTSRAT(2) + volet/DELT
@@ -2929,29 +2945,29 @@ C
 C31-----UPDATE RATES AND BUFFERS WITH ET FOR UZF OR MODFLOW BUDGET ITEMS.
 C
 C Print net recharge as ascii to a separate output file
-        DO ir = 1, NROW
-          DO ic = 1, NCOL
-            IF ( IUZFBND(ic,ir).NE.0 ) THEN
-              dum = 0.0
-              IF (Iunitsfr.GT.0 ) dum = FNETSEEP(ic,ir)
-              FNETEXFIL(ic, ir) = FNETEXFIL(ic, ir)+ 
-     +        (UZFLWT(ic, ir)/DELT-SEEPOUT(ic, ir)-GWET(ic, ir)+dum)
-            END IF
-          END DO
-        END DO
-        IPRCNT = IPRCNT + 1
-        IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
-          OPEN(991,file='Netrech.txt')
-          write(991,*)kkper, kkstp
-          DO ir = 1, NROW
-            WRITE(991,221)(FNETEXFIL(ic, ir)/float(IPRCNT),ic=1,NCOL)
-            DO ic = 1, NCOL
-              FNETEXFIL(ic, ir) = 0.0
-            END DO
-          END DO
-          IPRCNT = 0
-        END IF
-  221 FORMAT(5000e20.10)
+  !      DO ir = 1, NROW
+  !        DO ic = 1, NCOL
+  !          IF ( IUZFBND(ic,ir).NE.0 ) THEN
+  !            dum = 0.0
+  !            IF (Iunitsfr.GT.0 ) dum = FNETSEEP(ic,ir)
+  !            FNETEXFIL(ic, ir) = FNETEXFIL(ic, ir)+ 
+  !   +        (UZFLWT(ic, ir)/DELT-SEEPOUT(ic, ir)-GWET(ic, ir)+dum)
+  !          END IF
+  !        END DO
+  !      END DO
+  !      IPRCNT = IPRCNT + 1
+  !      IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
+  !        OPEN(991,file='Netrech.txt')
+  !        write(991,*)kkper, kkstp
+  !        DO ir = 1, NROW
+  !          WRITE(991,221)(FNETEXFIL(ic, ir)/float(IPRCNT),ic=1,NCOL)
+  !          DO ic = 1, NCOL
+  !            FNETEXFIL(ic, ir) = 0.0
+  !          END DO
+  !        END DO
+  !        IPRCNT = 0
+  !      END IF
+  !221 FORMAT(5000e20.10)
 C
 C31-----UPDATE RATES AND BUFFERS WITH ET FOR UZF OR MODFLOW BUDGET ITEMS.
 C
@@ -2960,14 +2976,15 @@ C
            CALL INITARRAY(TOTCELLS,0.0,BUFF(:,:,1))
            DO ir = 1, NROW
              DO ic = 1, NCOL
- !              DO il = 1, NLAY
- !                BUFF(ic, ir, il) = 0.0
- !              END DO
                IF ( IUZFBND(ic,ir).NE.0 ) THEN
                  ill = LAYNUM(ic, ir)
                  IF ( ill.GT.0 ) THEN
                    IF ( IUZFB22.LT.0 .OR. IUZFB11.LT.0 ) THEN
-                     BUFF(ic, ir, ill) = -UZFETOUT(ic, ir)/DELT
+                     IF ( IETBUD.GT.0 ) THEN
+                       BUFF(ic, ir, ill) =-UZTOTBAL(ic, ir, 4)
+                     ELSE
+                       BUFF(ic, ir, ill) = -UZFETOUT(ic, ir)/DELT
+                     END IF
                    END IF
                  ELSE
                    LAYNUM(ic, ir) = NLAY
@@ -3001,7 +3018,11 @@ C33-----UPDATE RATES AND BUFFERS WITH GW ET FOR MODFLOW BUDGET ITEMS.
               IF ( IUZFBND(ic,ir).NE.0 ) THEN
                 ill = LAYNUM(ic, ir)
                 IF ( ill.GT.0 ) THEN
-                  BUFF(ic, ir, ill)= -GWET(ic, ir)
+                  IF ( IETBUD.GT.0 ) THEN
+                    BUFF(ic, ir, ill)= -CUMGWET(ic, ir)
+                  ELSE
+                    BUFF(ic, ir, ill)= -GWET(ic, ir)
+                  END IF
                 ELSE
                   LAYNUM(ic, ir) = NLAY
                 END IF
@@ -3021,7 +3042,7 @@ C34-----SAVE GW ET RATES TO UNFORMATTED FILE FOR UZF OR MODFLOW BUDGET ITEMS.
       END IF
 C
 C35-----UPDATE RATES AND BUFFERS FOR INFILTRATION.
-      IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
+      IF ( ibd.GT.0 .OR. ibduzf.GT.0 .AND. IETBUD.EQ.0 ) THEN
         IF ( IUZFB22.LT.0 .OR. IUZFB11.LT.0 ) THEN
           CALL INITARRAY(TOTCELLS,0.0,BUFF(:,:,1))
           DO ir = 1, NROW
@@ -3058,7 +3079,7 @@ C37-----SAVE INFILTRATION RATES TO UNFORMATTED FILE.
       END IF
 C
 C35-----UPDATE RATES AND BUFFERS FOR SFR-DIVERTED INFILTRATION.
-      IF ( Iunitsfr.GT.0 ) THEN
+      IF ( Iunitsfr.GT.0 .AND. IETBUD.EQ.0 ) THEN
       IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
         IF ( IUZFB22.LT.0 .OR. IUZFB11.LT.0 ) THEN
           CALL INITARRAY(TOTCELLS,0.0,BUFF(:,:,1))
@@ -3075,19 +3096,21 @@ C35-----UPDATE RATES AND BUFFERS FOR SFR-DIVERTED INFILTRATION.
         END IF
 C   
 C37-----SAVE INFILTRATION RATES TO UNFORMATTED FILE.
-        IF ( IUZFB22.LT.0 .OR. IUZFB11.LT.0 ) THEN
-          IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textinf2, IUZFCB1,
+        IF ( IETBUD.EQ.0 ) THEN
+          IF ( IUZFB22.LT.0 .OR. IUZFB11.LT.0 ) THEN
+            IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textinf2, IUZFCB1,
      +                                BUFF, NCOL, NROW, NLAY, IOUT)
-          IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textinf,  
+            IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textinf,  
      +                                   IUZFCB2, BUFF, LAYNUM, NUZTOP,
      +                                   NCOL, NROW, NLAY, IOUT, DELT,  
      +                                   PERTIM, TOTIM, IBOUND)
+          END IF
         END IF
       END IF
       END IF
 C
 C38-----UPDATE RATES AND BUFFERS FOR RECHARGE.
-      IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
+      IF ( ibd.GT.0 .OR. ibduzf.GT.0 .AND. IETBUD.EQ.0 ) THEN
         CALL INITARRAY(TOTCELLS,0.0,BUFF(:,:,1))
         DO ir = 1, NROW
           DO ic = 1, NCOL
@@ -3116,15 +3139,17 @@ C38-----UPDATE RATES AND BUFFERS FOR RECHARGE.
       END IF
 C
 C39-----SAVE RECHARGE RATES TO UNFORMATTED FILE.
-      IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textrch, IUZFCB1, BUFF,
-     +                            NCOL, NROW, NLAY, IOUT)
-      IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textrch,  
+      IF ( IETBUD.EQ.0 ) THEN
+        IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textrch, IUZFCB1, 
+     +                            BUFF, NCOL, NROW, NLAY, IOUT)
+        IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textrch,  
      +                               IUZFCB2, BUFF, LAYNUM, NUZTOP,
      +                               NCOL, NROW, NLAY, IOUT, DELT,  
      +                               PERTIM, TOTIM, IBOUND)
+      END IF
 C
 C40-----UPDATE RATES AND BUFFERS FOR SURFACE LEAKAGE RATES.
-      IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
+      IF ( ibd.GT.0 .OR. ibduzf.GT.0 .AND. IETBUD.EQ.0 ) THEN
           CALL INITARRAY(TOTCELLS,0.0,BUFF(:,:,1))
           DO ir = 1, NROW
             DO ic = 1, NCOL
@@ -3142,12 +3167,14 @@ C40-----UPDATE RATES AND BUFFERS FOR SURFACE LEAKAGE RATES.
           END DO
       END IF
 C41-----SAVE SURFACE LEAKAGE RATES TO UNFORMATTED FILE.
-      IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textexfl, IUZFCB1, BUFF,
-     +                            NCOL, NROW, NLAY, IOUT)
-      IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textexfl,  
+      IF ( IETBUD.EQ.0 ) THEN
+        IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textexfl, IUZFCB1, 
+     +                            BUFF, NCOL, NROW, NLAY, IOUT)
+        IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textexfl,  
      +                               IUZFCB2, BUFF, LAYNUM, NUZTOP,
      +                               NCOL, NROW, NLAY, IOUT, DELT,  
      +                               PERTIM, TOTIM, IBOUND)
+      END IF
 C
 C42-----PRINT RESULTS.
       bigvl1 = 9.99999E11
@@ -3500,7 +3527,7 @@ C-------SUBROUTINE UZFLOW2
      +                   ic, ir, land, h, celtop, mtflg, kper)
 C     ******************************************************************
 C     COMPUTE WAVE INTERACTION WITHIN AN UNSATURATED FLOW CELL
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE, ONLY: NWAV, THETAB, FLUXB, IETFLG, NEARZERO,
      +                        ZEROD6, ZEROD7, ZEROD9
@@ -3683,7 +3710,7 @@ C--------SUBROUTINE LEADWAVE2
      +                     Feps2, Itrailflg, Delt)
 C     ******************************************************************
 C     CREATE LEAD WAVE WHEN THE SURFACE FLUX INCREASES AND ROUTE WAVES.
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       USE GWFUZFMODULE, ONLY: NWAV, CLOSEZERO, NEARZERO, THETAB, FLUXB,
      +    FLUXHLD2, ZEROD15, ZEROD9, ZEROD6, CHECKTIME, MORE
@@ -4176,7 +4203,7 @@ C
       USE GLOBAL, ONLY: IOUT
 C     ******************************************************************
 C     INITIALIZE NEW SET OF TRAIL WAVES WHEN SURFACE FLUX DECREASES
-C     VERSION 1.0.2:  OCTOBER 01, 2011
+C     VERSION 1.0.5:  April 5, 2012
 C     ******************************************************************
       IMPLICIT NONE
 C     ------------------------------------------------------------------
@@ -5041,6 +5068,8 @@ C     ------------------------------------------------------------------
       DEALLOCATE (GWFUZFDAT(Igrid)%IPRCNT)  
       DEALLOCATE (GWFUZFDAT(Igrid)%ITHTIFLG)
       DEALLOCATE (GWFUZFDAT(Igrid)%ITHTRFLG)
+      DEALLOCATE (GWFUZFDAT(Igrid)%IETBUD) 
+      DEALLOCATE (GWFUZFDAT(Igrid)%CUMGWET)
 C
       END SUBROUTINE GWF2UZF1DA
 C
@@ -5126,6 +5155,8 @@ C     ------------------------------------------------------------------
       IPRCNT=>GWFUZFDAT(Igrid)%IPRCNT   
       ITHTIFLG=>GWFUZFDAT(Igrid)%ITHTIFLG
       ITHTRFLG=>GWFUZFDAT(Igrid)%ITHTRFLG
+      IETBUD=>GWFUZFDAT(Igrid)%IETBUD
+      CUMGWET=>GWFUZFDAT(Igrid)%CUMGWET
 C
       END SUBROUTINE SGWF2UZF1PNT
 C
@@ -5211,5 +5242,7 @@ C     ------------------------------------------------------------------
       GWFUZFDAT(Igrid)%IPRCNT=>IPRCNT
       GWFUZFDAT(Igrid)%ITHTIFLG=>ITHTIFLG
       GWFUZFDAT(Igrid)%ITHTRFLG=>ITHTRFLG
+      GWFUZFDAT(Igrid)%IETBUD=>IETBUD
+      GWFUZFDAT(Igrid)%CUMGWET=>CUMGWET
 C
       END SUBROUTINE SGWF2UZF1PSV

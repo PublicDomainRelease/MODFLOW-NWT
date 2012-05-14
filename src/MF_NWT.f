@@ -1,7 +1,7 @@
 C     ******************************************************************
 C     MAIN CODE FOR U.S. GEOLOGICAL SURVEY MODULAR MODEL -- MODFLOW-NWT
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.4:  JANUARY 25, 2012
+!rgn------NEW VERSION NUMBER 1.0.5:  April 5, 2012
 C     ******************************************************************
 C
 C        SPECIFICATIONS:
@@ -13,7 +13,6 @@ C1------USE package modules.
       USE GWFEVTMODULE, ONLY:NEVTOP
       USE GWFRCHMODULE, ONLY:NRCHOP
       USE GWFLAKMODULE, ONLY:NLAKESAR,THETA,STGOLD,STGNEW,VOL
-!      USE FMPMODULE,    ONLY:IRTFL,ICUFL,IPFL,IEBFL,QBD,MCLOSE           !inserted by SCHMID
       USE GWFSFRMODULE, ONLY:NUMTAB
       USE GWFNWTMODULE, ONLY:LINMETH,ICNVGFLG,ITREAL
       USE PCGMODULE
@@ -26,7 +25,7 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.0.4 01/25/2012')
+      PARAMETER (VERSION='1.0.5 05/14/2012')
       PARAMETER (VERSION2='1.8.00 12/18/2009')
       PARAMETER (MFVNAM='-NWT')
 C
@@ -108,7 +107,7 @@ C6------ALLOCATE AND READ (AR) PROCEDURE
       IF(IUNIT(21).GT.0) CALL GWF2HFB7AR(IUNIT(21),IGRID)
       IF(IUNIT(44).GT.0) CALL GWF2SFR7AR(IUNIT(44),IUNIT(1),IUNIT(23),
      1                           IUNIT(37),IUNIT(15),NSOL,IOUTS,
-     2                           IUNIT(62),IGRID)
+     2                           IUNIT(62),IUNIT(55),IGRID)
       IF(IUNIT(55).GT.0) CALL GWF2UZF1AR(IUNIT(55),IUNIT(1),
      1                                   IUNIT(23),IUNIT(37),
      2                                   IUNIT(63),IGRID)
@@ -127,7 +126,7 @@ C6------ALLOCATE AND READ (AR) PROCEDURE
       IF(IUNIT(50).GT.0) CALL GWF2MNW27AR(IUNIT(50),IGRID)
       IF(IUNIT(51).GT.0) CALL GWF2MNW2I7AR(IUNIT(51),IUNIT(50),IGRID)
       IF(IUNIT(52).GT.0) CALL GWF2MNW17AR(IUNIT(52),IUNIT(9),
-     1                     IUNIT(10),0,IUNIT(13),
+     1                     IUNIT(10),IUNIT(63),0,IUNIT(13),
      2                     0,IUNIT(42),FNAME,IGRID)
       IF(IUNIT(57).GT.0) CALL GWF2SWT7AR(IUNIT(57),IGRID)
       IF(IUNIT(43).GT.0) CALL GWF2HYD7BAS7AR(IUNIT(43),IGRID)
@@ -183,7 +182,7 @@ C----------READ USING PACKAGE READ AND PREPARE MODULES.
      1                                     IUNIT(22),KKPER,KKSTP,
      2                                     NSOL,IOUTS,IUNIT(1),
      3                                     IUNIT(23),IUNIT(37),
-     4                                     IUNIT(62), IGRID)
+     4                                     IUNIT(62), IUNIT(55), IGRID)
       IF(IUNIT(43).GT.0 .AND. IUNIT(44).GT.0)
      1                     CALL GWF2HYD7SFR7RP(IUNIT(43),KKPER,IGRID)
         IF(IUNIT(55).GT.0) CALL GWF2UZF1RP(IUNIT(55),KKPER,IUNIT(44),
@@ -197,7 +196,7 @@ C----------READ USING PACKAGE READ AND PREPARE MODULES.
         IF(IUNIT(40).GT.0) CALL GWF2DRT7RP(IUNIT(40),IGRID)
         IF(IUNIT(50).GT.0) CALL GWF2MNW27RP(IUNIT(50),kper,IUNIT(9),
      +                       IUNIT(10),0,IUNIT(13),0,IUNIT(42),
-     +                       IUNIT(63),IUNIT(15),IGRID)
+     +                       IUNIT(15),IUNIT(63),IGRID)
         IF(IUNIT(51).GT.0.AND.KKPER.EQ.1) CALL GWF2MNW2I7RP(IUNIT(51),
      1                     0,IGRID)
         IF(IUNIT(52).GT.0) CALL GWF2MNW17RP(IUNIT(52),IUNIT(1),
@@ -209,6 +208,11 @@ C
 C7C-----SIMULATE EACH TIME STEP.
         DO 90 KSTP = 1, NSTP(KPER)
           KKSTP = KSTP
+          IF ( IRESTART.EQ.1 ) THEN
+            IF ( KPER.EQ.KPERSTART .AND. KSTP.EQ.KSTPSTART ) THEN
+              CALL RESTARTHEADS(IOUT)
+            END IF
+          END IF
 C
 C7C1----CALCULATE TIME STEP LENGTH. SET HOLD=HNEW.
           IF(IUNIT(62).GT.0 ) CALL GWF2UPWUPDATE(1,Igrid)
@@ -242,7 +246,7 @@ C7C1----CALCULATE TIME STEP LENGTH. SET HOLD=HNEW.
      &      ' -- STOP EXECUTION')
               CALL USTOP('MNW2 error-flow package')
             END IF
-            CALL GWF2MNW27AD(KKSTP,KKPER,IGRID)
+            CALL GWF2MNW27AD(KKSTP,KKPER,IUNIT(62),IGRID)
           END IF
           IF(IUNIT(52).GT.0) CALL GWF2MNW17AD(IUNIT(1),IUNIT(23),
      1                                  IUNIT(37),IUNIT(62),IGRID)
@@ -253,17 +257,41 @@ C7C1----CALCULATE TIME STEP LENGTH. SET HOLD=HNEW.
 !          ENDIF     
 C
 C---------INDICATE IN PRINTOUT THAT SOLUTION IS FOR HEADS
-          CALL UMESPR('SOLVING FOR HEAD',' ',IOUT)
-          WRITE(*,25)KPER,KSTP
+          IF ( IRESTART.GT.0 ) THEN
+            IF ( KPER.LT.KPERSTART ) THEN
+              CALL UMESPR('SKIPPING STEP TO RESTART',' ',IOUT)
+              WRITE(*,26)KPER,KSTP
+            ELSE IF ( KPER.EQ.KPERSTART .AND. KSTP.LT.KSTPSTART ) THEN
+              CALL UMESPR('SKIPPING STEP TO RESTART',' ',IOUT)
+              WRITE(*,26)KPER,KSTP
+            ELSE
+              CALL UMESPR('SOLVING FOR HEAD',' ',IOUT)
+              WRITE(*,25)KPER,KSTP
+            END IF
+          ELSE
+            CALL UMESPR('SOLVING FOR HEAD',' ',IOUT)
+            WRITE(*,25)KPER,KSTP
+          END IF
    25     FORMAT(' Solving:  Stress period: ',i5,4x,
      &       'Time step: ',i5,4x,'Groundwater-Flow Eqn.')
+   26     FORMAT('Skipping:  Stress period: ',i5,4x,
+     &       'Time step: ',i5)
 C
 C7C2----ITERATIVELY FORMULATE AND SOLVE THE FLOW EQUATIONS.
 !          DO 30 KITER = 1, MXITER
            KITER = 0
            ITREAL2 = 0
+           NOITER = 1
            IF ( IUNIT(63).GT.0 ) ITREAL = 0
-           DO WHILE (ITREAL2.LT.MXITER)
+           IF ( IRESTART.GT.0 ) THEN
+             NOITER = 0
+             IF ( KPER.GT.KPERSTART ) THEN
+               NOITER = 1
+             ELSE IF ( KPER.EQ.KPERSTART .AND. KSTP.GE.KSTPSTART ) THEN
+               NOITER = 1 
+             END IF
+           END IF
+           DO WHILE (ITREAL2.LT.MXITER .AND. NOITER.EQ.1)
             KITER = KITER + 1
             KKITER = KITER
             IF ( IUNIT(63).EQ.0 ) ITREAL2 = KITER
@@ -386,6 +414,7 @@ C7C2C---IF CONVERGENCE CRITERION HAS BEEN MET STOP ITERATING.
           KITER = MXITER
 C
    33     CONTINUE
+          IF ( NOITER.EQ.1 ) THEN
           IF(IUNIT(62).GT.0 ) CALL GWF2UPWUPDATE(2,Igrid)
 C
 C7C3----DETERMINE WHICH OUTPUT IS NEEDED.
@@ -478,7 +507,7 @@ C7C4----CALCULATE BUDGET TERMS. SAVE CELL-BY-CELL FLOW TERMS.
           IF(IUNIT(18).GT.0) CALL GWF2STR7BD(KKSTP,KKPER,IGRID)
           IF(IUNIT(19).GT.0) CALL GWF2IBS7BD(KKSTP,KKPER,IGRID)
           IF(IUNIT(39).GT.0) CALL GWF2ETS7BD(KKSTP,KKPER,IGRID)
-          IF(IUNIT(40).GT.0) CALL GWF2DRT7BD(KKSTP,KKPER,IGRID)
+          IF(IUNIT(40).GT.0) CALL GWF2DRT7BD(KKSTP,KKPER,IGRID)  
 ! (CJM) Added RCH unit number for RCH->SFR.
           IF(IUNIT(44).GT.0) CALL GWF2SFR7BD(KKSTP,KKPER,IUNIT(15),
      1                        IUNIT(22),IUNIT(46),IUNIT(55),NSOL,
@@ -488,27 +517,12 @@ C7C4----CALCULATE BUDGET TERMS. SAVE CELL-BY-CELL FLOW TERMS.
      1                             IUNIT(44),IGRID)
           IF(IUNIT(22).GT.0) CALL GWF2LAK7BD(KKSTP,KKPER,IUNIT(15),
      1                       IUNIT(46),IUNIT(44),IUNIT(55),NSOL,IGRID)
-          IF(IUNIT(50).GT.0) CALL GWF2MNW27BD(KKSTP,KKPER,IGRID)
+          IF(IUNIT(50).GT.0) CALL GWF2MNW27BD(KKSTP,KKPER,IUNIT(62),
+     1                                        IGRID)
           IF(IUNIT(52).GT.0) CALL GWF2MNW17BD(NSTP(KPER),KKSTP,KKPER,
      1                      IGRID)
           IF(IUNIT(54).GT.0) CALL GWF2SUB7BD(KKSTP,KKPER,IGRID)
-          IF(IUNIT(57).GT.0) CALL GWF2SWT7BD(KKSTP,KKPER,IGRID)
-C--FARM DEMAND AND SUPPLY, FARM WELLS, AND FARM NET-RECHARGE
-c	 ...fmp2fm is inserted to allow recalculating FMP-flowrates, which 
-c         may de a function of SFR & MNW flowrates: Q-fmp(h,Q-sfr,Q-mnw).
-!          IF (IUNIT(61).GT.0) THEN                                      !FMP2FM CALL ADDED BY SCHMID
-!             IF(QBD.EQ.1)                              
-!     1         CALL FMP2FM(KKITER,KKPER,KKSTP,ISTARTFL,IUNIT(44),
-!     2                     IUNIT(52),IUNIT(55),IGRID)
-!C      ...ALLOW CONVERGENCE CRITERIA FOR MNW WELL PUMPAGE LINKED TO FARM PROCESS
-!             IF(IUNIT(52).GT.0.AND.MCLOSE.EQ.1) THEN
-!               CALL SFMP2PNT(IGRID)
-!               CALL FMP2QCNVG(IUNIT(52),IUNIT(13),IUNIT(9),             !FMP2QCNVG CALL ADDED BY SCHMID
-!     1                        IUNIT(10),IUNIT(42))          
-!             ENDIF
-!             CALL FMP2WELBD(KKSTP,KKPER,IUNIT(52),IUNIT(55),IGRID)      !FMP2WELBD & FMP2FNRBD CALLS ADDED BY SCHMID
-!             CALL FMP2FNRBD(KKSTP,KKPER,IGRID)
-!	    ENDIF          
+          IF(IUNIT(57).GT.0) CALL GWF2SWT7BD(KKSTP,KKPER,IGRID)     
 CLMT
 CLMT----CALL LINK-MT3DMS SUBROUTINES TO SAVE FLOW-TRANSPORT LINK FILE
 CLMT----FOR USE BY MT3DMS FOR TRANSPORT SIMULATION
@@ -557,6 +571,7 @@ C7C6---JUMP TO END OF PROGRAM IF CONVERGENCE WAS NOT ACHIEVED.
             END IF
           ELSE
             IF(ICNVG.EQ.0) GO TO 110
+          END IF
           END IF
 C
 C-----END OF TIME STEP (KSTP) AND STRESS PERIOD (KPER) LOOPS
@@ -800,3 +815,39 @@ C     Write times to file if requested
 C
       RETURN
       END
+      
+      
+      SUBROUTINE RESTARTHEADS(IOUT)
+C     ******************************************************************
+C     READ HEADS FOR RESTART AND COPY INTO HNEW
+C     ******************************************************************
+C
+      USE GLOBAL,      ONLY:STRT,NCOL,NROW,NLAY,IUNITSTART,HNEW,IBOUND,
+     +                      IXSEC
+      USE GWFBASMODULE,ONLY:HNOFLO
+      DOUBLE PRECISION HNF
+      CHARACTER*24 ANAME(1)
+      DATA ANAME(1) /'            RESTART HEAD'/
+C        SPECIFICATIONS:
+C     ------------------------------------------------------------------      
+C
+C8G-----READ INITIAL HEADS FOR RESTART.
+      IF(IXSEC.EQ.0) THEN
+         DO 300 K=1,NLAY
+         KK=K
+         CALL U2DREL(STRT(:,:,KK),ANAME(1),NROW,NCOL,KK,IUNITSTART,IOUT)
+  300    CONTINUE
+      ELSE
+         CALL U2DREL(STRT(:,:,1),ANAME(1),NLAY,NCOL,-1,IUNITSTART,IOUT)
+      END IF
+C
+C9------COPY INITIAL HEADS FROM STRT TO HNEW.
+      HNF = HNOFLO
+      DO 400 K=1,NLAY
+      DO 400 I=1,NROW
+      DO 400 J=1,NCOL
+      HNEW(J,I,K)=STRT(J,I,K)
+      IF(IBOUND(J,I,K).EQ.0) HNEW(J,I,K)=HNF
+  400 CONTINUE
+      RETURN 
+      END SUBROUTINE
