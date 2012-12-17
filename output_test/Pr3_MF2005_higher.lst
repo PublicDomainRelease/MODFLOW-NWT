@@ -1,7 +1,7 @@
-                                  MODFLOW-NWT      
+                                  MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.5 05/14/2012
-                    BASED ON MODFLOW-2005 VERSION 1.8.00 12/18/2009
+                            VERSION 1.0.6 12/05/2012
+                    BASED ON MODFLOW-2005 VERSION 1.9.01 05/01/2012
 
  LIST FILE: .\Ex_prob3\Pr3_MF2005_higher.lst
                          UNIT    7
@@ -31,6 +31,10 @@
  FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
 
  BAS -- BASIC PACKAGE, VERSION 7, 5/2/2005 INPUT READ FROM UNIT    1
+ 
+ MODFLOW was compiled using mixed precision
+ Precision of REAL variables:           6
+ Precision of DOUBLE PRECISION variables:          15
 
  DISCRETIZATION INPUT DATA READ FROM UNIT   10
  # MODFLOW2005 Discretization Input File
@@ -23900,7 +23904,7 @@
 
 
 
- OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   1
+ OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP    1
     PRINT HEAD FOR ALL LAYERS
 1
               HEAD IN LAYER   1 AT END OF TIME STEP   1 IN STRESS PERIOD    1
@@ -24556,7 +24560,7 @@
        -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.    
        -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.      -9999.    
 1
-  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP  1 IN STRESS PERIOD   1
+  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
 
      CUMULATIVE VOLUMES      L**3       RATES FOR THIS TIME STEP      L**3/T
@@ -24587,7 +24591,7 @@
 
 
 
-          TIME SUMMARY AT END OF TIME STEP   1 IN STRESS PERIOD    1
+         TIME SUMMARY AT END OF TIME STEP    1 IN STRESS PERIOD    1
                     SECONDS     MINUTES      HOURS       DAYS        YEARS
                     -----------------------------------------------------------
    TIME STEP LENGTH 3.15360E+07 5.25600E+05  8760.0      365.00     0.99932    
@@ -24595,6 +24599,6 @@
          TOTAL TIME 3.15360E+07 5.25600E+05  8760.0      365.00     0.99932    
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/05/14 16:55:53
- Elapsed run time:  6.410 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/12/06 14:12:07
+ Elapsed run time:  8.604 Seconds
 

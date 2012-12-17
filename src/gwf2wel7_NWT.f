@@ -35,7 +35,7 @@ C     ------------------------------------------------------------------
 C
 C1------IDENTIFY PACKAGE AND INITIALIZE NWELLS.
       WRITE(IOUT,1)IN
-    1 FORMAT(1X,/1X,'WEL -- WELL PACKAGE, VERSION 1.0.5, 04/05/2012',
+    1 FORMAT(1X,/1X,'WEL -- WELL PACKAGE, VERSION 1.0.6, 12/05/2012',
      1' INPUT READ FROM UNIT ',I4)
       NWELLS=0
       NNPWEL=0
@@ -57,7 +57,7 @@ C2------CELL-BY-CELL FLOW TERMS.
       END IF
       i = 0
       WRITE(IOUT,3) MXACTW
-    3 FORMAT(1X,'MAXIMUM OF ',I15,' ACTIVE WELLS AT ONE TIME')
+    3 FORMAT(1X,'MAXIMUM OF ',I6,' ACTIVE WELLS AT ONE TIME')
       IF(IWELCB.LT.0) WRITE(IOUT,7)
     7 FORMAT(1X,'CELL-BY-CELL FLOWS WILL BE PRINTED WHEN ICBCFL NOT 0')
       IF(IWELCB.GT.0) WRITE(IOUT,8) IWELCB
@@ -193,7 +193,6 @@ C1----AND NUMBER OF PARAMETERS
 C
 C------Calculate some constants.
       NAUX=NWELVL-5
-      
       IOUTU = IOUT
       IF (IPRWEL.EQ.0) IOUTU=-IOUTU
 C
@@ -320,7 +319,7 @@ C     ------------------------------------------------------------------
       USE GWFBASMODULE,ONLY:MSUM,ICBCFL,IAUXSV,DELT,PERTIM,TOTIM,
      1                      VBVL,VBNM
       USE GWFWELMODULE,ONLY:NWELLS,IWELCB,WELL,NWELVL,WELAUX,PSIRAMP,
-     1                      IUNITRAMP
+     1                      IUNITRAMP,IPRWEL
       USE GWFUPWMODULE, ONLY: LAYTYPUPW
 !External function interface
       INTERFACE 
@@ -426,7 +425,7 @@ C5I-----COPY FLOW TO WELL LIST.
      1                  WELL(:,L),NWELVL,NAUX,5,IBOUND,NLAY)
       WELL(NWELVL,L)=Q
 ! write wells with reduced pumping
-      IF ( Qp.LT.0.9999999D0 .AND. Iunitnwt.NE.0 .AND. 
+      IF ( Qp.LT.0.9999D0 .AND. Iunitnwt.NE.0 .AND. 
      +     IPRWEL.NE.0 ) THEN
         IF ( iw1.EQ.1 ) THEN
           WRITE(IUNITRAMP,*)
@@ -473,7 +472,7 @@ C     ******************************************************************
 ! dC is the derivative of well conductance with respect to well head
       USE GWFWELMODULE,ONLY:PSIRAMP
       IMPLICIT NONE
-      DOUBLE PRECISION s, aa, ad, bb, x, y
+      DOUBLE PRECISION s, aa, bb, x
       DOUBLE PRECISION cof1, cof2, cof3, Qp
       DOUBLE PRECISION, INTENT(IN) :: H
       DOUBLE PRECISION, INTENT(IN) :: T

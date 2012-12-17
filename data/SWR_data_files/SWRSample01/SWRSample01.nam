@@ -1,0 +1,12 @@
+LIST 7 Results\SWRSample01.lst
+BAS6  1 SWRSample01.bas
+DIS  29 SWRSample01.dis
+LPF 11 SWRSample01.lpf
+GHB 17 SWRSample01.ghb
+OC  22 SWRSample01.oc
+PCG 19 SWRSample01.pcg
+SWR 61 SWRSample01.swr
+#DATA 101 Results\SWRSample01_PoolFlow.csv
+#DATA 102 Results\SWRSample01_Stage.csv
+DATA(BINARY) 101 Results\SWRSample01_PoolFlow.flow
+DATA(BINARY) 102 Results\SWRSample01_Stage.stg

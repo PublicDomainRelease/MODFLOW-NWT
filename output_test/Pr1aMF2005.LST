@@ -1,7 +1,7 @@
-                                  MODFLOW-NWT      
+                                  MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.5 05/14/2012
-                    BASED ON MODFLOW-2005 VERSION 1.8.00 12/18/2009
+                            VERSION 1.0.6 12/05/2012
+                    BASED ON MODFLOW-2005 VERSION 1.9.01 05/01/2012
 
  LIST FILE: .\Ex_prob1a\Pr1aMF2005.LST
                          UNIT    2
@@ -31,6 +31,10 @@
  FORMAT:BINARY                 ACCESS:SEQUENTIAL          
 
  BAS -- BASIC PACKAGE, VERSION 7, 5/2/2005 INPUT READ FROM UNIT    4
+ 
+ MODFLOW was compiled using mixed precision
+ Precision of REAL variables:           6
+ Precision of DOUBLE PRECISION variables:          15
 
  DISCRETIZATION INPUT DATA READ FROM UNIT    3
     1 LAYERS         1 ROWS       100 COLUMNS
@@ -212,7 +216,7 @@
 
 
 
- OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   1
+ OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP    1
     PRINT BUDGET
     SAVE BUDGET
     PRINT HEAD FOR ALL LAYERS
@@ -238,7 +242,7 @@
       43.7980 44.0738 44.3479 44.6204 44.8912 45.1604 45.4279 45.6939 45.9584 46.2214 46.4828 46.7428 47.0014 47.2585 47.5143
       47.7687 48.0217 48.2735 48.5239 48.7730 49.0209 49.2675 49.5128 49.7570 50.0000
 1
-  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP  1 IN STRESS PERIOD   1
+  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
 
      CUMULATIVE VOLUMES      L**3       RATES FOR THIS TIME STEP      L**3/T
@@ -267,7 +271,7 @@
 
 
 
-          TIME SUMMARY AT END OF TIME STEP   1 IN STRESS PERIOD    1
+         TIME SUMMARY AT END OF TIME STEP    1 IN STRESS PERIOD    1
                     SECONDS     MINUTES      HOURS       DAYS        YEARS
                     -----------------------------------------------------------
    TIME STEP LENGTH  86400.      1440.0      24.000      1.0000     2.73785E-03
@@ -275,6 +279,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/05/14 16:39:12
- Elapsed run time:  0.055 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/12/06 14:10:48
+ Elapsed run time:  0.052 Seconds
 

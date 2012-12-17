@@ -1440,17 +1440,17 @@ C     ------------------------------------------------------------------
       USE GLOBAL,   ONLY: IUNIT
 C     ------------------------------------------------------------------
 C1------DEALLOCATE HYDBAS VARIABLES      
-!      CALL SGWF2HYD7BAS7DA(IGRID)
-!C      
-!C2------CHECK IF HYDMOD IS USED WITH OTHER PACKAGES.  IF SO, DEALLOCATE
-!      IF(IUNIT(43).GT.0 .AND. IUNIT(19).GT.0) 
-!     1                   CALL SGWF2HYD7IBS7DA(IGRID)
-!      IF(IUNIT(43).GT.0 .AND. IUNIT(54).GT.0) 
-!     1                   CALL SGWF2HYD7SUB7DA(IGRID)
-!      IF(IUNIT(43).GT.0 .AND. IUNIT(18).GT.0) 
-!     1                   CALL SGWF2HYD7STR7DA(IGRID)
-!      IF(IUNIT(43).GT.0 .AND. IUNIT(44).GT.0) 
-!     1                   CALL SGWF2HYD7SFR7DA(IGRID)
+      CALL SGWF2HYD7BAS7DA(IGRID)
+C      
+C2------CHECK IF HYDMOD IS USED WITH OTHER PACKAGES.  IF SO, DEALLOCATE
+      IF(IUNIT(43).GT.0 .AND. IUNIT(19).GT.0) 
+     1                   CALL SGWF2HYD7IBS7DA(IGRID)
+      IF(IUNIT(43).GT.0 .AND. IUNIT(54).GT.0) 
+     1                   CALL SGWF2HYD7SUB7DA(IGRID)
+      IF(IUNIT(43).GT.0 .AND. IUNIT(18).GT.0) 
+     1                   CALL SGWF2HYD7STR7DA(IGRID)
+      IF(IUNIT(43).GT.0 .AND. IUNIT(44).GT.0) 
+     1                   CALL SGWF2HYD7SFR7DA(IGRID)
 C3
       RETURN
       END

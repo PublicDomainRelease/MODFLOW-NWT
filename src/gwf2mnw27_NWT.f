@@ -130,8 +130,11 @@ C7------SAVE POINTERS TO DATA AND RETURN.
       CALL SGWF2MNW2PSV(IGRID)
       RETURN
       END
-      SUBROUTINE GWF2MNW27RP(IN,kper,Iusip,Iude4,Iusor,Iupcg,
-     +                      Iulmg,Iugmg,igwtunit,Iunwt,IGRID)
+      SUBROUTINE GWF2MNW27RP(IN,kper,Iusip, Iude4,Iusor,Iupcg,
+     +                      igwtunit,Iunwt,IGRID)
+ !               IF(IUNIT(50).GT.0) CALL GWF2MNW27RP(MNW2,kper,SIP,
+ !+                       DE4,0,PCG,0,GMG,
+ !+                       GWT,NWT,IGRID)
 C     ******************************************************************
 c     read mnw2 locations, stress rates, conc, well char., and limits
 C     ******************************************************************
@@ -147,7 +150,8 @@ C     ------------------------------------------------------------------
       USE DE4MODULE,ONLY:HCLOSEDE4
       USE PCGMODULE,ONLY:HCLOSEPCG
       USE GWFNWTMODULE,ONLY:Tol
-c      USE GMGMODULE,ONLY:HCLOSEGMG
+!      USE GMGMODULE,ONLY:HCLOSEGMG
+!      USE PCGN,ONLY:HCLOSEPCGN
 C     ------------------------------------------------------------------
       INTEGER Qlimit,QCUT,firstnode,lastnode,
      & PUMPLAY,PUMPROW,PUMPCOL,PUMPLOC,PPFLAG,PUMPCAP
@@ -186,13 +190,15 @@ c     set defaults
       ntotnod=0
       INTTOT=0
 C-------SET SMALL DEPENDING ON CLOSURE CRITERIA OF THE SOLVER
+      SMALL = 0.0D0
       IF ( Iusip.NE.0 ) SMALL = HCLOSE
       IF ( Iude4.NE.0 ) SMALL = HCLOSEDE4
 !     IF ( Iusor.NE.0 ) SMALL = HCLOSESOR
       IF ( Iupcg.NE.0 ) SMALL = HCLOSEPCG
       IF ( Iulmg.NE.0 ) SMALL = 0.0D0  !LMG SETS HCLOSE TO ZERO
       IF ( Iunwt.NE.0 ) SMALL = TOL
-c      IF ( Iugmg.NE.0 ) SMALL = HCLOSEGMG
+!      IF ( Iugmg.NE.0 ) SMALL = HCLOSEGMG
+!      IF ( Iupcgn.NE.0 ) SMALL = HCLOSEPCGN
 c     initialize
       WELLID=' '
       MNW2=0.0D0
@@ -1444,6 +1450,8 @@ c     end read Data Set 2e
 c
 c     read data set 2f (if Qlimit > 0)
 c
+        Qfrcmn = 0.0  ! This is used below when not set. RGN 10/1912
+        Qfrcmx = 0.0
         IF(Qlimit.GT.0.0) THEN
           READ(in,*) Hlim,QCUT
           BACKSPACE in
@@ -1998,6 +2006,7 @@ c
 c   Send in ITFLAG=1, this means calculate partial penetration effects
 c   because we are currently iterating on a solution
       ITFLAG=1
+      qact2 = 0.0
       call SMNW2COND(IGRID,kstp,kper,kiter,ITFLAG,Iuupw)
 c
 c   Prepare components and limits of a multi-node well
@@ -2240,6 +2249,7 @@ cdebug replace below line with this if debugging with No Mo Iter
 cdebug              if(iqslv.ne.0.and.kiter.gt.1.and.kiter.lt.NoMoIter) then
               if(iqslv.ne.0.and.kiter.gt.1) then
                 hhnew=hnew(ic,ir,il)
+                qact = ( hlim - hhnew) * cond
 !RGN modifications for NWT. 3/21/12
                 IF ( Iuupw.GT.0 ) THEN
                   qact2 = cond*(hwel-hhnew)
@@ -2247,8 +2257,6 @@ cdebug              if(iqslv.ne.0.and.kiter.gt.1.and.kiter.lt.NoMoIter) then
                 END IF
                 hcof(ic,ir,il) = hcof(ic,ir,il) - cond
                 rhs(ic,ir,il)  = rhs(ic,ir,il)  - cond * hlim
-!       IF (ic==68.and.ir==21.and.il==20)
-!          write(iout,*)ic,ir,il,cond,hhnew,hlim,botm(ic,ir,il)
               else
 c  Specify Q and solve for head;  add Q to RHS accumulator.
                 rhs(ic,ir,il) = rhs(ic,ir,il) - qact
@@ -2391,7 +2399,10 @@ c              ioch = 0
 c              if( IWL2CB.lt.0 .and. icbcfl.ne.0 ) ioch = 1
 c -----print the individual rates if requested(IWL2CB<0).
               if( ioch.eq.1 ) then
-              IF ( Iuupw.EQ.0 ) q=MNWNOD(4,INODE)   !RGN
+              IF ( Iuupw.EQ.0 ) THEN
+                q=MNWNOD(4,INODE)   !RGN
+                hcell=hnew(ic,ir,il)
+              END IF
               nd=INODE-firstnode+1
 c   If no seepage face in cell, don't print seepage elev.
               if(MNWNOD(15,INODE).EQ.hwell.or.
@@ -2976,6 +2987,7 @@ c
           if( upper.gt.top ) upper = top
           TempKX = hkupw(ix,iy,iz)       !!LPF Hydraulic Conductivity array
           thick = upper - bot
+          if ( thick.LT.1.0e-15 ) thick = 1.0e-15
 c   set thickness / conductance to 0 if cell is dry
           if( (hnew(ix,iy,iz)-Hdry )**2 .lt. verysmall ) 
      &          thick = 0.0000000000D0
@@ -2994,8 +3006,12 @@ c   set thickness / conductance to 0 if cell is dry
              Kz=HKUPW(ix,iy,iz)/VKAUPW(ix,iy,iz)
            END IF
          end if
-         IF(ITRSS.NE.0) THEN
-           SS=SC1(IX,IY,IZ)/(thick*dx*dy)
+          IF(ITRSS.NE.0) THEN
+           IF (thick.GT.0.0) THEN
+             SS=SC1(IX,IY,IZ)/(thick*dx*dy)
+           ELSE
+             SS=0.0
+           END IF
          ELSE
            SS=1e-5  
          END IF
@@ -3369,7 +3385,7 @@ c    (dhp>0 signifies drawdown).  Q is either <> 0 so no div 0 problem
                   ABCD=ABC+dpp
                   cond=1/ABCD
                 end if
-              else if (ITFLAG.EQ.1.and.Qact.ne.0.d0) then
+              else if (ITFLAG.EQ.1.and.Qact.ne.0.d0.and.dhp.GT.0.0) then
                 dpp=0.d0
                 write(iout,*) '***WARNING***  Partial penetration term
      & (dpp) set to 0.0 due to misalignment of dhp= ',dhp,' and Q=',Qact
@@ -3541,7 +3557,7 @@ c
 ! h is the depth 
 ! dC is the derivative of well conductance with respect to well head
       IMPLICIT NONE
-      DOUBLE PRECISION h, Bot, s, aa, ad, b, x, y, dc
+      DOUBLE PRECISION h, s, aa, ad, b, x, y, dc
       smooth2 = 0.0D0
       s = 1.0d-5
       x = h
@@ -3944,7 +3960,7 @@ c
       USE GLOBAL,       ONLY:IOUT
       USE GWFMNW2MODULE, ONLY:MNWMAX,MNW2,MNWNOD
       integer firstnode,lastnode,PUMPLOC
-      double precision Qnet,diff,q
+      double precision Qnet,q
 C
       CALL SGWF2MNW2PNT(IGRID)
 c   QBH (MNWNOD(27,m) is flow between nodes (saved at upper face) in borehole
@@ -4049,7 +4065,7 @@ C
      & zwt,ywt,xwt,
      & zi,yi,xi,zi2,yi2,xi2,t1,b1
       DOUBLE PRECISION z1,y1,x1,z2,y2,x2,top1,bot1,top2,bot2,
-     & betweennodes,omega_opp,omega,theta_opp,theta_hyp,
+     & betweennodes,omega,theta_opp,theta_hyp,
      & theta,thck1,thck2,lw,cel2wel2SEG,dx1,dx2,dy1,dy2,
      & cel2wel2,alpha,T,Kh,Kz,Txx1,Tyy1
       DOUBLE PRECISION 
@@ -5061,23 +5077,47 @@ C    NO DRAWDOWN CALCULATIONS ARE MADE FOR OBSERVATION WELLS
 C
 C   CALCULATE AQUIFER PARAMETERS
        AT=HKR*BB
-       XKD=HKZ/HKR
+       IF ( abs(HKR).GT.1.0e-14 )THEN
+         XKD=HKZ/HKR
+       ELSE
+         XKD=0.0
+       END IF
        ASC=SS*BB
        SIGMA=0.0D0
 C12d-CALCULATE PUMPING-WELL DIMENSIONLESS PARAMETERS 
-      RWD=RW/BB
+      IF ( abs(BB).GT.1.0e-14 ) THEN
+        RWD=RW/BB
+      ELSE
+        RWD = 0.0
+      END IF
       BETAW=XKD*(RWD*RWD)
       IF(IPWD.EQ.0)WD=0.0D0
       IF(IPWS.EQ.0)THEN
-       XDD=ZPD/BB
-       XLD=ZPL/BB
+       IF ( abs(BB).GT.1.0e-14 ) THEN
+         XDD=ZPD/BB
+         XLD=ZPL/BB
+       ELSE
+         XDD=0.0
+         XLD=0.0
+       END IF
       ENDIF
 C
 C3--DEFINE SELECTED PROGRAM PARAMETERS
       PI=3.141592653589793D0
-      IF(IFORMAT.GE.1)THEN
-       F1=(SS*RW*RW)/HKR
-       F2=QQ/(4.0D0*PI*HKR*BB)
+      IF(IFORMAT.GE.1 )THEN
+       IF (abs(HKR).GT.1.0e-14)THEN
+         F1=(SS*RW*RW)/HKR
+       ELSE
+         F1 = 0.0
+       END IF
+       IF ( abs(HKR*BB).GT.1.0e-14 ) THEN
+         F2=QQ/(4.0D0*PI*HKR*BB)
+       ELSE
+         F2 = 0.0
+       END IF
+      ELSE
+       F1 = 0.0
+       F2 = 0.0
       ENDIF
 C
 C---EXPMAX IS THE MAXIMUM ALLOWABLE ABSOLUTE VALUE OF EXPONENTIAL ARGUMENTS
@@ -5143,7 +5183,11 @@ C
           GO TO 30
          ENDIF
 C
-         DDTEST=(DABS(DDPP-DDPPOLD))/DABS(DDPP)
+         IF ( abs(DDPP).GT.1.0e-14 ) THEN
+           DDTEST=(DABS(DDPP-DDPPOLD))/DABS(DDPP)
+         ELSE
+           DDTEST=0.0
+         END IF
          IF(DDTEST.LT.EPSILON)THEN
           ISOLNFLAG=1
           GO TO 10
@@ -5292,15 +5336,24 @@ C
 C
       DO 1 I=1,NS
        PP=XLN2*I/TD
-       Q0=DSQRT(PP)
+       IF ( pp.LT.1.0e-14 ) THEN
+         Q0=DSQRT(PP)
+       ELSE
+         Q0=0.0
+       END IF
        Q0RD=Q0*RD
        IF(Q0.GT.EXPMAX) Q0=EXPMAX
        IF(Q0RD.GT.EXPMAX) Q0RD=EXPMAX
        RE0=BESSK0(Q0)
        RE1=BESSK1(Q0)
        RE0X=BESSK0(Q0RD)
-       A0=RE0*(XLD-XDD)/(Q0*RE1)
-       E0=RE0X*(XLD-XDD)/(Q0*RE1)
+       IF ( abs(Q0*RE1).GT.1.0e-14 ) THEN
+         A0=RE0*(XLD-XDD)/(Q0*RE1)
+         E0=RE0X*(XLD-XDD)/(Q0*RE1)
+       ELSE
+         A0= 0.0
+         E0= 0.0
+       END IF
        A=0.D0
        E=0.D0
        IF(IPWS.EQ.1) GOTO 30
@@ -5315,7 +5368,11 @@ C
        SUMTA=SUMA
        SUMTE=SUME
        XNPI=NNN*PI
-       QN=DSQRT(BETAW*XNPI*XNPI+PP)
+       IF ( BETAW*XNPI*XNPI+PP.GT.1.0e-14 ) THEN
+         QN=DSQRT(BETAW*XNPI*XNPI+PP)
+       ELSE
+         QN=0.0
+       END IF
        IF(QN.GT.EXPMAX) QN=EXPMAX
        DB=DSIN(XNPI*(1.0D0-XDD))
        DA=DSIN(XNPI*(1.0D0-XLD))
@@ -5323,21 +5380,35 @@ C
        SINES=DB-DA
        RE0=BESSK0(QN)
        RE1=BESSK1(QN)
-       XNUM=RE0*SINES*SINES/(XNPI*(XLD-XDD))
+       IF ( abs(XNPI*(XLD-XDD)).GT.1.0e-14 ) THEN
+         XNUM=RE0*SINES*SINES/(XNPI*(XLD-XDD))
+       ELSE
+        XNUM=0.0
+       END IF
        XDEN=0.5D0*QN*RE1*XNPI
-       A=XNUM/XDEN
+       IF ( abs(XDEN).GT.1.0e-14 ) THEN
+         A=XNUM/XDEN
+       ELSE
+         A = 0.0
+       END IF
        SUMA=SUMTA+A
 C
        IF(KK.GT.1)THEN
         QNRD=QN*RD
         IF(QNRD.GT.EXPMAX) QNRD=EXPMAX
         RE0X=BESSK0(QNRD)
-        IF(IOWS.EQ.0) 
+        IF ( abs((XNPI*(ZD2-ZD1))).GT.1.0e-14) THEN
+          IF(IOWS.EQ.0) 
      1   XNUM=RE0X*SINES*(DSIN(XNPI*ZD2)
      2   -DSIN(XNPI*ZD1))/(XNPI*(ZD2-ZD1))
+        END IF
         IF(IOWS.EQ.2) 
      1   XNUM=RE0X*SINES*DCOS(XNPI*ZD)
+        IF ( abs(XDEN).GT.1.0e-14 ) THEN
         E=XNUM/XDEN
+        ELSE
+        E=0.0
+        END IF
         SUME=SUMTE+E
        ENDIF
 C
@@ -5357,21 +5428,31 @@ C
 C
        A=SUMA
 30     DENOM=(1.D0+WD*PP*(A0+A+SW))
-       IF(KK.EQ.1) PDL=(A0+A+SW)/(PP*DENOM)
-       IF(KK.GT.1) THEN
-         E=SUME
-         IF(IDPR.EQ.0) PDL=(E0+E)/(PP*DENOM)
-         IF(IDPR.EQ.1) THEN
-            SLUGF=1.D0/(1.D0+WDP*PP)
-            PDL=SLUGF*(E0+E)/(PP*DENOM)
-         ENDIF
+       IF ( abs((PP*DENOM)).GT.1.0e-14 ) THEN
+         IF(KK.EQ.1) PDL=(A0+A+SW)/(PP*DENOM)
+         IF(KK.GT.1) THEN
+           E=SUME
+           IF(IDPR.EQ.0) PDL=(E0+E)/(PP*DENOM)
+           IF(IDPR.EQ.1) THEN
+              SLUGF=1.D0/(1.D0+WDP*PP)
+              PDL=SLUGF*(E0+E)/(PP*DENOM)
+           ENDIF
+          END IF
+       ELSE
+         PDL = 0.0
+         E = 0.0
+         SLUGF= 0.0
        ENDIF
 C
       XP=XP+V(I)*PDL
 C
 1     CONTINUE
 C
-       HD=2.D0*XP*XLN2/(TD*(XLD-XDD))
+       IF ( abs((TD*(XLD-XDD))).GT.1.0e-14 ) THEN
+         HD=2.D0*XP*XLN2/(TD*(XLD-XDD))
+       ELSE
+         HD = 0.0
+       END IF
 C
 C      IF(NNN.GE.NMAX) WRITE(IO,100)
 C

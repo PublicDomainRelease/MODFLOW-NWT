@@ -1,7 +1,7 @@
-                                  MODFLOW-NWT      
+                                  MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.5 05/14/2012
-                    BASED ON MODFLOW-2005 VERSION 1.8.00 12/18/2009
+                            VERSION 1.0.6 12/05/2012
+                    BASED ON MODFLOW-2005 VERSION 1.9.01 05/01/2012
 
  LIST FILE: .\Ex_prob1b\Pr1bMFNWT.LST
                          UNIT    2
@@ -35,6 +35,10 @@
  FORMAT:BINARY                 ACCESS:SEQUENTIAL          
 
  BAS -- BASIC PACKAGE, VERSION 7, 5/2/2005 INPUT READ FROM UNIT    4
+ 
+ MODFLOW was compiled using mixed precision
+ Precision of REAL variables:           6
+ Precision of DOUBLE PRECISION variables:          15
 
  DISCRETIZATION INPUT DATA READ FROM UNIT    3
     1 LAYERS         1 ROWS       100 COLUMNS
@@ -115,7 +119,7 @@
  HEADS WILL BE SAVED ON UNIT    0    DRAWDOWNS WILL BE SAVED ON UNIT    0
  # MODFLOW-NWT Input File Problem 1b
 
- NWT1 -- Newton Solver, VERSION 1.0.5, 04/05/2012
+ NWT1 -- Newton Solver, VERSION 1.0.6, 12/05/2012
          INPUT READ FROM UNIT 23
 
  SPECIFIED OPTION:
@@ -149,7 +153,7 @@
  MAX. NUMBER OF LINEAR ITERATIONS  (MXITERXMD) =        50
 
 
- UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.0.3, 12/29/2011
+ UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.0.6, 12/05/2012
          INPUT READ FROM UNIT 33
 
  CELL-BY-CELL FLOWS WILL BE SAVED ON UNIT   50
@@ -197,15 +201,15 @@
           0                 2           2           100    1     1      -0.1052767831E+02       2    1    1         0.2840322008E+00      0.1312490258E+01
           0                 3           2           100    1     1      -0.2110133400E+01      15    1    1         0.3147583336E-01      0.2061609502E+00
           0                 4           2           100    1     1      -0.9211272986E-01     100    1    1        -0.1674491659E-02      0.1000687409E-01
-          0                 5           2           100    1     1      -0.1586520672E-03     100    1    1        -0.5268176437E-05      0.2502937375E-04
-          0                 6           1           100    1     1       0.4282869099E-07      30    1    1        -0.1158673513E-06      0.1582907520E-06
+          0                 5           2           100    1     1      -0.1586520662E-03     100    1    1        -0.5268176437E-05      0.2502937359E-04
+          0                 6           1           100    1     1       0.4282422494E-07      30    1    1        -0.1158664418E-06      0.1582905225E-06
 
     ------------------------------------------------
        NWT REQUIRED            6 OUTER ITERATIONS 
        AND A TOTAL OF         11 INNER ITERATIONS.
     ------------------------------------------------
 
- OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   1
+ OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP    1
     PRINT BUDGET
     SAVE BUDGET
     PRINT HEAD FOR ALL LAYERS
@@ -232,7 +236,7 @@
       23.5967 23.6475 23.6960 23.7423 23.7865 23.8284 23.8682 23.9059 23.9414 23.9748 24.0060 24.0351 24.0621 24.0870 24.1099
       24.1306 24.1492 24.1658 24.1802 24.1926 24.2030 24.2112 24.2174 24.2216 24.2236
 1
-  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP  1 IN STRESS PERIOD   1
+  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
 
      CUMULATIVE VOLUMES      L**3       RATES FOR THIS TIME STEP      L**3/T
@@ -254,7 +258,7 @@
 
            TOTAL OUT =           4.9500             TOTAL OUT =           4.9500
 
-            IN - OUT =       4.7684E-07              IN - OUT =       4.7684E-07
+            IN - OUT =           0.0000              IN - OUT =           0.0000
 
  PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
 
@@ -263,7 +267,7 @@
 
 
 
-          TIME SUMMARY AT END OF TIME STEP   1 IN STRESS PERIOD    1
+         TIME SUMMARY AT END OF TIME STEP    1 IN STRESS PERIOD    1
                     SECONDS     MINUTES      HOURS       DAYS        YEARS
                     -----------------------------------------------------------
    TIME STEP LENGTH  86400.      1440.0      24.000      1.0000     2.73785E-03
@@ -271,6 +275,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/05/14 16:39:19
- Elapsed run time:  0.081 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/12/06 14:10:55
+ Elapsed run time:  0.071 Seconds
 

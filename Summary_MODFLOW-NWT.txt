@@ -53,6 +53,9 @@ HISTORY
        MODFLOW-NWT Version 1.0.5 05/14/2012 - Also see the file
         ‘release.txt’ for additional release notes.
         
+       MODFLOW-NWT Version 1.0.6 12/07/2012 - Also see the file
+        ‘release.txt’ for additional release notes.
+        
 SYSTEM REQUIREMENTS
 
      MODFLOW-NWT is written in Fortran 90 programming language.The code has 
@@ -90,6 +93,7 @@ FUNTIONALITY
          RIV –- River Package
          SFR -- Streamflow-Routing Package
          SIP -- Strongly Implicit Procedure Package (Picard only)
+         SWR -- Surface-Water Routing Package
          UZF -- Unsaturated-Zone Package
          WEL -- Well Package
                                     

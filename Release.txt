@@ -425,6 +425,112 @@ Source files that were modified include: lmt7_NWT.f, lmt7_NWT.inc, gwf2mnw27_NWT
 gwfsfrmodule_NWT.f, NWT1_xmd.f, and  NWT1_xmdlib.f, MF_NWT.f, gwf2drn7_NWT.f, gwf2ghb7_NWT.f,
 gwf2riv7_NWT.f
 
+o Version 1.0.6 12/05/2012:
+
+The most significant change to MODFLOW-NWT for this release was the addition of the Surface-
+Water Routing Process (Hughes and others, 2012). Refer to the SWR1 documentation report 
+located in MODFLOW-NWT_1.0.6\doc for details regarding the functionality
+and input required for SWR1. Modifications to MODFLOW-NWT that were made to support SWR1
+include the additional of two new source code files (gsol7.f and gwf2swr7_NWT.f) and the
+addition of call statements added to the MODFLOW-NWT main source code file (MF_NWT.f). Additionally,
+there are 5 test problems that use SWR1 included with this release for testing the linkage
+between MODFLOW-NWT and SWR1 located in MODFLOW-NWT_1.0.6\data\SWR_data_files. Refer
+to the readme files for more details on these test problems and other aspects of SWR1.
+
+Newton Solver
+
+Changes were made to default input values when the key word options are used. These
+changes reflect information gained from testing using numerous groundwater models 
+The defaults values for "SIMPLE," "MODERATE," and "COMPLEX" are now as follows:
+
+"SIMPLE"
+IACL = 1, NORDER = 0, LEVEL = 3, NORTH = 5, IREDSYS = 1, All other values remain the same.
+
+"MODERATE"
+DBDTHETA = 0.9, NORDER = 0, LEVEL = 5, NORTH = 5, IREDSYS = 1, RRCTOLS = 0.0, IDROPTOL = 1,
+EPSRN = 1.0e-4, HCLOSEXMD = 1.0e-4, MXITERXMD = 50, All other values remain the same.
+
+"COMPLEX"
+DBDTHETA = 0.85, BACKFLAG=1, MAXBACKITER=50, BACKTOL=1.1, BACKREDUCE=0.7,
+LEVEL = 5, IREDSYS = 1,EPSRN = 1.0e-5, HCLOSEXMD = 1.0e-5, MXITERXMD = 100, 
+All other values remain the same.
+
+Lake (LAK) Package
+
+Moved the read statements for specified lake bathymetry to proceed the stress period information.
+This change does not affect results or input instructions. Refer to the updated input 
+instructions for using external lake bathymetry input files titled  "Lake3_Input_Modified.pdf" 
+located in \MODFLOW-NWT_1.0.6\doc for details. A new test problem was added to the MODFLOW-NWT
+release 1.0.6 that demonstrates the use of external bathymetry input files. This problem can
+be run by executing the batch file 'l1b2k_bath.bat' located in MODFLOW-NWT_1.0.6\data. Input 
+for this test problem is located in MODFLOW-NWT_1.0.6\data\Lake_bath_example and output is included
+in MODFLOW-NWT_1.0.6\output_test. This test problem is identical to the MODFLOW-2005 test problem
+l1b2k documented in Merritt and Konikow (2000) as test problem 1, except for the use of external  
+bathymetry input files. Thus, the results are unchanged relative to the original results produced 
+by MODFLOW-2005. Also, a bug was found that affects simulations that use the Hydrologic-Unit Flow 
+(HUF) Package (Anderman and Hill, 2000). Due to the difficulty in determining the effective 
+vertical hydraulic conductivity in the HUF Package, the option to use the HUF Package with
+the Lake package has been removed from MODFLOW-NWT. Thus, an error will be printed and the 
+program will stop if the HUF and LAK Packages are used together in a simulation.
+
+WELL (WEL) Package
+
+A bug was fixed to allow the reduced pumping information to be written correctly to the LIST file
+and separate text file.
+
+
+xMD Matrix Solver
+
+Some initialization issues associated with Bi-cgstab and Orthomin were resolved, and some 
+minor changes were made.
+
+Basic (BAS) package
+
+The variables RHS and HCOF were made double precision.
+
+Upstream Weighting (UPW) Package 
+
+Some variables were made double precision and the precision used in calculations
+was made consistent. Added an option to turn off the checking that a value is 
+defined for all cells when parameters are used to define layer data. This option 
+is implemented by specifying the keyword "NOPARCHECK" as one of the options in
+input Item 1 of the UPW input file.
+
+Streamflow Routing (SFR2) Package
+
+Some variables were made double precision and the precision used in calculations
+was made consistent. Some minor calculations were modified for solution efficiency.
+Allocation of some variables were changed to reduce the amount of random axcess memory (RAM)
+required for simulations. These changes did not effect simulation results. Initialization
+of some local variables was added.
+
+Streamflow Routing (UZF1) Package
+
+Initialization of some local variables was added.
+
+Multi-Node Well (MNW2) Package
+
+Checks were added for calculations that divide real numbers. Changes were made to be 
+consistent with version released with MODFLOW-2005 v1.9.
+
+General-Head Bounday (GHB) Package
+
+Changes were made to be consistent with version release with MODFLOW-2005 v1.9.
+
+Strongly Implicit Procedure (PCG) Package
+
+The variables RHS and HCOF were made double precision.
+
+Preconditioned Conjugate-Gradient (PCG) Package
+
+The variables RHS and HCOF were made double precision.
+
+Direct Solver (DE) Package
+
+The variables RHS and HCOF were made double precision.
+
+The Stream Observation Package (obs2str7.f) was added.
+
 References
 
 Konikow, L.F., Hornberger, G.Z., Halford, K.J., and Hanson, R.T., 2009,  
@@ -436,4 +542,13 @@ MODFLOW-2005: U.S. Geological Survey Techniques and Methods 6-A37, 44 p.
 
 Niswonger, R.G., Prudic, D.E., and Regan, R.S., 2006, Documentation of the Unsaturated-Zone Flow (UZF1) 
 Package for modeling unsaturated flow between the land surface and the water table with MODFLOW-2005: 
-U.S. Geological Survey Techniques and Methods 6-A19, 62 p.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+U.S. Geological Survey Techniques and Methods 6-A19, 62 p.  
+
+Hughes, J.D., Langevin, C.D., Chartier, K.L., and White, J.T., 2012, Documentation of the Surface-Water 
+Routing (SWR1) Process for modeling surface-water flow with the U.S. Geological Survey Modular Ground-Water 
+Model (MODFLOW-2005): U.S. Geological Survey Techniques and Methods, book 6, chap. A40 (Version 1.0), 113 p.   
+
+Anderman, E. R., & Hill, M. C. (2000). MODFLOW-2000: The US Geological Survey Modular Ground-water 
+Model--documentation of the Hydrogeologic-Unit Flow (HUF) Package. US Department of the Interior, 
+US Geological Survey.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                

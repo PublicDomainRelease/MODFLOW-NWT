@@ -250,6 +250,7 @@ C                    dimension from 17 to 18
       ALLOCATE (WELL2(18, MXWEL2+1), MNWSITE(MXWEL2))
 c
 C-------SET SMALL DEPENDING ON CLOSURE CRITERIA OF THE SOLVER
+      SMALL = 0.0D0
       IF ( Iusip.NE.0 ) SMALL = HCLOSE
       IF ( Iude4.NE.0 ) SMALL = HCLOSEDE4
 !     IF ( Iusor.NE.0 ) SMALL = HCLOSESOR
@@ -1377,7 +1378,7 @@ c Arguments
       INTEGER, INTENT(IN) :: Igrid
 c Local Variables
       DOUBLE PRECISION :: hwell, conc, qt, qin, qout, q, timein, hcell 
-      DOUBLE PRECISION :: qsum, qwbar, timmult
+      DOUBLE PRECISION :: qsum, qwbar, timmult,timeinlast
       INTEGER :: i, icnt, io, iobynd, iopt, ioqsum, iostart, iot, istop
       INTEGER :: me, nb, ne, node
       CHARACTER(LEN=1) :: tab
@@ -1435,13 +1436,15 @@ c
       icnt = 0
       istop = 0
       lasttag = 'NO-PRINT'
+      timeinlast=-1.
 c
       DO WHILE ( istop.EQ.0 )
         READ (iobynd, '(a32,1x,2i8,6g15.8)') temptag, me, node, timein, 
      +        q, hwell, hcell, conc
 c
 c   Test for output before accumulating INFO
-        IF ( lasttag(1:8).NE.'NO-PRINT' .AND. temptag.NE.lasttag ) THEN  !! Output
+        IF ( lasttag(1:8).NE.'NO-PRINT' .AND. 
+     +      (temptag.NE.lasttag .or.timein.ne.timeinlast)) THEN  !! Output
           iot = IFRL(WELL2(9, 1))
 c   Write a Header ?????
           iopt = iot - iostart
@@ -1512,6 +1515,7 @@ c     Read MN well output if available
 c
 c   Save Value of TEMPTAG for comparison
         lasttag = temptag
+        timeinlast=timein
       ENDDO
 c
 c   Add IO close routine here if needed

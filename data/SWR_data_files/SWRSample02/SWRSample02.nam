@@ -1,0 +1,9 @@
+LIST 7 Results\SWRSample02.lst
+BAS6  1 SWRSample02.bas
+DIS  29 SWRSample02.dis
+LPF 11 SWRSample02.lpf
+GHB 17 SWRSample02.ghb
+OC  22 SWRSample02.oc
+PCG 19 SWRSample02.pcg
+SWR 61 SWRSample02.swr
+DATA(BINARY) 102 Results\SWRSample02_Stage.stg

@@ -1,7 +1,7 @@
-                                  MODFLOW-NWT      
+                                  MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.5 05/14/2012
-                    BASED ON MODFLOW-2005 VERSION 1.8.00 12/18/2009
+                            VERSION 1.0.6 12/05/2012
+                    BASED ON MODFLOW-2005 VERSION 1.9.01 05/01/2012
 
  LIST FILE: .\Ex_prob1a\Pr1aMFNWT.LST
                          UNIT    2
@@ -31,6 +31,10 @@
  FORMAT:BINARY                 ACCESS:SEQUENTIAL          
 
  BAS -- BASIC PACKAGE, VERSION 7, 5/2/2005 INPUT READ FROM UNIT    4
+ 
+ MODFLOW was compiled using mixed precision
+ Precision of REAL variables:           6
+ Precision of DOUBLE PRECISION variables:          15
 
  DISCRETIZATION INPUT DATA READ FROM UNIT    3
     1 LAYERS         1 ROWS       100 COLUMNS
@@ -123,7 +127,7 @@
  HEADS WILL BE SAVED ON UNIT    0    DRAWDOWNS WILL BE SAVED ON UNIT    0
  # MODFLOW-NWT Input File Problem 1a
 
- NWT1 -- Newton Solver, VERSION 1.0.5, 04/05/2012
+ NWT1 -- Newton Solver, VERSION 1.0.6, 12/05/2012
          INPUT READ FROM UNIT 23
 
  SPECIFIED OPTION:
@@ -157,7 +161,7 @@
  MAX. NUMBER OF LINEAR ITERATIONS  (MXITERXMD) =        50
 
 
- UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.0.3, 12/29/2011
+ UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.0.6, 12/05/2012
          INPUT READ FROM UNIT 33
 
  CELL-BY-CELL FLOWS WILL BE SAVED ON UNIT   50
@@ -202,7 +206,7 @@
        AND A TOTAL OF          9 INNER ITERATIONS.
     ------------------------------------------------
 
- OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP   1
+ OUTPUT CONTROL FOR STRESS PERIOD    1   TIME STEP    1
     PRINT BUDGET
     SAVE BUDGET
     PRINT HEAD FOR ALL LAYERS
@@ -228,7 +232,7 @@
       43.7621 44.0396 44.3153 44.5893 44.8617 45.1324 45.4015 45.6691 45.9351 46.1996 46.4625 46.7241 46.9841 47.2428 47.5000
       47.7559 48.0104 48.2635 48.5154 48.7659 49.0152 49.2633 49.5100 49.7556 50.0000
 1
-  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP  1 IN STRESS PERIOD   1
+  VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
 
      CUMULATIVE VOLUMES      L**3       RATES FOR THIS TIME STEP      L**3/T
@@ -257,7 +261,7 @@
 
 
 
-          TIME SUMMARY AT END OF TIME STEP   1 IN STRESS PERIOD    1
+         TIME SUMMARY AT END OF TIME STEP    1 IN STRESS PERIOD    1
                     SECONDS     MINUTES      HOURS       DAYS        YEARS
                     -----------------------------------------------------------
    TIME STEP LENGTH  86400.      1440.0      24.000      1.0000     2.73785E-03
@@ -265,6 +269,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/05/14 16:39:14
- Elapsed run time:  0.053 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2012/12/06 14:10:51
+ Elapsed run time:  0.012 Seconds
 

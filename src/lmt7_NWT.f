@@ -10,10 +10,20 @@ C         U.S. Geological Survey Open-File Report 01-82
 C
 C Revision History: 
 C     Version 7.0: 08-08-2008 cz
+C     Version 7.0: 08-15-2009 swm: added LMTMODULE to support LGR
+C     Version 7.0: 02-12-2010 swm: rolled in include file
 C ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C
 C
-      SUBROUTINE LMT7BAS7(INUNIT,CUNIT,ISSMT3D,IUMT3D,ILMTFMT,IGRID)
+      MODULE LMTMODULE
+         INTEGER, SAVE, POINTER ::ISSMT3D,IUMT3D,ILMTFMT
+        TYPE LMTTYPE
+         INTEGER, POINTER ::ISSMT3D,IUMT3D,ILMTFMT
+        END TYPE
+        TYPE(LMTTYPE), SAVE  ::LMTDAT(10)
+      END MODULE LMTMODULE
+C
+      SUBROUTINE LMT7BAS7AR(INUNIT,CUNIT,IGRID)
 C **********************************************************************
 C OPEN AND READ THE INPUT FILE FOR THE LINK-MT3DMS PACKAGE VERSION 7.
 C CHECK KEY FLOW MODEL INFORMATION AND SAVE IT IN THE HEADER OF
@@ -22,12 +32,17 @@ C NOTE THE 'STANDARD' HEADER OPTION IS NO LONGER SUPPORTED. INSTEAD,
 C THE 'EXTENDED' HEADER OPTION IS THE DEFAULT. THE RESULTING LINK FILE 
 C IS ONLY COMPATIBLE WITH MT3DMS VERSION [4.00] OR LATER.
 !rgn------REVISION NUMBER CHANGED TO INDICATE MODIFICATIONS FOR NWT 
-!rgn------RELEASE. NEW VERSION NUMBER 1.0.5:  April 5, 2012
+!rgn------RELEASE. NEW VERSION NUMBER 1.0.6:  December 5, 2012
 C **********************************************************************
 C last modified: 08-08-2008
+C last modified: 10-21-2010 swm: added MTMNW1 & MTMNW2
 C      
       USE GLOBAL,   ONLY:NCOL,NROW,NLAY,NPER,NODES,NIUNIT,IUNIT,
      &                   ISSFLG,IBOUND,IOUT
+      USE LMTMODULE,ONLY:ISSMT3D,IUMT3D,ILMTFMT 
+
+C--USE FILE SPECIFICATION of MODFLOW-2005
+      INCLUDE 'openspec.inc'
       LOGICAL       LOP
       CHARACTER*4   CUNIT(NIUNIT)
       CHARACTER*200 LINE,FNAME,NME
@@ -37,14 +52,11 @@ C
      &              MTRIV,MTSTR,MTGHB,MTRES,MTFHB,MTDRT,MTETS,MTSUB,
      &              MTIBS,MTLAK,MTMNW,MTSWT,MTSFR,MTUZF
      &             /22*0/
-      INTEGER  MTMNW1,MTMNW2
 C     -----------------------------------------------------------------    
-C
-C--USE FILE SPECIFICATION of MODFLOW-2005
-      INCLUDE 'openspec.inc'
+      ALLOCATE(ISSMT3D,IUMT3D,ILMTFMT)
 C
 C--SET POINTERS FOR THE CURRENT GRID 
-      CALL SGWF2BAS7PNT(IGRID)     
+cswm: already set in main (GWF2BAS7OC)      CALL SGWF2BAS7PNT(IGRID)     
 C
 C--CHECK for OPTIONS/PACKAGES USED IN CURRENT SIMULATION
       IUMT3D=0
@@ -85,10 +97,11 @@ C--CHECK for OPTIONS/PACKAGES USED IN CURRENT SIMULATION
           MTIBS=IUNIT(IU)
         ELSEIF(CUNIT(IU).EQ.'LAK ') THEN
           MTLAK=IUNIT(IU)
-        ELSEIF(CUNIT(IU).EQ.'MNW1') THEN   !rgn
+        ELSEIF(CUNIT(IU).EQ.'MNW1') THEN
           MTMNW1=IUNIT(IU)
-        ELSEIF(CUNIT(IU).EQ.'MNW2') THEN   !rgn
-          MTMNW2=IUNIT(IU)
+        ELSEIF(CUNIT(IU).EQ.'MNW2') THEN
+!swm: store separate to not get clobbered by MNW1
+          MTMNW2=IUNIT(IU)   
         ELSEIF(CUNIT(IU).EQ.'SWT ') THEN
           MTSWT=IUNIT(IU)        
         ELSEIF(CUNIT(IU).EQ.'SFR ') THEN
@@ -96,13 +109,10 @@ C--CHECK for OPTIONS/PACKAGES USED IN CURRENT SIMULATION
         ELSEIF(CUNIT(IU).EQ.'UZF ') THEN
           MTUZF=IUNIT(IU)
         ENDIF
-      ENDDO 
-! rgn ADDED FOLLOWING CODE TO DEAL WITH TWO VERSIONS OF MNW.
-      IF ( MTMNW1.GT.0 ) THEN
-        MTMNW = MTMNW1  
-      ELSEIF ( MTMNW2.GT.0 ) THEN
-        MTMNW = MTMNW2
-      END IF          
+      ENDDO            
+!swm: SET MTMNW IF EITHER MNW1 OR MNW2 IS ACTIVE
+      IF(MTMNW1.NE.0) MTMNW=MTMNW1
+      IF(MTMNW2.NE.0) MTMNW=MTMNW2
 C
 C--IF LMT7 PACKAGE IS NOT ACTIVATED, SKIP TO END AND RETURN
       IF(INLMT.EQ.0) GOTO 9999
@@ -295,11 +305,78 @@ C--WRITE A HEADER TO MODFLOW-MT3DMS LINK FILE
      &     MTSWT,MTSFR,MTUZF
         ENDIF
       ENDIF
+
+C------SAVE POINTER DATA TO ARRARYS
+      CALL SLMT7PSV(IGRID)
 C
 C--NORMAL RETURN
  9999 RETURN
       END
 C
+      SUBROUTINE LMT7BD(KKSTP,KKPER,IGRID)
+C **********************************************************************
+C  WRITE TERMS TO THE FLOW-TRANSPORT LINK FILE FOR USE BY MT3DMS FOR
+C  TRANSPORT SIMULATIONS.  THE CODE BELOW IS COPIED FROM THE lmt7.inc 
+C  FILE.  INSTEAD OF USING THE INCLUDE FILE, THE CODE IS PUT INTO THIS
+C  SUBROUTINE AND CALLED FROM MAIN.
+C **********************************************************************
+C last modified: 02-12-2010
+C     
+      USE GLOBAL,ONLY:IOUT,IUNIT
+      USE LMTMODULE,ONLY:ISSMT3D,IUMT3D,ILMTFMT 
+
+C--SWM: SWAP POINTERS FOR LMT DATA TO CURRENT GRID
+        CALL SLMT7PNT(IGRID)
+C
+C--WRITE A NOTIFICATION LINE TO MODFLOW OUTPUT FILE
+        WRITE(IOUT,9876) IUMT3D,KKSTP,KKPER
+ 9876   FORMAT(/1X,'SAVING SATURATED THICKNESS AND FLOW TERMS ON UNIT',
+     &   I5,' FOR MT3DMS',/1X,'BY THE LINK-MT3DMS PACKAGE V7',
+     &   ' AT TIME STEP',I5,', STRESS PERIOD',I5/)
+C
+C--COLLECT AND SAVE ALL RELEVANT FLOW MODEL INFORMATION
+        IF(IUNIT(55).GT.0) 
+     &   CALL LMT7UZF1(ILMTFMT,ISSMT3D,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(1) .GT.0) 
+     &   CALL LMT7BCF7(ILMTFMT,ISSMT3D,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(23).GT.0) 
+     &   CALL LMT7LPF7(ILMTFMT,ISSMT3D,IUMT3D,KKSTP,KKPER,IGRID)
+         IF(IUNIT(62).GT.0) 
+     &   CALL LMT7UPW1(ILMTFMT,ISSMT3D,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(37).GT.0) 
+     &   CALL LMT7HUF7(ILMTFMT,ISSMT3D,IUMT3D,
+     &   KKSTP,KKPER,IUNIT(47),IGRID)
+        IF(IUNIT(2) .GT.0) 
+     &   CALL LMT7WEL7(IUNIT(62),ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(3) .GT.0) 
+     &   CALL LMT7DRN7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(8) .GT.0) 
+     &   CALL LMT7RCH7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(5) .GT.0) 
+     &   CALL LMT7EVT7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(39).GT.0) 
+     &   CALL LMT7ETS7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID) 
+        IF(IUNIT(55).GT.0) 
+     &   CALL LMT7UZFET(ILMTFMT,ISSMT3D,IUMT3D,KSTP,KPER,IGRID)
+        IF(IUNIT(4) .GT.0)
+     &   CALL LMT7RIV7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(7) .GT.0) 
+     &   CALL LMT7GHB7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(18).GT.0) 
+     &   CALL LMT7STR7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(17).GT.0) 
+     &   CALL LMT7RES7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(16).GT.0) 
+     &   CALL LMT7FHB7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(52).GT.0) 
+     &   CALL LMT7MNW17(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(50).GT.0) 
+     &   CALL LMT7MNW27(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+        IF(IUNIT(40).GT.0) 
+     &   CALL LMT7DRT7(ILMTFMT,IUMT3D,KKSTP,KKPER,IGRID)
+C
+      RETURN
+      END
 C
       SUBROUTINE LMT7BCF7(ILMTFMT,ISSMT3D,IUMT3D,KSTP,KPER,IGRID)
 C *********************************************************************
@@ -319,7 +396,7 @@ C
       DOUBLE PRECISION HD
 C
 C--SET POINTERS FOR THE CURRENT GRID     
-      CALL SGWF2BCF7PNT(IGRID)      
+cswm: already set in GWF2BCF7BDS      CALL SGWF2BCF7PNT(IGRID)      
 C      
 C--GET STEADY-STATE FLAG FOR THE CURRENT STRESS PERIOD               
       ISSCURRENT=ISSFLG(KPER)
@@ -687,7 +764,7 @@ C
       DOUBLE PRECISION HD
 C
 C--SET POINTERS FOR THE CURRENT GRID      
-      CALL SGWF2LPF7PNT(IGRID)
+cswm: already set GWF2LPF7BDS      CALL SGWF2LPF7PNT(IGRID)
 C      
 C--GET STEADY-STATE FLAG FOR THE CURRENT STRESS PERIOD
       ISSCURRENT=ISSFLG(KPER)      
@@ -864,7 +941,7 @@ C--CALCULATE AND SAVE GROUNDWATER STORAGE IF TRANSIENT
       TEXT='STO'
 C
 C--INITIALIZE AND CLEAR BUFFER           
-      TLED=ONE/DELT
+cswm: moved below      TLED=ONE/DELT
       DO K=1,NLAY
         DO I=1,NROW
           DO J=1,NCOL
@@ -875,6 +952,7 @@ C--INITIALIZE AND CLEAR BUFFER
       IF(ISSCURRENT.NE.0) GOTO 704
 C
 C--RUN THROUGH EVERY CELL IN THE GRID
+      TLED=ONE/DELT !swm: moved after check for transient sp
       KT=0
       DO K=1,NLAY
         LC=LAYTYP(K)
@@ -1540,10 +1618,10 @@ C
       USE GWFBASMODULE,ONLY:DELT
       USE GWFHUFMODULE,ONLY:LTHUF,SC1,HUFTHK,NHUF,VDHT      
       CHARACTER*16 TEXT
-      DOUBLE PRECISION HD,DFL,DFR,DFT,DFB
+      DOUBLE PRECISION HD,DFL,DFR,DFT,DFB,HN
 C    
 C--SET POINTERS FOR THE CURRENT GRID   
-      CALL SGWF2HUF7PNT(IGRID) 
+cswm: already set in GWF2HUF7BDS      CALL SGWF2HUF7PNT(IGRID) 
 C      
 C--GET STEADY-STATE FLAG FOR THE CURRENT STRESS PERIOD      
       ISSCURRENT=ISSFLG(KPER)
@@ -1954,7 +2032,7 @@ C
       double precision ttop
 C      
 C--SET POINTERS FOR THE CURRENT GRID   
-      CALL SGWF2WEL7PNT(IGRID)
+cswm: already set in      CALL SGWF2WEL7PNT(IGRID)
 C      
       TEXT='WEL'   
       ZERO=0.
@@ -2026,7 +2104,7 @@ C
       DOUBLE PRECISION HHNEW,EEL,CCDRN,CEL,QQ
 C    
 C--SET POINTERS FOR THE CURRENT GRID
-      CALL SGWF2DRN7PNT(IGRID)
+c swm: already set in GWF2DRN7BD      CALL SGWF2DRN7PNT(IGRID)
 C      
       TEXT='DRN'
       ZERO=0.
@@ -2095,10 +2173,11 @@ C
       DOUBLE PRECISION HHNEW,CHRIV,RRBOT,CCRIV
 C
 C--SET POINTERS FOR THE CURRENT GRID
-      CALL SGWF2RIV7PNT(IGRID)      
+c swm: already set in GWF2RIV7BD      CALL SGWF2RIV7PNT(IGRID)      
 C      
       TEXT='RIV'      
       ZERO=0.
+      RATE=ZERO
 C
 C--WRITE AN IDENTIFYING HEADER
       IF(ILMTFMT.EQ.0) THEN
@@ -2169,7 +2248,7 @@ C
       CHARACTER*16 TEXT
 C
 C--SET POINTERS FOR THE CURRENT GRID
-      CALL SGWF2RCH7PNT(IGRID)   
+c swm: already set in GWF2RCH7BD      CALL SGWF2RCH7PNT(IGRID)   
 C         
       TEXT='RCH'
       ZERO=0.
@@ -2253,7 +2332,7 @@ C
       DOUBLE PRECISION QQ,HH,XX,DD,SS,HHCOF,RRHS      
 C   
 C--SET POINTERS FOR THE CURRENT GRID
-      CALL SGWF2EVT7PNT(IGRID)
+c swm: already set in GWF2EVT7BD      CALL SGWF2EVT7PNT(IGRID)
 C            
       TEXT='EVT'
       ZERO=0.      
@@ -2356,7 +2435,7 @@ C
       DOUBLE PRECISION CCGHB,CHB
 C
 C--SET POINTERS FOR THE CURRENT GRID     
-      CALL SGWF2GHB7PNT(IGRID)
+c swm: already set in GWF2GHB7BD      CALL SGWF2GHB7PNT(IGRID)
 C      
       TEXT='GHB'
       ZERO=0.      
@@ -2420,7 +2499,7 @@ C
       CHARACTER*16 TEXT
 C   
 C--SET POINTERS FOR THE CURRENT GRID
-      CALL SGWF2FHB7PNT(IGRID)
+c swm: already set in GWF2FHB7BD      CALL SGWF2FHB7PNT(IGRID)
 C      
       TEXT='FHB'
       ZERO=0.
@@ -2476,7 +2555,7 @@ C
       CHARACTER*16 TEXT    
 C
 C--SET POINTERS FOR THE CURRENT GRID      
-      CALL SGWF2RES7PNT(IGRID)            
+c swm: already set in GWF2RES7BD      CALL SGWF2RES7PNT(IGRID)            
 C      
       TEXT='RES'
       ZERO=0.
@@ -2599,7 +2678,7 @@ C
       CHARACTER*16 TEXT     
 C
 C--SET POINTERS FOR THE CURRENT GRID      
-      CALL SGWF2STR7PNT(IGRID)    
+c swm: already set in GWF2STR7BD   CALL SGWF2STR7PNT(IGRID)    
 C                    
       TEXT='STR'
       ZERO=0.
@@ -2642,7 +2721,7 @@ C--NORMAL RETURN
       END
 C
 C
-      SUBROUTINE LMT7MNW7(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
+      SUBROUTINE LMT7MNW17(ILMTFMT,IUMT3D,KSTP,KPER,IGRID)
 C *********************************************************************
 C SAVE MNW LOCATIONS AND VOLUMETRIC FLOW RATES FOR USE BY MT3D.
 C *********************************************************************
@@ -3017,13 +3096,15 @@ C
       USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND,HNEW,HOLD,
      &                      BUFF,BOTM,DELR,DELC
       USE GWFBASMODULE,ONLY:DELT, HNOFLO
-      USE GWFUZFMODULE,ONLY:IUZFBND, UZTHIT, UZFLIT, IUZHOLD,
-     &                      UZSPIT, SEEPOUT
+      USE GWFUZFMODULE,ONLY:IUZFBND, RTSOLWC, RTSOLFL, IUZHOLD,
+     &                      RTSOLDS, SEEPOUT, IUZM, RTSOLUTE,
+     &                      IUZFOPT
       CHARACTER*16 TEXT1, TEXT2, TEXT3, TEXT4
       REAL cellarea
 C
 C--SET POINTERS FOR THE CURRENT GRID      
       CALL SGWF2UZF1PNT(IGRID)
+      IF ( RTSOLUTE.LE.0 ) RETURN
 C            
       TEXT1='WATER CONTENT'
       TEXT2='UZ FLUX'
@@ -3041,6 +3122,7 @@ C--CLEAR THE BUFFER
       numcells = NCOL*NROW
 C
 C--FOR EACH CELL CALCULATE WATER CONTENT & STORE IN BUFFER
+      IF ( IUZM.GT.0 .AND. IUZFOPT.GT.0 ) THEN
       DO K = 1, NLAY
         l = 0
         DO ll = 1, numcells
@@ -3050,9 +3132,9 @@ C--FOR EACH CELL CALCULATE WATER CONTENT & STORE IN BUFFER
             l = l + 1
             IF( K.GE.IUZFBND(J,I) ) THEN
               IF( HNEW(J,I,K).LT.BOTM(J,I,K-1) )THEN
-                BUFF(J,I,K)=UZTHIT(K,l)
+                BUFF(J,I,K)=RTSOLWC(K,ll)
               ELSEIF ( ABS(SNGL(HNEW(J,I,K))-HNOFLO).LT.1.0 ) THEN
-                BUFF(J,I,K)=UZTHIT(K,l)
+                BUFF(J,I,K)=RTSOLWC(K,ll)
               END IF
             END IF
           END IF
@@ -3073,7 +3155,6 @@ C--RECORD CONTENTS OF BUFFER.
 !        end do
 !        end do
       ENDIF
-!  101 format(10e12.5)
 C
 C
 C--CLEAR THE BUFFER
@@ -3084,6 +3165,8 @@ C--CLEAR THE BUFFER
           ENDDO   
         ENDDO   
       ENDDO
+      END IF
+!  101 format(10e12.5)
 C
 C--FOR EACH CELL CALCULATE FLUX THROUGH LOWER FACE & STORE IN BUFFER
       DO K = 1, NLAY
@@ -3096,7 +3179,7 @@ C--FOR EACH CELL CALCULATE FLUX THROUGH LOWER FACE & STORE IN BUFFER
             IF( K.GE.IUZFBND(J,I) ) THEN
 !              IF( HNEW(J,I,K).LT.BOTM(J,I,K-1) ) THEN
                 cellarea = DELR(J)*DELC(I)
-                BUFF(J,I,K)=UZFLIT(K,l)*cellarea
+                BUFF(J,I,K)=RTSOLFL(K,ll)*cellarea
                 IF ( abs(BUFF(J,I,K)).LT.1.0e-10 )
      +               BUFF(J,I,K) = 0.0
 !              ELSEIF ( ABS(SNGL(HNEW(J,I,K))-HNOFLO).LT.1.0 ) THEN
@@ -3127,6 +3210,7 @@ C--CLEAR THE BUFFER
         ENDDO   
       ENDDO
 C--FOR EACH CELL CALCULATE CHANGE IN STORAGE & STORE IN BUFFER
+      IF ( IUZM.GT.0 .AND. IUZFOPT.GT.0 ) THEN
       DO K = 1, NLAY
         l = 0
         DO ll = 1, numcells
@@ -3137,15 +3221,16 @@ C--FOR EACH CELL CALCULATE CHANGE IN STORAGE & STORE IN BUFFER
             IF( K.GE.IUZFBND(J,I) ) THEN
               IF( HNEW(J,I,K).LT.BOTM(J,I,K-1) ) THEN
                 cellarea = DELR(J)*DELC(I)
-                BUFF(J,I,K)=UZSPIT(K,l)*cellarea
+                BUFF(J,I,K)=RTSOLDS(K,ll)*cellarea
               ELSEIF ( ABS(SNGL(HNEW(J,I,K))-HNOFLO).LT.1.0 ) THEN
                 cellarea = DELR(J)*DELC(I)
-                BUFF(J,I,K)=UZSPIT(K,l)*cellarea
+                BUFF(J,I,K)=RTSOLDS(K,ll)*cellarea
               END IF
             END IF
           END IF
         ENDDO
       END DO
+      END IF
 C
 C--RECORD CONTENTS OF BUFFER.
       IF(ILMTFMT.EQ.0) THEN
@@ -3169,7 +3254,7 @@ C--CLEAR THE BUFFER
 C--FOR EACH CELL CALCULATE GW DISCHARGE TO LAND SURFACE & STORE IN BUFFER
       DO IR=1,NROW
         DO IC=1,NCOL
-          IL = IUZFBND(IC,IR)
+          IL = ABS(IUZFBND(IC,IR))
           IF( IUZFBND(IC,IR).NE.0 ) THEN
             BUFF(IC,IR,IL)=-SEEPOUT(IC,IR)
           END IF
@@ -3201,9 +3286,10 @@ C
      &                      BUFF,BOTM,DELR,DELC
       USE GWFBASMODULE,ONLY:DELT, HNOFLO
       USE GWFUZFMODULE,ONLY:IUZFBND, GRIDET, IUZHOLD, IETFLG, GWET,
-     &                      SEEPOUT
+     &                      SEEPOUT, RTSOLUTE, IUZFOPT
       CHARACTER*16 TEXT1, TEXT2
       REAL cellarea
+      IF ( RTSOLUTE.LE.0 ) RETURN
       IF ( IETFLG.LE.0 ) RETURN
 C
 C--SET POINTERS FOR THE CURRENT GRID      
@@ -3223,6 +3309,7 @@ C--CLEAR THE BUFFER FOR UZ ET
       numcells = NCOL*NROW
 C
 C--FOR EACH CELL CALCULATE UZ ET & STORE IN BUFFER
+      IF ( IUZM.GT.0 .AND. IUZFOPT.GT.0 ) THEN
       DO K = 1, NLAY
         l = 0
         DO ll = 1, numcells
@@ -3243,6 +3330,7 @@ C--FOR EACH CELL CALCULATE UZ ET & STORE IN BUFFER
           END IF
         ENDDO
       END DO
+      END IF
 C
 C--RECORD CONTENTS OF BUFFER.
       IF(ILMTFMT.EQ.0) THEN
@@ -3286,5 +3374,55 @@ C--RECORD CONTENTS OF BUFFER.
         WRITE(IUMT3D,*) TEXT2
         WRITE(IUMT3D,*) BUFF
       ENDIF
+      RETURN
+      END
+C***********************************************************************
+      SUBROUTINE SLMT7PNT(IGRID)
+C     ******************************************************************
+C     CHANGE POINTERS FOR LMT DATA TO A DIFFERENT GRID
+C     ******************************************************************
+C
+C        SPECIFICATIONS:
+C     ------------------------------------------------------------------
+      USE LMTMODULE
+C     ------------------------------------------------------------------
+C
+      ISSMT3D=>LMTDAT(IGRID)%ISSMT3D
+      IUMT3D=>LMTDAT(IGRID)%IUMT3D
+      ILMTFMT=>LMTDAT(IGRID)%ILMTFMT
+      RETURN
+      END
+C***********************************************************************
+      SUBROUTINE SLMT7PSV(IGRID)
+C     ******************************************************************
+C     SAVE POINTERS ARRAYS FOR LMT DATA TO APPROPRIATE GRID
+C     ******************************************************************
+C
+C        SPECIFICATIONS:
+C     ------------------------------------------------------------------
+      USE LMTMODULE
+C     ------------------------------------------------------------------
+C
+      LMTDAT(IGRID)%ISSMT3D=>ISSMT3D
+      LMTDAT(IGRID)%IUMT3D=>IUMT3D
+      LMTDAT(IGRID)%ILMTFMT=>ILMTFMT
+C
+      RETURN
+      END
+C***********************************************************************
+      SUBROUTINE LMT7DA(IGRID)
+C     ******************************************************************
+C     DEALLOCATE LMT DATA
+C     ******************************************************************
+C
+C        SPECIFICATIONS:
+C     ------------------------------------------------------------------
+      USE LMTMODULE
+C     ------------------------------------------------------------------
+C
+      DEALLOCATE(LMTDAT(IGRID)%ISSMT3D)
+      DEALLOCATE(LMTDAT(IGRID)%IUMT3D)
+      DEALLOCATE(LMTDAT(IGRID)%ILMTFMT)
+C
       RETURN
       END

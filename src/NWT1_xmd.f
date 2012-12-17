@@ -1,5 +1,5 @@
 
-c      for XMD package for NWT solver (NWT version 1.5; 04-05-12)
+c      for XMD package for NWT solver (NWT version 1.06; 12-05-12)
 c
 c                     M. Ibaraki
 c
@@ -144,13 +144,13 @@ cmi
         MXITERXMD = 50
       ELSEIF ( IFDPARAM.EQ.2 ) THEN
         IACL = 2
-        NORDER = 1
+        NORDER = 0
         LEVEL = 5
         NORTH = 5
         IREDSYS = 1
         RRCTOLS = 0.0
         IDROPTOL = 1
-        EPSRNS = 1.0e-3
+        EPSRNS = 1.0e-4
         HCLOSEXMDDUM = 1.0e-4
         MXITERXMD = 50
       ELSEIF ( IFDPARAM.EQ.3 ) THEN
