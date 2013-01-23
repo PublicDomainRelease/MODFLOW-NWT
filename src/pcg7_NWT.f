@@ -977,7 +977,8 @@ C     ******************************************************************
 C
 C        SPECIFICATIONS:
 C     ------------------------------------------------------------------
-      REAL C, CC, CR, CV, HCOF, RES
+      REAL C, CC, CR, CV, RES
+      DOUBLE PRECISION HCOF
       INTEGER I, IBOUND, J, K, N, NCD, NCF, NCL, NCN, NCOL, NLAY, NLL, 
      &        NLN, NLS, NLZ, NODES, NORM, NRB, NRC, NRH, NRL, NRN, NROW
       DOUBLE PRECISION VN, CRHS, Z, B, D, F, H, S, ZV, BV, DV, FV, HV, 

@@ -1678,15 +1678,15 @@ C--Update heads.
 !        I1 = IA(ij)
 !        I2 = IA(ij+1)-1
 !        do i=i1,i2
-!!        if ( kper.gt.28)then
-!!        if(ic==49.and.ir==236.and.il==1)then
- !       WRITE(IOUT,66)ij,BB(ij),HNEW(ic,ir,il),BOTM(ic,ir,il-1),
- !    +                BOTM(ic,ir,il),HCOFF,RHSS,(A(I),I=I1,I2)
+!        if ( kper.gt.28)then
+!        if(ic==49.and.ir==236.and.il==1)then
+!        WRITE(IOUT,66)ij,BB(ij),HNEW(ic,ir,il),BOTM(ic,ir,il-1),
+!     +                BOTM(ic,ir,il),HCOFF,RHSS,(A(I),I=I1,I2)
 !       write(iout,*)IA(ij),i,A(I),BB(ij)
-!!        end if
-!!        end if      
+!        end if
+!        end if      
 ! 66      FORMAT(I9,1X,3G15.6,2X,11G15.6)
- !      end do
+!       end do
       END DO
       RETURN
       END SUBROUTINE Jacobian

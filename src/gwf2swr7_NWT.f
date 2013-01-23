@@ -1,9 +1,16 @@
 C
-C     VERSION 1.01 SWR1 for MODFLOW NWT
+C     VERSION 1.02 SWR1 for MODFLOW NWT
+C     CHANGES
+C     o IF RTMIN IS ZERO SET RTMIN TO THE MINIMUM DELT FOR THE CURRENT MODFLOW 
+C       STRESS PERIOD - ITSPMIN SET TO 1
+C     o IF RTMAX IS ZERO SET RTMAX TO DELT FOR THE CURRENT MODFLOW TIMESTEP -
+C       ITSPMAX VARIABLE SET TO 1
+C     o MINOR BUG FIXES IN:
+C         SSWR_P_QMFLOW
 C
       MODULE GWFSWRMODULE
         CHARACTER(LEN=64),PARAMETER :: VERSION_SWR =
-     +'$Id: gwf2swr7.f 1.01 2012-09-10 15:00:00Z jdhughes $'
+     +'$Id: gwf2swr7.f 1.02 2013-01-17 15:00:00Z jdhughes $'
 C
 C---------INVARIANT PARAMETERS
         INTEGER, PARAMETER          :: IUZFOFFS     = 100000
@@ -85,6 +92,7 @@ C---------STRUCTURE DATA TYPE
           DOUBLEPRECISION :: STRWID          = DZERO
           DOUBLEPRECISION :: STRWID2         = DZERO
           DOUBLEPRECISION :: STRLEN          = DZERO
+          DOUBLEPRECISION :: STRLEN2         = DZERO
           DOUBLEPRECISION :: STRMAN          = DZERO
           INTEGER         :: ISTRDIR         = IZERO
           DOUBLEPRECISION :: STRVAL          = DZERO
@@ -424,6 +432,8 @@ C         SWR VARIABLES
         INTEGER,SAVE,POINTER          :: NTTSMIN
         LOGICAL,SAVE,POINTER          :: FAILTIME
         INTEGER,SAVE,POINTER          :: ISWRCNVG
+        INTEGER,SAVE,POINTER          :: ITSPMIN
+        INTEGER,SAVE,POINTER          :: ITSPMAX
         REAL,SAVE,POINTER             :: RTIME
         REAL,SAVE,POINTER             :: RTIME0
         REAL,SAVE,POINTER             :: RTMIN
@@ -458,6 +468,7 @@ C         SWR VARIABLES
         INTEGER,SAVE,POINTER          :: SWRHEADER
         INTEGER,SAVE,POINTER          :: NRCHGRP
         INTEGER,SAVE,POINTER          :: NSOLRG
+        INTEGER,SAVE,POINTER          :: NACTIVE
         INTEGER,SAVE,POINTER          :: ISWRSS
         INTEGER,SAVE,POINTER          :: ISWRDT
         DOUBLEPRECISION,SAVE,POINTER  :: SWRDT
@@ -552,6 +563,8 @@ C         SWR VARIABLES
           INTEGER,POINTER          :: NTTSMIN
           LOGICAL,POINTER          :: FAILTIME
           INTEGER,POINTER          :: ISWRCNVG
+          INTEGER,POINTER          :: ITSPMIN
+          INTEGER,POINTER          :: ITSPMAX
           REAL,POINTER             :: RTIME
           REAL,POINTER             :: RTIME0
           REAL,POINTER             :: RTMIN
@@ -586,6 +599,7 @@ C         SWR VARIABLES
           INTEGER,POINTER          :: SWRHEADER
           INTEGER,POINTER          :: NRCHGRP
           INTEGER,POINTER          :: NSOLRG
+          INTEGER,POINTER          :: NACTIVE
           INTEGER,POINTER          :: ISWRSS
           INTEGER,POINTER          :: ISWRDT
           DOUBLEPRECISION,POINTER  :: SWRDT
@@ -896,6 +910,7 @@ C       SWR1 VARIABLES
       ALLOCATE(NTMIN,NTMAX,RTMULT,RTOTIM,NTMULT,IADTIME,TADMULT)
       ALLOCATE(NUMTIME,NUMTIME0,NADPCNT,NADPCNT0)
       ALLOCATE(NTTSMIN,FAILTIME,ISWRCNVG)
+      ALLOCATE(ITSPMIN,ITSPMAX)
       ALLOCATE(RTIME,RTIME0,RTMIN,RTMAX,RTSTMAX,RTPRN,RSWRPRN,RSWRPRN0)
       ALLOCATE(IBT)
       ALLOCATE(TOLS,TOLR,TOLA,DAMPSS,DAMPTR,IPRSWR,MUTSWR)
@@ -1127,23 +1142,31 @@ C         SOLUTION CONTROLS - INPUT ITEM 2
       IF ( RTIME.LT.RZERO ) 
      2  CALL USTOP('RTINI MUST BE GREATER THAN ZERO')
       CALL URWORD(line, lloc, istart, istop, 3, ival, RTMIN, IOUT, In)
-      IF ( RTMIN.LT.RZERO ) 
-     2  CALL USTOP('RTMIN MUST BE GREATER THAN ZERO')
+      ITSPMIN = 0
+      IF ( RTMIN.LT.RZERO ) THEN
+        CALL USTOP('RTMIN MUST BE GREATER THAN ZERO')
+      ELSE IF ( RTMIN.EQ.RZERO ) THEN
+        ITSPMIN = 1
+      END IF
       CALL URWORD(line, lloc, istart, istop, 3, ival, RTMAX, IOUT, In)
-      IF ( RTMAX.LT.RZERO ) 
-     2  CALL USTOP('RTMAX MUST BE GREATER THAN ZERO') 
-      RTSTMAX = RTMAX
+      ITSPMAX = 0
+      IF ( RTMAX.LT.RZERO ) THEN
+        CALL USTOP('RTMAX MUST BE GREATER THAN ZERO') 
+      ELSE IF ( RTMAX.EQ.RZERO ) THEN
+        ITSPMAX = 1
+      END IF
+!      RTSTMAX = RTMAX
       CALL URWORD(line, lloc, istart, istop, 3, ival, RTPRN, IOUT, In)
       IF ( RTPRN.LT.RTMIN ) RTPRN = RZERO
       RSWRPRN  = RTPRN
       RSWRPRN0 = RTPRN
-      IF ( RTMAX.LT.RTMIN ) THEN
+      IF ( RTMAX.LT.RTMIN .AND. ITSPMAX.EQ.0 ) THEN
         CALL USTOP('RTMAX MUST BE GREATER THAN OR EQUAL TO RTMIN') 
       END IF
-      IF ( RTIME.LT.RTMIN ) THEN
+      IF ( RTIME.LT.RTMIN .AND. ITSPMIN.EQ.0 ) THEN
         CALL USTOP('RTINI MUST BE GREATER THAN OR EQUAL TO RTMIN') 
       END IF
-      IF ( RTIME.GT.RTMAX ) THEN
+      IF ( RTIME.GT.RTMAX .AND. ITSPMAX.EQ.0 ) THEN
         CALL USTOP('RTINI MUST BE LESS THAN OR EQUAL TO RTMAX') 
       END IF
       CALL URWORD(line, lloc, istart, istop, 3, ival, RTMULT, IOUT, In)
@@ -1166,6 +1189,24 @@ C         SOLUTION CONTROLS - INPUT ITEM 2
         IDPTHSCL = 0
       END IF
       DUPDPTH  = DMINDPTH * 10.0D+00
+C
+C       SET RTIME, RTMIN, AND/OR RTMAX IF ZERO VALUES ARE SPECIFIED FOR
+C       ANY OF THESE VARIABLES
+!      CALL SSWR_GET_MODFLOW_TIME(Nmaxper,Ngetstp,Rt,Rtot)
+      IF ( ITSPMIN.EQ.1 ) THEN
+        CALL SSWR_GET_MODFLOW_TIME(1,1,rt,RTOTIM)
+        RTIME = rt
+        RTMIN = rt
+      END IF
+      IF ( ITSPMAX.EQ.1 ) THEN
+        CALL SSWR_GET_MODFLOW_TIME(1,1,Rt,RTOTIM)
+        RTMAX = rt
+        IF ( RTIME.GT.RTMAX ) THEN
+          RTIME = RTMAX
+        END IF
+      END IF
+C     SET RTSTMAX NOW THAT RTMAX IS FINAL FOR AT LEAST THE FIRST STRESS PERIOD
+      RTSTMAX = RTMAX
 C       SET DEFAULT VALUES FOR ADAPTIVE TIME STEPPING
       IADTIME = 0
       TADMULT = DONE
@@ -1173,8 +1214,15 @@ C       SET DEFAULT VALUES FOR ADAPTIVE TIME STEPPING
       DMAXSTG = DZERO
       DMAXINF = DZERO
 C       DETERMINE IF ADAPTIVE TIME STEPPING IS BEING USED
-      IF ( RTMIN.LT.RTMAX .AND. RTMULT.GT.RONE ) THEN
-        IADTIME = 1
+      IF (   RTMIN.LT.RTMAX .OR.
+     2     ( ITSPMIN.EQ.1 .AND. ITSPMAX.EQ.1 ) ) THEN
+        IF ( RTMULT.GT.RONE ) THEN
+          IADTIME = 1
+        END IF
+      END IF
+!      IF ( RTMIN.LT.RTMAX .AND. RTMULT.GT.RONE ) THEN
+!        IADTIME = 1
+      IF ( IADTIME.EQ.1 ) THEN
         CALL URWORD(line, lloc, istart, istop, 3, ival, r, IOUT, In)
         DMAXRAI  = MAX( DZERO, SSWR_R2D(r) )
         CALL URWORD(line, lloc, istart, istop, 3, ival, r, IOUT, In)
@@ -1301,29 +1349,47 @@ C-------DETERMINE NTMAX
       totim  = RZERO
       RTOTIM = RZERO
       ierr   = 0
-      DO n = 1, NPER
-        RTOTIM  = RTOTIM + PERLEN(n)
-        rt = PERLEN(n) / REAL( NSTP(n), 4 )
-        DO i = 1, NSTP(n)
-          IF ( TSMULT(n).NE.RONE ) THEN
-            IF ( i.GT.1 ) THEN
-              rt = rt * TSMULT(n)
-            ELSE
-              rt = PERLEN(n) * ( RONE - TSMULT(n) ) /
-     2            ( RONE - TSMULT(n)**NSTP(n) )
+      IF ( RTMIN.GT.RZERO ) THEN
+!      IF ( IADTIME.EQ.1 ) THEN
+        DO n = 1, NPER
+          DO i = 1, NSTP(n)
+            CALL SSWR_GET_MODFLOW_TIME(n,i,rt,RTOTIM)
+            IF ( RTMAX.GT.rt ) THEN
+              ierr = 1
+              WRITE (IOUT,'(1X,2(A,1X,I10,1X),2(A,1X,G10.3,1X),A)')
+     2          'MODFLOW STRESS PERIOD', n,
+     3          'TIME STEP', i, 
+     4          ': RTMAX (', RTMAX, ') EXCEEDS DELT (', rt, ')'
             END IF
-          END  IF
-          IF ( RTMAX.GT.rt ) THEN
-            ierr = 1
-            WRITE (IOUT,'(1X,2(A,1X,I10,1X),2(A,1X,G10.3,1X),A)')
-     2        'MODFLOW STRESS PERIOD', n,
-     3        'TIME STEP', i, 
-     4        ': RTMAX (', RTMAX, ') EXCEEDS DELT (', rt, ')'
-          END IF
-          totim = totim + rt
-          NTMAX = MAX( NTMAX, CEILING( rt / RTMIN ) + 1 )
+            totim = totim + rt
+            NTMAX = MAX( NTMAX, CEILING( rt / RTMIN ) + 1 )
+          END DO
         END DO
-      END DO
+!        DO n = 1, NPER
+!          RTOTIM  = RTOTIM + PERLEN(n)
+!          rt = PERLEN(n) / REAL( NSTP(n), 4 )
+!          DO i = 1, NSTP(n)
+!            IF ( TSMULT(n).NE.RONE ) THEN
+!              IF ( i.GT.1 ) THEN
+!                rt = rt * TSMULT(n)
+!              ELSE
+!                rt = PERLEN(n) * ( RONE - TSMULT(n) ) /
+!     2              ( RONE - TSMULT(n)**NSTP(n) )
+!              END IF
+!            IF ( RTMAX.GT.rt ) THEN
+!              ierr = 1
+!              WRITE (IOUT,'(1X,2(A,1X,I10,1X),2(A,1X,G10.3,1X),A)')
+!     2          'MODFLOW STRESS PERIOD', n,
+!     3          'TIME STEP', i, 
+!     4          ': RTMAX (', RTMAX, ') EXCEEDS DELT (', rt, ')'
+!            END IF
+!            totim = totim + rt
+!            NTMAX = MAX( NTMAX, CEILING( rt / RTMIN ) + 1 )
+!          END DO
+!        END DO
+      ELSE
+        NTMAX = 1
+      END IF
       NTMAX    = NTMAX
       NUMTIME  = NTMAX
       NADPCNT  = 1
@@ -1342,16 +1408,17 @@ C-------DETERMINE THE MAXIMUM NUMBER OF PRINT TIMES PER MODFLOW TIME STEP
         tp0 = RZERO
         DO n = 1, NPER
           tf = tf + PERLEN(n)
-          rt = PERLEN(n) / REAL( NSTP(n), 4 )
+!          rt = PERLEN(n) / REAL( NSTP(n), 4 )
           DO i = 1, NSTP(n)
-            IF ( TSMULT(n).NE.RONE ) THEN
-              IF ( i.GT.1 ) THEN
-                rt = rt * TSMULT(n)
-              ELSE
-                rt = PERLEN(n) * ( RONE - TSMULT(n) ) /
-     2               ( RONE - TSMULT(n)**NSTP(n) )
-              END IF
-            END  IF
+            CALL SSWR_GET_MODFLOW_TIME(n,i,rt,RTOTIM)
+!            IF ( TSMULT(n).NE.RONE ) THEN
+!              IF ( i.GT.1 ) THEN
+!                rt = rt * TSMULT(n)
+!              ELSE
+!                rt = PERLEN(n) * ( RONE - TSMULT(n) ) /
+!     2               ( RONE - TSMULT(n)**NSTP(n) )
+!              END IF
+!            END  IF
             t1   = t0 + rt
             ival = 0
             DO
@@ -1365,6 +1432,31 @@ C-------DETERMINE THE MAXIMUM NUMBER OF PRINT TIMES PER MODFLOW TIME STEP
           END DO
           t0 = tf
         END DO
+!        DO n = 1, NPER
+!          tf = tf + PERLEN(n)
+!          rt = PERLEN(n) / REAL( NSTP(n), 4 )
+!          DO i = 1, NSTP(n)
+!            IF ( TSMULT(n).NE.RONE ) THEN
+!              IF ( i.GT.1 ) THEN
+!                rt = rt * TSMULT(n)
+!              ELSE
+!                rt = PERLEN(n) * ( RONE - TSMULT(n) ) /
+!     2               ( RONE - TSMULT(n)**NSTP(n) )
+!              END IF
+!            END  IF
+!            t1   = t0 + rt
+!            ival = 0
+!            DO
+!              tp1 = tp0 + RTPRN
+!              IF ( tp1.GT.t1 ) EXIT
+!              ival = ival + 1
+!              tp0  = tp1
+!            END DO
+!            IF ( ival.GT.NPMAX ) NPMAX = ival
+!            t0 = t1
+!          END DO
+!          t0 = tf
+!        END DO
       END IF
 C       NTMAX IS THE SUM OF RTMIN TIME STEPS PER MODFLOW
 C       TIME STEP, THE MAXIMUM NUMBER OF PRINT TIMES PER
@@ -1375,13 +1467,14 @@ C       TIME STEP
 C
 C-------ALLOCATE SPACE FOR DATA OF KNOWN SIZE
       ALLOCATE(REACH(NREACHES))
-      ALLOCATE(NRCHGRP,NSOLRG)
+      ALLOCATE(NRCHGRP,NSOLRG,NACTIVE)
       ALLOCATE(JAC)
       ALLOCATE(SWRHEADER)
       ALLOCATE(ISWRSS,ISWRDT,SWRDT,KMFITER)
       ALLOCATE(SWRHEPS)
       NRCHGRP   = IZERO
       NSOLRG    = IZERO
+      NACTIVE   = IZERO
       SWRHEADER = IZERO
       ISWRDT    = IZERO
       ISWRSS    = IZERO
@@ -1555,6 +1648,14 @@ C-------WRITE REACH GROUP REACH DATA
       DO i = 1, NRCHGRP
         WRITE (IOUT,2090) i, RCHGRP(i)%IRGNUM,
      2        (RCHGRP(i)%REACH(j),j=1,RCHGRP(i)%NRGREACH)
+      END DO
+C
+C-------GET TOTAL SIMULATION TIME FOR MODEL
+      RTOTIM = RZERO
+      DO n = 1, NPER
+        DO i = 1, NSTP(n)
+          CALL SSWR_GET_MODFLOW_TIME(n,i,rt,RTOTIM)
+        END DO
       END DO
 C
 C-------READ TABULAR DATA DIMENSIONS - DATASET 4C
@@ -2129,13 +2230,17 @@ C           ACTIVE REACHES
           END IF
         END DO
 C---------WRITE SUMMARY OF BOUNDARIES FOR EACH REACH GROUP
+C         AND COUNT THE NUMBER OF ACTIVE REACH GROUPS
         ibndfail = 0
+        NACTIVE  = 0
         WRITE (IOUT,'(//2X,A,/1X,4(A10,1X),/1X,4(10("-"),1X))') 
      2    'SUMMARY OF SWR REACH BOUNDARY CONDITIONS',
      3    '       IRG','  INACTIVE','  CONSTANT','    ACTIVE'
         DO n = 1, NRCHGRP
           WRITE (IOUT,'(1X,4(I10,1X))') 
      2      n, iinactive(n), iconstant(n), iactive(n)
+C           INCREMENT THE NUMBER OF ACTIVE REACH GROUPS
+          IF ( iactive(n).GT.0 ) NACTIVE = NACTIVE + 1
 C           INACTIVE AND ACTIVE REACHES IN REACH GROUP - ERROR CONDITION
           IF ( iinactive(n).GT.IZERO .AND. iactive(n).GT.IZERO ) THEN
             ibndfail = 1
@@ -2675,6 +2780,29 @@ C                 CRITICAL-DEPTH BOUNDARY CONDITION
                 REACH(istrrch)%STRUCT(istrnum)%STRINV = 
      2            REACH(istrrch)%GEO%ELEV(1) + SMALL
               END IF
+              REACH(istrrch)%STRUCT(istrnum)%STRLEN = 
+     2          REACH(istrrch)%DLEN
+              IF ( istrconn.GT.0 ) THEN
+                REACH(istrrch)%STRUCT(istrnum)%STRLEN2 = 
+     2            REACH(istrconn)%DLEN
+              END IF
+CC               TEST USE OF STRLEN AND STRLEN2 FOR UNCONTROLLED FLOW STRUCTURES - JDH 11/28/2012
+C              CALL URWORD(line,lloc,istart,istop,3,ival,r,-IOUT,iut)
+C              IF ( r.LE.RZERO ) THEN
+C                REACH(istrrch)%STRUCT(istrnum)%STRLEN = 
+C     2            REACH(istrrch)%DLEN
+C              ELSE
+C                REACH(istrrch)%STRUCT(istrnum)%STRLEN = SSWR_R2D(r)
+C              END IF
+C              IF ( istrconn.GT.0 ) THEN
+C                CALL URWORD(line,lloc,istart,istop,3,ival,r,-IOUT,iut)
+C                IF ( r.LE.RZERO ) THEN
+C                  REACH(istrrch)%STRUCT(istrnum)%STRLEN2 = 
+C     2              REACH(istrconn)%DLEN
+C                ELSE
+C                  REACH(istrrch)%STRUCT(istrnum)%STRLEN2 = SSWR_R2D(r)
+C                END IF
+C              END IF
 C             SPECIFIED DISCHARGE
             CASE (3)
               CALL URWORD(line,lloc,istart,istop,3,ival,r,IOUT,iut)
@@ -2984,6 +3112,9 @@ C                 UNCONTROLLED FLOW
                   ELSE
                     cstruct(11) = 'UNKN. CON.'
                   END IF
+C                 TEST USE OF STRLEN AND STRLEN2 FOR UNCONTROLLED FLOW STRUCTURES - JDH 11/28/2012 - JDH 11/28/2012                  
+                  WRITE (cstruct( 8),2110) REACH(i)%STRUCT(j)%STRLEN + 
+     2                                     REACH(i)%STRUCT(j)%STRLEN2
 C                 SPECIFIED DISCHARGE
                 CASE (3)
                   WRITE (cstruct(10),2110) REACH(i)%STRUCT(j)%STRVAL
@@ -3816,6 +3947,22 @@ C-------START SWR TIMER FOR GWF2SWR7FM
       CALL SSWRTIMER(0,tim1,tim2,SWREXETOT)
 C
       KMFITER = Kkiter
+C
+C-------SET RTMAX AND RTIME TO DELT IF RTMIN EQUALS RZERO
+!      IF ( RTMIN.EQ.RZERO ) THEN
+      IF ( ITSPMIN.EQ.1 ) THEN
+        RTMIN = DELT
+        IF ( RTIME.LT.RTMIN ) THEN
+          RTIME = RTMIN
+        END IF
+      END IF
+      IF ( ITSPMAX.EQ.1 ) THEN
+        RTMAX = DELT
+        RTSTMAX = RTMAX
+        IF ( RTIME.GT.RTMAX ) THEN
+          RTIME = RTMAX
+        END IF
+      END IF
 C
 C-------SCALE TIME BASED ON RAINFALL
 C       THIS IS A PREEMPTIVE STRIKE TO ADJUST THE TIMESTEP BASED ON RAINFALL INTENSITY 
@@ -5175,6 +5322,8 @@ C         SWR1 VARIABLES
         DEALLOCATE(GWFSWRDAT(Igrid)%NTTSMIN)
         DEALLOCATE(GWFSWRDAT(Igrid)%FAILTIME)
         DEALLOCATE(GWFSWRDAT(Igrid)%ISWRCNVG)
+        DEALLOCATE(GWFSWRDAT(Igrid)%ITSPMIN)
+        DEALLOCATE(GWFSWRDAT(Igrid)%ITSPMAX)
         DEALLOCATE(GWFSWRDAT(Igrid)%RTIME)
         DEALLOCATE(GWFSWRDAT(Igrid)%RTIME0)
         DEALLOCATE(GWFSWRDAT(Igrid)%RTMIN)
@@ -5218,6 +5367,7 @@ C         SWR1 VARIABLES
         DEALLOCATE(GWFSWRDAT(Igrid)%SWRHEADER)
         DEALLOCATE(GWFSWRDAT(Igrid)%NRCHGRP)
         DEALLOCATE(GWFSWRDAT(Igrid)%NSOLRG)
+        DEALLOCATE(GWFSWRDAT(Igrid)%NACTIVE)
         DEALLOCATE(GWFSWRDAT(Igrid)%ISWRSS)
         DEALLOCATE(GWFSWRDAT(Igrid)%ISWRDT)
         DEALLOCATE(GWFSWRDAT(Igrid)%SWRDT)
@@ -5320,6 +5470,8 @@ C         SWR1 VARIABLES
         NTTSMIN=>GWFSWRDAT(Igrid)%NTTSMIN
         FAILTIME=>GWFSWRDAT(Igrid)%FAILTIME
         ISWRCNVG=>GWFSWRDAT(Igrid)%ISWRCNVG
+        ITSPMIN=>GWFSWRDAT(Igrid)%ITSPMIN
+        ITSPMAX=>GWFSWRDAT(Igrid)%ITSPMAX
         RTIME=>GWFSWRDAT(Igrid)%RTIME
         RTIME0=>GWFSWRDAT(Igrid)%RTIME0
         RTMIN=>GWFSWRDAT(Igrid)%RTMIN
@@ -5363,6 +5515,7 @@ C         SWR1 VARIABLES
         SWRHEADER=>GWFSWRDAT(Igrid)%SWRHEADER
         NRCHGRP=>GWFSWRDAT(Igrid)%NRCHGRP
         NSOLRG=>GWFSWRDAT(Igrid)%NSOLRG
+        NACTIVE=>GWFSWRDAT(Igrid)%NACTIVE
         ISWRSS=>GWFSWRDAT(Igrid)%ISWRSS
         ISWRDT=>GWFSWRDAT(Igrid)%ISWRDT
         SWRDT=>GWFSWRDAT(Igrid)%SWRDT
@@ -5466,6 +5619,8 @@ C         SWR1 VARIABLES
         GWFSWRDAT(Igrid)%NTTSMIN=>NTTSMIN
         GWFSWRDAT(Igrid)%FAILTIME=>FAILTIME
         GWFSWRDAT(Igrid)%ISWRCNVG=>ISWRCNVG
+        GWFSWRDAT(Igrid)%ITSPMIN=>ITSPMIN
+        GWFSWRDAT(Igrid)%ITSPMAX=>ITSPMAX
         GWFSWRDAT(Igrid)%RTIME=>RTIME
         GWFSWRDAT(Igrid)%RTIME0=>RTIME0
         GWFSWRDAT(Igrid)%RTMIN=>RTMIN
@@ -5509,6 +5664,7 @@ C         SWR1 VARIABLES
         GWFSWRDAT(Igrid)%SWRHEADER=>SWRHEADER
         GWFSWRDAT(Igrid)%NRCHGRP=>NRCHGRP
         GWFSWRDAT(Igrid)%NSOLRG=>NSOLRG
+        GWFSWRDAT(Igrid)%NACTIVE=>NACTIVE
         GWFSWRDAT(Igrid)%ISWRSS=>ISWRSS
         GWFSWRDAT(Igrid)%ISWRDT=>ISWRDT
         GWFSWRDAT(Igrid)%SWRDT=>SWRDT
@@ -6139,7 +6295,7 @@ C-------ALLOCATE MEMORY FOR RCHGRP DATA
      2                             IPC, NLEVELS, IPTFLG, 
      3                             NREACHES, REACH, 
      4                             IRDBND, ISOLVER, NINNER, 
-     5                             NRCHGRP, NSOLRG, RCHGRP, JAC
+     5                             NRCHGRP, NSOLRG, NACTIVE, RCHGRP, JAC
         USE GWFSWRINTERFACE, ONLY: SSWR_SORT
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
@@ -6150,7 +6306,7 @@ C     + + + LOCAL DEFINITIONS + + +
         INTEGER :: i0, i1
         INTEGER :: icol
         INTEGER :: ist, ict
-        INTEGER :: irg, irgn, irch
+        INTEGER :: irg, irgn, irch, jrch
         INTEGER :: irchconn, jrchconn
         INTEGER :: istrrch0
         INTEGER :: istr
@@ -6230,15 +6386,28 @@ C             ALLOCATE AND FILL FULL STARTING CONNECTIONS
                   RCHGRP(n)%IRCHN(ilen) = irchc(i)
                   RCHGRP(n)%IRCHC(ilen) = i
                 END IF
-                DO ii = 1, REACH(i)%NCONN
-                  jj = REACH(i)%ICONN(ii)
-                  IF ( irchc(jj).NE.i ) CYCLE
-                  ilen2 = ilen2 + 1
-                  REACH(i)%IRGCONN(ii) = ilen2 !1
-                END DO
+              !  DO ii = 1, REACH(i)%NCONN
+              !    jj = REACH(i)%ICONN(ii)
+              !    IF ( irchc(jj).NE.i ) CYCLE
+              !    ilen2 = ilen2 + 1
+              !    REACH(i)%IRGCONN(ii) = ilen2 !1
+              !  END DO
               END DO
             END IF
           END DO INITC
+C
+          DO n = 1, NRCHGRP
+            DO nn = 1, RCHGRP(n)%NCONN
+              irch = RCHGRP(n)%IRCHN(nn)
+              jrch = RCHGRP(n)%IRCHC(nn)
+              DO ii = 1, REACH(irch)%NCONN
+                IF ( REACH(irch)%ICONN(ii).EQ.jrch ) THEN
+                  REACH(irch)%IRGCONN(ii) = nn
+                  EXIT
+                END IF
+              END DO
+            END DO
+          END DO
 C
 C-----------CLEAN UP TEMPORARY STORAGE
           DEALLOCATE(irchc,irchn)
@@ -6605,8 +6774,10 @@ C-----------DETERMINE STORAGE NEEDS FOR ITERATIVE SOLVE PRECONDITIONERS
               CASE ( 4 )
                 JAC%NRLU  = isolrg
                 iwk       = isolrg + innz * 3 + 1
-                CALL ilutsize(isolrg,JAC%NNZ,JAC%JA,JAC%IA,
-     2                        NLEVELS,iwk)
+                IF ( NACTIVE.GT.0 ) THEN
+                  CALL ilutsize(isolrg,JAC%NNZ,JAC%JA,JAC%IA,
+     2                          NLEVELS,iwk)
+                END IF
                 JAC%NNZLU = iwk
                 ijlu      = JAC%NNZLU
                 ijw       = 2*JAC%NRLU
@@ -7498,6 +7669,7 @@ C     + + + CODE + + +
         Iouter = 0
         e = SQRT( EPSILON( DZERO ) )
         IF ( NSOLRG.LT.1 ) RETURN
+        IF ( NACTIVE.LT.1 ) RETURN
         DO n = 1, NSOLRG
           JAC%DX(n) = DONE
         END DO
@@ -9901,9 +10073,13 @@ C-----------CALCULATE DYNAMIC CONDUCTANCE
               CASE (2)
                 cond = twp * length * hcond / gcndln
               CASE (3)
-                cond = (gcndln / (twp * length * hcond)) +
-     2                 (DONE / (twp * length * Rch%GLK))
-                cond = DONE / cond
+                IF ( twp.GT.DZERO ) THEN
+                  cond = (gcndln / (twp * length * hcond)) +
+     2                   (DONE / (twp * length * Rch%GLK))
+                  cond = DONE / cond
+                ELSE
+                  cond = DZERO
+                END IF
             END SELECT
 C-----------USER SPECIFIED CONDUCTANCE
           ELSE
@@ -11120,7 +11296,7 @@ C           CALCULATE PARAMETERS NEEDED FOR BOTH METHODS
 C           STAGES          
           si  = Gs(irgi) + REACH(ia)%OFFSET
           sj  = Gs(irgj) + REACH(ja)%OFFSET
-C           STRUCTURE-CONTROLED FLOW
+C           STRUCTURE-CONTROLLED FLOW
           IF ( i.LT.1 ) THEN
             istrrch = REACH(ia)%ISTRCONN(ic)
 C             SEND REACH TO STRUCTURE CALL TO RETURN TOTAL FLOW FOR CONNECTION
@@ -11141,7 +11317,7 @@ C             NOT DIFFUSIVE WAVE REACH - SKIP
             IF ( REACH(i)%CROUTETYPE.NE.'DW' ) CYCLE EACHRCHCONN
 C             UNCONTROLLED FLOW ONLY FOR DIFFUSIVE-WAVE APPROXIMATION CONNECTION
             q = SSWR_CALC_UFLOW(i,j,irowi,jcoli,irowj,jcolj,
-     2                          irgi,irgj,si,sj,
+     2                          irgi,irgj,si,sj,DZERO,DZERO,
      3                          Gs)
           END IF
 C           POSITIVE FLOW - INFLOW TO REACH
@@ -11336,7 +11512,7 @@ C---------RETURN
       DOUBLEPRECISION FUNCTION SSWR_CALC_UFLOW(I,J,
      2                                         Irowi,Jcoli,Irowj,Jcolj,
      3                                         Icei,Icej,
-     4                                         Si,Sj,
+     4                                         Si,Sj,Sleni,Slenj,
      5                                         Gs)  RESULT(value)
         USE GLOBAL,       ONLY: DELR, DELC
         USE GWFSWRMODULE
@@ -11348,6 +11524,7 @@ C     + + + DUMMY ARGUMENTS + + +
         INTEGER, INTENT(IN) :: Jcoli, Jcolj
         INTEGER, INTENT(IN) :: Icei, Icej
         DOUBLEPRECISION, INTENT(IN) :: Si, Sj
+        DOUBLEPRECISION, INTENT(IN) :: Sleni, Slenj
         DOUBLEPRECISION, DIMENSION(NRCHGRP), INTENT(IN) :: Gs
 C     + + + LOCAL DEFINITIONS + + +
         DOUBLEPRECISION :: e, t, c
@@ -11392,7 +11569,8 @@ C     + + + CODE + + +
           IF (Icei.GT.IZERO) THEN
             dli = RCHGRP(Icei)%DLEN * DONEHALF
           ELSE
-            dli = REACH(I)%DLEN * DONEHALF
+C            dli = REACH(I)%DLEN * DONEHALF
+            dli = Sleni * DONEHALF
           END IF
         END IF
         IF (J.GT.IZERO) THEN
@@ -11403,7 +11581,8 @@ C     + + + CODE + + +
             IF (Icei.GT.IZERO) THEN
               dlj = RCHGRP(Icej)%DLEN * DONEHALF
             ELSE
-              dlj = REACH(J)%DLEN * DONEHALF
+C              dlj = REACH(J)%DLEN * DONEHALF
+              dlj = Slenj * DONEHALF
             END IF
           END IF
         END IF
@@ -12376,6 +12555,7 @@ C     + + + LOCAL DEFINITIONS + + +
         INTEGER :: jcoli, jcolj
         DOUBLEPRECISION :: rbot
         DOUBLEPRECISION :: stage, dstage
+        DOUBLEPRECISION :: strlen, strlen2
         DOUBLEPRECISION :: v, vt, dv
         DOUBLEPRECISION :: q
         DOUBLEPRECISION :: fact
@@ -12437,6 +12617,8 @@ C             FREE CONNECTION
           CASE (2)
             irowi   = REACH(Irch)%IRCH
             jcoli   = REACH(Irch)%JRCH
+            strlen  = Str%STRLEN
+            strlen2 = Str%STRLEN2
             IF ( Idsrch.GT.IZERO ) THEN
               irowj   = REACH(idsrch)%IRCH
               jcolj   = REACH(idsrch)%JRCH
@@ -12465,7 +12647,7 @@ C                   CRITICAL DEPTH BOUNDARY
 C               RETURNED VALUE IS RELATIVE TO REACH
             q = SSWR_CALC_UFLOW(Irch,idsrch,
      2                          irowi,jcoli,irowj,jcolj,
-     3                          -irchrg,0,stage,dstage,
+     3                          -irchrg,0,stage,dstage,strlen,strlen2,
      4                          P)
 C               NOTE: SIGN CONVENTION OF q FROM SSWR_CALC_UFLOW IS OPPOSITE
 C                     FROM OTHER STRUCTURE FLOWS - +VE = OUTFLOW, -VE = INFLOW
@@ -12909,6 +13091,7 @@ C     + + + CODE + + +
                 END IF
               END IF
           END SELECT
+!          ipos = MIN( ipos + 1, TSDATA%NDATA )
           ipos = ipos + 1
         END DO GETTS
 C
@@ -13186,7 +13369,7 @@ C---------RETURN
      4                          RSTAGE
         IMPLICIT NONE
 C       + + + DUMMY ARGUMENTS + + +
-        TYPE (TREACH), INTENT(IN) :: Rch
+        TYPE (TREACH), INTENT(INOUT) :: Rch
 C       + + + LOCAL DEFINITIONS + + +
         LOGICAL :: rhsonly
         INTEGER :: n, kl, kk
@@ -13743,6 +13926,44 @@ C       + + + CODE + + +
 C---------RETURN
 9999    RETURN
       END SUBROUTINE SSWR_EST_EXPLICIT_SFM
+
+      SUBROUTINE SSWR_GET_MODFLOW_TIME(Nmaxper,Ngetstp,Rt,Rtot)
+        USE GWFSWRMODULE, ONLY: RZERO, RONE
+        USE GLOBAL,       ONLY: PERLEN,NSTP,TSMULT
+        IMPLICIT NONE
+C       + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN) :: Nmaxper
+        INTEGER, INTENT(IN) :: Ngetstp
+        REAL, INTENT(INOUT) :: Rtot
+        REAL, INTENT(INOUT) :: Rt
+C       + + + LOCAL DEFINITIONS + + +
+        INTEGER         :: i, n
+C       + + + FUNCTIONS + + +
+C       + + + INPUT FORMATS + + +
+C       + + + OUTPUT FORMATS + + +
+C       + + + CODE + + +
+        Rt   = RZERO
+        Rtot = RZERO
+        LPER: DO n = 1, Nmaxper
+          Rtot  = Rtot + PERLEN(n)
+          Rt = PERLEN(n) / REAL( NSTP(n), 4 )
+          LSTP: DO i = 1, NSTP(n)
+            IF ( TSMULT(n).NE.RONE ) THEN
+              IF ( i.GT.1 ) THEN
+                Rt = Rt * TSMULT(n)
+              ELSE
+                Rt = PERLEN(n) * ( RONE - TSMULT(n) ) /
+     2              ( RONE - TSMULT(n)**NSTP(n) )
+              END IF
+            END IF
+            IF ( n.EQ.Nmaxper .AND. i.EQ.Ngetstp ) THEN
+              EXIT LPER
+            END IF
+          END DO LSTP
+        END DO LPER
+C---------RETURN
+9999    RETURN
+      END SUBROUTINE SSWR_GET_MODFLOW_TIME
 
 C     + + + DUMMY ARGUMENTS + + +
 C     + + + LOCAL DEFINITIONS + + +

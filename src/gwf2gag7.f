@@ -511,7 +511,7 @@ C     following formats modified by LFK, July 2006:
      *          'Precip.',12X,'ET',10X,'Runoff',
      *          '     Concentration"')
  277  FORMAT (2X,'"DATA: Time',9X,'Stage',11X,'Flow',
-     *           10X,'Depth',10X,'Width',6X,'Midpt-Flow',7X
+     *           10X,'Depth',10X,'Width',6X,'Midpt-Flow',7X,
      *           'Precip.',12X,'ET',10X,'Runoff',
      *           '    Concentration ',
      *           'of ',I3,' Solutes "')
@@ -530,7 +530,7 @@ C     following formats modified by LFK, July 2006:
 C285  FORMAT (1X,'" DATA:   Time',8X,'Stage',9X,'Flow',
  285  FORMAT (2X,'"DATA: Time',9X,'Stage',11X,'Flow',
      *           10X,'Depth',10X,'Width',6X,'Midpt-Flow',7X,
-     *           'Precip.',12X,'ET',10X,'Runoff',6X'Conductance',
+     *           'Precip.',12X,'ET',10X,'Runoff',6X,'Conductance',
      *           5X,'HeadDiff',7X,'Hyd.Grad.',
      *           '    Concentration      Load "')
  287  FORMAT (2X,'"DATA: Time',9X,'Stage',11X,'Flow',
@@ -662,8 +662,7 @@ C     ******************************************************************
       USE GWFLAKMODULE, ONLY:NLAKES,RNF,VOL,STGNEW,PRECIP,EVAP,
      1                       SURFIN,SURFOT,WITHDRW,SUMCNN,DELH,TDELH,
      2                       VOLINIT,OVRLNDRNF,TSLAKERR,CMLAKERR,DELVOL,
-     3                       SEEPUZ
-     
+     3                       SEEPUZ     
 C     ------------------------------------------------------------------
       DIMENSION CLAKE(NLAKES,NSOL)
 cdep 4/20/2009 dimensioned SEEP array to nlakes

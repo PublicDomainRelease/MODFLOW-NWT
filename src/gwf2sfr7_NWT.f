@@ -248,7 +248,6 @@ C4------READ UNSATURATED FLOW VARIABLES WHEN ISFROPT GREATER THAN 1.
 ! RGN put NSEGDIM into module for FMP 10/15/11
       NSEGDIM = NSS + nparseg
       IF (nsegdim.LT.1) nsegdim = 1
-C
 !IFACE
 !4c-----Look for IFACE Flag
       iface=0
@@ -1620,9 +1619,10 @@ C30-----DETERMINE VARIABLES WHEN UNSATURATED FLOW IS ACTIVE.
         ic = ISTRM(3, l)
         h = HNEW(ic, ir, il)
         HLDSFR(l) = h
+        istsg = ISTRM(4, l)
+        icalc = ISEG(1, istsg)
+        IF ( icalc.EQ.2 .AND. IUZT.EQ.1 ) CALL CHANNELAREA(istsg, l)
         IF ( IUZT.EQ.1 .AND. iflginit.GE.1 ) THEN
-          istsg = ISTRM(4, l)
-          icalc = ISEG(1, istsg)
           sbot = STRM(4, l)
           strlen = STRM(1, l)
           width = STRM(5, l)
@@ -1657,7 +1657,7 @@ C
 C32-----BREAK CHANNEL INTO ISUZN WIDTHS FOR UNSATURATED FLOW 
 C         WHEN ICALC IS 2 AND UNSATURATED FLOW IS ACTIVE.
           ELSE IF ( icalc.EQ.2 ) THEN
-            CALL CHANNELAREA(istsg, l) 
+!            CALL CHANNELAREA(istsg, l) moved to above 
             istep = NSTOTRL/ISUZN
             DO jk = 1, NSTOTRL
               UZTHST(jk, l) = THTR(l)
@@ -5046,7 +5046,7 @@ C     ******************************************************************
      +                        SEG, XSEC, QSTAGE, CONCQ, CONCRUN,CONCPPT,
      +                        DVRCH, DVRCELL, RECHSAVE, DVEFF, DVRPERC  !cjm (added DVRCH, DVRCELL and RECHSAVE)
       USE GLOBAL,       ONLY: IOUT
-      USE GWFUZFMODULE, ONLY: FINF
+!      USE GWFUZFMODULE, ONLY: FINF
 !      USE GWFRCHMODULE,ONLY: RECH  !cjm
       IMPLICIT NONE
 C     ------------------------------------------------------------------

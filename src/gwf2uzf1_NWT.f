@@ -1961,7 +1961,7 @@ C     ******************************************************************
      +                        ITMUNI
       USE GWFBASMODULE, ONLY: ICBCFL, IBUDFL, TOTIM, PERTIM, DELT, MSUM,
      +                        VBNM, VBVL, HNOFLO, HDRY
-      USE GWFLAKMODULE, ONLY: LKARR1, STGNEW
+      USE GWFLAKMODULE, ONLY: LKARR1, STGNEW, LAKSEEP
       USE GWFSFRMODULE, ONLY: RECHSAVE, FNETSEEP
       IMPLICIT NONE
 C     -----------------------------------------------------------------
@@ -3011,13 +3011,14 @@ C Print net recharge as ascii to a separate output file
 !            IF ( IUZFBND(ic,ir).NE.0 ) THEN
 !              dum = 0.0
 !              IF (Iunitsfr.GT.0 ) dum = FNETSEEP(ic,ir)
+!              IF (Iunitlak.GT.0 ) dum = dum + LAKSEEP(ic,ir)
 !              FNETEXFIL(ic, ir) = FNETEXFIL(ic, ir)+ 
 !     +        (UZFLWT(ic, ir)/DELT-SEEPOUT(ic, ir)-GWET(ic, ir)+dum)
 !            END IF
 !          END DO
 !        END DO
 !        IPRCNT = IPRCNT + 1
-!        IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
+!!        IF ( ibd.GT.0 .OR. ibduzf.GT.0 ) THEN
 !          OPEN(991,file='Netrech.txt')
 !          write(991,*)kkper, kkstp
 !          DO ir = 1, NROW
@@ -3027,7 +3028,7 @@ C Print net recharge as ascii to a separate output file
 !            END DO
 !          END DO
 !          IPRCNT = 0
-!        END IF
+!!        END IF
 !  221 FORMAT(5000e20.10)
 C
 C31-----UPDATE RATES AND BUFFERS WITH ET FOR UZF OR MODFLOW BUDGET ITEMS.

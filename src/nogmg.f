@@ -33,9 +33,9 @@ C
      &        IUNITMHC,DUP,DLOW,CHGLIMIT,BIGHEADCHG,HNEWLAST)
 C***********************************************************************
       IMPLICIT NONE
-      REAL RHS(*),CR(*),CC(*),CV(*),HCOF(*)
+      REAL CR(*),CC(*),CV(*)
       REAL HNOFLO,RCLOSE,HCLOSE,DAMP
-      DOUBLE PRECISION HNEW(*)
+      DOUBLE PRECISION HNEW(*),RHS(*),HCOF(*)
       INTEGER IBOUND(*)
       INTEGER MXITER,IITER,KITER,KSTP,KPER,ICNVG,IOUTGMG,IOUT 
       INTEGER SITER,TSITER

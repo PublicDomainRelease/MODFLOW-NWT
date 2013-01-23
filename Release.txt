@@ -431,7 +431,7 @@ The most significant change to MODFLOW-NWT for this release was the addition of 
 Water Routing Process (Hughes and others, 2012). Refer to the SWR1 documentation report 
 located in MODFLOW-NWT_1.0.6\doc for details regarding the functionality
 and input required for SWR1. Modifications to MODFLOW-NWT that were made to support SWR1
-include the additional of two new source code files (gsol7.f and gwf2swr7_NWT.f) and the
+include the addition of two new source code files (gsol7.f and gwf2swr7_NWT.f) and the
 addition of call statements added to the MODFLOW-NWT main source code file (MF_NWT.f). Additionally,
 there are 5 test problems that use SWR1 included with this release for testing the linkage
 between MODFLOW-NWT and SWR1 located in MODFLOW-NWT_1.0.6\data\SWR_data_files. Refer
@@ -476,7 +476,7 @@ program will stop if the HUF and LAK Packages are used together in a simulation.
 WELL (WEL) Package
 
 A bug was fixed to allow the reduced pumping information to be written correctly to the LIST file
-and separate text file.
+or separate text file.
 
 
 xMD Matrix Solver
@@ -501,7 +501,7 @@ Streamflow Routing (SFR2) Package
 Some variables were made double precision and the precision used in calculations
 was made consistent. Some minor calculations were modified for solution efficiency.
 Allocation of some variables were changed to reduce the amount of random axcess memory (RAM)
-required for simulations. These changes did not effect simulation results. Initialization
+required for simulations. These changes did not affect simulation results. Initialization
 of some local variables was added.
 
 Streamflow Routing (UZF1) Package
@@ -530,6 +530,119 @@ Direct Solver (DE) Package
 The variables RHS and HCOF were made double precision.
 
 The Stream Observation Package (obs2str7.f) was added.
+
+o Version 1.0.7 01/15/2013:
+
+Lake (LAK) Package
+
+In versions of MODFLOW-NWT prior to 1.0.6, when the Lake Package was used simultaneously 
+with the HUF Package, the effective (combined) aquifer-lakebed conductances were 
+not calculated correctly.  In this update, the Lake Package has been modified to 
+compute effective lake-aquifer conductance solely on the basis of the user-specified 
+value of lakebed leakance; aquifer hydraulic conductivities are not used in this 
+calculation.  An appropriate informational message is now printed after the lakebed 
+conductances are written to the main output file.  There have also been several minor 
+changes to format statements to improve the information content of the output file. 
+
+Multi-Node Well (MNW2) Package
+
+An argument mismatch was corrected between the call to the subroutine GWF2MNW27RP
+from MF_NWT.f to gwf2mnw27_NWT.f. 
+
+A bug was fixed that affected simulations in which a composite well screen was 
+generated when specifying multiple open intervals by elevation. In this case, 
+some nodes were inadvertently excluded from the second interval. With the fix, 
+all nodes of the multi-node well will be represented. Some output format 
+adjustments were also made.
+
+If a single-node multi-node well with a nonzero specified discharge was located 
+in an inactive cell (IBOUND=0), it could generate a divide-by-zero error and 
+halt execution of the program. The code was fixed to preclude such a 
+floating-point error from occurring. A new warning message is now also written to 
+the output file if this condition is detected.
+
+If the well yield (and pumping rate) was reduced because of the seepage face 
+calculations, an incorrect message (indicating erroneously that the cause was the 
+head constraint) was written to the output file. The code was fixed so that 
+possible causes of reduced pumping rates are accurately printed.
+
+The code was modified to eliminate separate processing for single-node MNW2 wells, 
+which eliminated some inconsistencies in handling single-node wells. If the computed 
+value for the head in single-node wells drops below the bottom of the cell, it invokes 
+the seepage face calculation, which will reduce or eliminate the desired Q from the 
+well. In cases where the Qdes is thereby reduced, the actual head in the well is 
+indeterminate, but will be reported in separate MNWI output files as the limiting 
+value of the bottom elevation of the cell together with an information note that the 
+actual value may be lower than that reported value.  If Qdes is reduced to zero, the 
+well is deactivated and that information is reported in the MNWI optional MNW2 
+observation well file. 
+ 
+At the end of the first paragraph on p. 32 of the documentation report, it states that 
+the alternate calculations for CWC for nonvertical wells will be performed automatically 
+when LOSSTYPE = THIEM, SKIN, or GENERAL. Unfortunately, the code did not check this 
+condition, and erroneously performed these calculations when LOSSTYPE = SPECIFYCWC.  
+The corrected code now uses the specified values of CWC for nonvertical wells when it 
+is supposed to.
+
+The code automatically estimates the maximum number of nodes (NODTOT) as required for 
+allocation of arrays. However, if a large number of horizontal wells are being simulated, 
+or possibly for other reasons, this default estimate proves to be inadequate, a new 
+input option has been added to allow the user to directly specify a value for NODTOT. If 
+this is a desired option, then it can be implemented by specifying a negative value for 
+"MNWMAX"--the first value listed in Record 1 (Line 1) of the MNW2 input data file. If 
+this is done, then the code will assume that the very next value on that line will be 
+the desired value of "NODTOT". The model will then reset "MNWMAX" to its absolute value. 
+The value of "IWL2CB" will become the third value on that line, etc.
+
+The code included several coding errors in the calculation of cell-to-well conductances 
+for nonvertical wells. There was also an error in the calculation of the length of closed 
+casing between sequential, but non-adjacent, active nodes of a nonvertical MNW2 well (a 
+value only used for informational purposes in the output file).  All of these errors have 
+now been fixed. 
+
+A bug was fixed that affected simulations when both MNW2 and the HUF Packages 
+were used in the same simulation in conjunction with the partial penetration
+correction. The variable KY is now declared as a Double Precision variable 
+instead of being implicitly assumed (incorrectly) to be an Integer variable.  
+
+A number of minor changes were made in Format statements to produce a cleaner 
+output file.
+
+In Subroutines GWF2MNW27BCF and GWF2MNW27HUF, corrections were made to assure 
+the correct check is made for steady-state or transient conditions and to prevent 
+a divide by zero error if a cell is dry. 
+
+A bug was fixed for the calculation of angles theta and omega for slanted wells 
+with an orientation into the southwest directional quadrant.
+
+A bug was fixed that caused erroneous values to be written to the compact budget 
+file (specifically, for inactive MNW wells), although the numerical solution itself 
+was accurate, as were the budget numbers written to the main listing file.  
+
+Hydrogeologic-Unit Flow (HUF) Package
+
+Small changes were made to make RHS and HCOF double precision when passed as
+subroutine arguments.
+
+Preconditioned Conjugate Gradient (PCG) Package
+
+Small changes were made to make RHS and HCOF double precision when passed as
+subroutine arguments.
+
+NWT Main File (MF_NWT.f)
+
+The version number and date were made consistent with MODFLOW-2005 1.9.01, 05/01/2012
+
+Streamflow Routing (SFR2) Package
+
+An uninitialized variable was initialized.
+
+Gage Package
+
+Commas were added to some write statements.
+
+Modified source files: gwf2mnw27_NWT.f, MF_NWT.f, gwf2lak7_NWT.f, gwf2mnw2i7.f,
+nogmg.f, gwf2huf7.f, pcg7_NWT.f, gwf2sfr7_NWT.f, gwf2gag7.f
 
 References
 

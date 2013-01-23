@@ -3720,7 +3720,7 @@ C     ******************************************************************
 C
 C        SPECIFICATIONS:
 C     ------------------------------------------------------------------
-      DOUBLE PRECISION HNEW,H1
+      DOUBLE PRECISION HNEW,H1,RHS
       DOUBLE PRECISION TF9,TF5,FL5,FR5,FT5,FB5,
      &   CRL,CRR,CCT,CCB
       DIMENSION RHS(NCOL,NROW,NLAY),VDHT(NCOL,NROW,NLAY,3),

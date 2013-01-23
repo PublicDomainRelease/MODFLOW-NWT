@@ -25,9 +25,9 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2,VERSION3
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.0.6 12/05/2012')
-      PARAMETER (VERSION2='1.8.00 12/18/2009')
-      PARAMETER (VERSION3='0.56.0 05/18/2012')
+      PARAMETER (VERSION='1.0.7 01/15/2013')
+      PARAMETER (VERSION2='1.9.01 05/01/2012')
+      PARAMETER (VERSION3='1.02.0 01/17/2013')
       PARAMETER (MFVNAM='-NWT-SWR1')
 C
       CHARACTER*80 HEADNG(2)
@@ -205,8 +205,8 @@ C----------READ USING PACKAGE READ AND PREPARE MODULES.
         IF(IUNIT(39).GT.0) CALL GWF2ETS7RP(IUNIT(39),IGRID)
         IF(IUNIT(40).GT.0) CALL GWF2DRT7RP(IUNIT(40),IGRID)
         IF(IUNIT(50).GT.0) CALL GWF2MNW27RP(IUNIT(50),kper,IUNIT(9),
-     +                       IUNIT(10),0,IUNIT(13),0,IUNIT(42),
-     +                       IUNIT(15),IUNIT(63),IGRID)
+     +                                      IUNIT(10),0,IUNIT(13),
+     +                                      IUNIT(15),IUNIT(63),IGRID)
         IF(IUNIT(51).GT.0.AND.KKPER.EQ.1) CALL GWF2MNW2I7RP(IUNIT(51),
      1                     0,IGRID)
         IF(IUNIT(52).GT.0) CALL GWF2MNW17RP(IUNIT(52),IUNIT(1),
@@ -530,11 +530,11 @@ C7C4----CALCULATE BUDGET TERMS. SAVE CELL-BY-CELL FLOW TERMS.
           IF(IUNIT(44).GT.0) CALL GWF2SFR7BD(KKSTP,KKPER,IUNIT(15),
      1                        IUNIT(22),IUNIT(46),IUNIT(55),NSOL,
      2                        IUNIT(8),IGRID)
-! Moved call to UZF1BD to follow SFR7BD for printing net recharge in UZF.
-          IF(IUNIT(55).GT.0) CALL GWF2UZF1BD(KKSTP,KKPER,IUNIT(22),
-     1                             IUNIT(44),IGRID)
           IF(IUNIT(22).GT.0) CALL GWF2LAK7BD(KKSTP,KKPER,IUNIT(15),
      1                       IUNIT(46),IUNIT(44),IUNIT(55),NSOL,IGRID)
+ ! Moved call to UZF1BD to follow SFR7BD for printing net recharge in UZF.
+          IF(IUNIT(55).GT.0) CALL GWF2UZF1BD(KKSTP,KKPER,IUNIT(22),
+     1                             IUNIT(44),IGRID)
           IF(IUNIT(50).GT.0) CALL GWF2MNW27BD(KKSTP,KKPER,IUNIT(62),
      1                                        IGRID)
           IF(IUNIT(52).GT.0) CALL GWF2MNW17BD(NSTP(KPER),KKSTP,KKPER,

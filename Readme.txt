@@ -1,13 +1,13 @@
 
 
-                      MODFLOW-NWT - Version: 1.0.6
+                      MODFLOW-NWT - Version: 1.0.7
                   Newton Formulation for MODFLOW-2005
 
 
 NOTE: Any use of trade, product or firm names is for descriptive purposes 
       only and does not imply endorsement by the U.S. Government.
 
-MODFLOW-NWT version 1.0.6 is packaged for personal computers using one of the 
+MODFLOW-NWT version 1.0.7 is packaged for personal computers using one of the 
 Microsoft Windows operating systems. Executable files for personal 
 computers are provided as well as the source code. The executable files were 
 compiled on a personal computer with the Intel(R) Core(TM)2Duo CPU T9500 
@@ -40,7 +40,7 @@ A. DISTRIBUTION FILE
 
 The following distribution file is for use on personal computers:
 
-         MODFLOW-NWT_1.0.6.zip
+         MODFLOW-NWT_1.0.7.zip
 
 The distribution file contains:
 
@@ -57,15 +57,16 @@ file contains the following directory structure.
 
 
    |
-   |--MODFLOW-NWT_1.0.6
+   |--MODFLOW-NWT_1.0.7
    |    |--bin           ; Compiled MODFLOW-NWT executables for personal computers
    |    |--data          ; Sample problems
    |    |--doc           ; Documentation report for MODFLOW-NWT and the Surface-
                            Water Routing Package
    |    |--output_test   ; Output files from running the sample problems
+   |    |--output_test_64   ; Output files from running the sample problems, 64 bit versions
    |    |--src           ; Source code for MODFLOW-NWT
 
-Included in directory MODFLOW-NWT_1.0.6\doc is the MODFLOW-NWT documentation 
+Included in directory MODFLOW-NWT_1.0.7\doc is the MODFLOW-NWT documentation 
 report, which is a Portable Document Format (PDF) file. The PDF file is 
 readable and printable on various computer platforms using Acrobat Reader 
 from Adobe. The Acrobat Reader is freely available from the following World
@@ -76,11 +77,11 @@ Wide Web site:
 B. INSTALLING
 
 To make the executable versions of MODFLOW-NWT accessible from any
-directory, the directory containing the executables (MODFLOW-NWT_1.0.6\bin)
+directory, the directory containing the executables (MODFLOW-NWT_1.0.7\bin)
 should be included in the PATH environment variable (see explanation below).  
 
 As an alternative, the executable files, MODFLOW-NWT.exe and MODFLOW-NWT_64.exe, 
-in the MODFLOW-NWT_1.0.6\bin directory can be copied into a directory already
+in the MODFLOW-NWT_1.0.7\bin directory can be copied into a directory already
 included in the PATH environment variable.
 
        HOW TO ADD TO THE PATH ENVIRONMENT VARIABLE
@@ -88,7 +89,7 @@ included in the PATH environment variable.
           
 Add the following line to the AUTOEXEC.BAT file:
 
-  PATH=%PATH%;C:\WRDAPP\MODFLOW-NWT_1.0.6\bin
+  PATH=%PATH%;C:\WRDAPP\MODFLOW-NWT_1.0.7\bin
 
 Note, reboot your system after modifying AUTOEXEC.BAT.
 
@@ -100,11 +101,11 @@ From the Start menu, select Settings and then Control Panel.  Double click
 System and select the Environment tab. To add a new user variable, enter
 "PATH" in the Variable field and enter
 
-   %PATH%;C:\WRDAPP\MODFLOW-NWT_1.0.6\bin
+   %PATH%;C:\WRDAPP\MODFLOW-NWT_1.0.7\bin
 
 in the Value field.  Click Set and then click OK.  If a PATH user variable
 already is defined, click on it in the User Variables pane, add
-";C:\WRDAPP\MODFLOW-NWT_1.0.6\bin" to its definition in the Value field, and click
+";C:\WRDAPP\MODFLOW-NWT_1.0.7\bin" to its definition in the Value field, and click
 OK.  Initiate and use a new Windows Command Prompt window after making this
 change.
 
@@ -116,7 +117,7 @@ From the Start menu, select Settings and then Control Panel.  Double click
 System and select the Advanced tab.  Click on Environment Variables.  If
 a PATH user variable already is defined, click on it in the User Variables
 pane, then click Edit.  In the Edit User Variable window, add
-";C:\WRDAPP\MODFLOW-NWT_1.0.6\bin" to the end of the Variable Value (ensure that
+";C:\WRDAPP\MODFLOW-NWT_1.0.7\bin" to the end of the Variable Value (ensure that
 the current contents of the User Value are not deleted) and click OK.  If
 a PATH user variable is not already defined, in the User variables pane of
 the Environment Variables window, click New.  In the New User Variable
@@ -127,7 +128,7 @@ window.  Initiate and use a new Windows Command Prompt window.
 
 C. EXECUTING THE SOFTWARE
 
-A 32 bit and a 64 bit executable are provided in the MODFLOW-NWT_1.0.6\bin  
+A 32 bit and a 64 bit executable are provided in the MODFLOW-NWT_1.0.7\bin  
 directory. Two executables are provided because computers often use either  
 the 32 bit Windows XP or the 64 bit Windows 7 operating systems. Large 
 simulations may not run on a 32 bit operating system due to limitations 
@@ -136,7 +137,7 @@ system provides much more available RAM than a 32 bit operating system.
 Thus, it is recommended that a 64 bit executable be used on a 64 bit operating  
 system for large simulations.   
 
-After the executable files in the MODFLOW-NWT_1.0.6\bin directory are installed in
+After the executable files in the MODFLOW-NWT_1.0.7\bin directory are installed in
 a directory that is included in your PATH, MODFLOW-NWT is initiated in
 a Windows Command-Prompt window using the commands:
 
@@ -182,18 +183,19 @@ in Merritt and Konikow (2000) as Test Simulation 1, and the final five test
 problems (SwrSample01, SwrSample02, SwrSample03, SwrSample04, SwrSample05) 
 are documented in Hughes and others (2012). These test problems can be run 
 using either the 32-bit or 64-bit version of the MODFLOW-NWT executable. 
-Saved results for these simulations are included in the Output_test directory 
+Saved results for these simulations are included in the Output_test and
+Output_test_64 directories.
 for comparison.
 
 E. COMPILING
 
-The executable files provided in MODFLOW-NWT_1.0.6\bin were created using the Intel  
+The executable files provided in MODFLOW-NWT_1.0.7\bin were created using the Intel  
 Visual Fortran 12.1 compiler. Although executable versions of the program are  
-provided, the source code also is provided in the MODFLOW-NWT_1.0.6\src directory so 
+provided, the source code also is provided in the MODFLOW-NWT_1.0.7\src directory so 
 that MODFLOW-NWT can be recompiled if necessary. However, the USGS cannot provide  
 assistance to those compiling MODFLOW-NWT.
 
-D. REFERENCES
+F. REFERENCES
 
 Hughes, J.D., Langevin, C.D., Chartier, K.L., and White, J.T., 2012, Documentation 
 of the Surface-Water Routing (SWR1) Process for modeling surface-water flow with the 
