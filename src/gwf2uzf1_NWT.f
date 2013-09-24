@@ -7,7 +7,7 @@ C     ALLOCATE ARRAY STORAGE FOR UNSATURATED FLOW, RECHARGE, AND ET
 C     READ AND CHECK VARIABLES THAT REMAIN CONSTANT
 !--------REVISED FOR MODFLOW-2005 RELEASE 1.9, FEBRUARY 6, 2012
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.6:  December 5, 2012
+!rgn------NEW VERSION NUMBER 1.0.8:  September 1, 2013
 C     ******************************************************************
       USE GWFUZFMODULE
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, IOUT, ITRSS, ISSFLG, 
@@ -97,7 +97,8 @@ C1------IDENTIFY PACKAGE AND INITIALIZE.
       ELSE
          WRITE(iout,*)
          WRITE(IOUT,'(A)') ' INITIAL WATER CONTENT (THTI) WILL BE ',
-     +                   ' CALCULATED BASED ON THE SS INFILTRATION RATE'
+     +                 ' CALCULATED BASED ON THE SS INFILTRATION RATE ',
+     +                 'IF STARTING WITH SS.'
          WRITE(iout,*)
       END IF
       lloc = llocsave
@@ -409,7 +410,7 @@ C
       END IF
 C
 C12-----READ VERTICAL HYDRAULIC CONDUCTIVITY FROM UZF INPUT FILE.
-      IF ( IUZFOPT.EQ.1 .OR. IUZFOPT.EQ.0 ) THEN
+      IF ( IUZFOPT.EQ.1 .OR. IUZFOPT.LE.0 ) THEN
         CALL U2DREL(VKS, aname(6), NROW, NCOL, 0, In, IOUT)
 C
 C13-----CHECK FOR ERRORS IN VERTICAL HYDRAULIC CONDUCTIVITY
@@ -1065,8 +1066,8 @@ CRGN made il = 0 when all layers for column are inactive 2/21/08
               IF ( il.GT.0 .AND. land.GT.0 ) THEN
                 thick = BOTM(ncck, nrck,LBOTM(land)-1)-
      +                  BOTM(ncck, nrck,LBOTM(il))
-                IF ( ROOTDPTH(ncck, nrck).GT.0.99*thick ) THEN
-                  ROOTDPTH(ncck, nrck) = 0.99*thick
+                IF ( ROOTDPTH(ncck, nrck).GT.0.9*thick ) THEN
+                  ROOTDPTH(ncck, nrck) = 0.9*thick
                   WRITE (IOUT, 222) nrck, ncck
                 END IF
               END IF
@@ -1918,7 +1919,7 @@ C-------------SFR AND SWR REACHES
                 END IF
               END IF
               IF ( Iunitswr.GT.0 ) THEN
-                CALL GWF2SWR7EX(Igrid,1,1,irun,seepout1)  !FILL QUZFLOW IN SWR SUBROUTINE
+                CALL GWF2SWR7EX_V(Igrid,1,irun,seepout1)  !FILL QUZFLOW IN SWR SUBROUTINE
               END IF
 C-------------LAK REACHES
             ELSE IF ( irun.LT.0 ) THEN
@@ -3720,7 +3721,7 @@ C
         CALL LEADWAVE2(Numwaves, time, Totalflux, itester, Flux, 
      +                 Theta, Speed, Depth, Itrwave, Ltrail, Fksat, 
      +                 Eps, Thetas, Thetar, Surflux, Oldsflx, Jpnt, 
-     +                 feps2, itrailflg, Delt)
+     +                 feps2, itrailflg, Delt, ffcheck)
       END IF
       IF ( itester.EQ.1 ) THEN
         Totalflux = Totalflux + (Delt-time)*Flux(Jpnt)
@@ -3771,7 +3772,7 @@ C--------SUBROUTINE LEADWAVE2
       SUBROUTINE LEADWAVE2(Numwaves, Time, Totalflux, Itester, Flux, 
      +                     Theta, Speed, Depth, Itrwave, Ltrail, Fksat, 
      +                     Eps, Thetas, Thetar, Surflux, Oldsflx, Jpnt, 
-     +                     Feps2, Itrailflg, Delt)
+     +                     Feps2, Itrailflg, Delt, ffcheck)
 C     ******************************************************************
 C     CREATE LEAD WAVE WHEN THE SURFACE FLUX INCREASES AND ROUTE WAVES.
 !--------REVISED FOR MODFLOW-2005 RELEASE 1.9, FEBRUARY 6, 2012
@@ -3790,12 +3791,12 @@ C     ------------------------------------------------------------------
       REAL Eps, Fksat, Thetas
       DOUBLE PRECISION Depth(NWAV), Theta(NWAV), Flux(NWAV), Speed(NWAV)
       DOUBLE PRECISION Feps2, Totalflux, Surflux, Oldsflx, Thetar, Time,
-     +                 Delt
+     +                 Delt, ffcheck
 C     ------------------------------------------------------------------
 C     LOCAL VARIABLES
 C     ------------------------------------------------------------------
-      DOUBLE PRECISION ffcheck, bottomtime, shortest, fcheck, fhold
-      DOUBLE PRECISION eps_m1, timenew, feps3
+      DOUBLE PRECISION bottomtime, shortest, fcheck, fhold
+      DOUBLE PRECISION eps_m1, timenew, feps3, bottom
       DOUBLE PRECISION thsrinv, epsfksths, timedt, big, f7, f8
       DOUBLE PRECISION ttt, diff, comp1, comp2, ftheta1, ftheta2
       INTEGER idif, iflag, iflag2, iflx, iremove, itrwaveb, j, jj, k, 
@@ -3818,7 +3819,7 @@ C
 C1------INITIALIZE NEWEST WAVE.
       IF ( Itrailflg.EQ.0 ) THEN
         jpnwavesm1 = jpntm1 + Numwaves
-        ffcheck = Surflux - Oldsflx
+ !       ffcheck = Surflux - oldsflx  ! RGN 4/18/2013
         IF ( ffcheck.GT.Feps2 ) THEN
           Flux(jpnwavesm1) = Surflux
           IF ( Flux(jpnwavesm1).LT.NEARZERO ) Flux(jpnwavesm1) = 0.0D0
@@ -3915,7 +3916,9 @@ C         WATER TABLE.
         IF ( Numwaves.GT.1 ) THEN
 Cdep 
           IF ( Speed(jpntp1).GT.0.0D0 ) THEN
-            bottomtime = (Depth(Jpnt)-Depth(jpntp1))/Speed(jpntp1)
+            bottom = Speed(jpntp1)
+            IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+            bottomtime = (Depth(Jpnt)-Depth(jpntp1))/bottom
             IF ( bottomtime.LT.0.0 ) bottomtime = 1.0D-12
           END IF
         END IF
@@ -3955,9 +3958,11 @@ C8--------ROUTE TRAILING WAVES.
             ELSE
               jjj = jpntm2 + j
               DO k = j + jpntm1, j + Itrwave(jpntm1+j) - 1
+                bottom = Theta(jjj)-Thetar
+                IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
                 Depth(k) = Depth(jjj)*(((f7*Theta(k)
      +                     +f8*Theta(k-1)-Thetar)
-     +                     /(Theta(jjj)-Thetar))**eps_m1)
+     +                     /(bottom))**eps_m1)
               END DO
               j = j + Itrwave(jpntm1+j) - 1
             END IF
@@ -4019,7 +4024,9 @@ C10-----CHECK IF WAVES INTERCEPT BEFORE TIME STEP ENDS.
 C
 C11-----ROUTE TRAIL WAVES.
               jjj = jpntm2 + j
-              ttt = 1.0D0/(Theta(jjj)-Thetar)
+              bottom = Theta(jjj)-Thetar
+              IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+              ttt = 1.0D0/bottom
               DO k = j+jpntm1, j + Itrwave(jpntm1+j) - 1
                 Depth(k) = Depth(jjj)*(((f7*Theta(k)
      +                     +f8*Theta(k-1)-Thetar)*ttt)**eps_m1)
@@ -4226,7 +4233,9 @@ C         DURING REMAINING TIME.
 C
 C18-----ROUTE TRAILING WAVES.
               jjj = jpntm2 + j
-              ttt = 1.0D0/(Theta(jjj)-Thetar)
+              bottom = Theta(jjj)-Thetar
+              IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+              ttt = 1.0D0/bottom
               DO k = j+jpntm1, j + Itrwave(jpntm1+j) - 1
                 Depth(k) = Depth(jjj)*(((f7*Theta(k)
      +                     +f8*Theta(k-1)-Thetar)*ttt)**eps_m1)
@@ -4358,6 +4367,7 @@ C1------INITIALIZE TRAILING WAVES.
         END IF
       ELSE
         Ltrail(jpnwavesm1) = 1
+        Itrwave(jpnwavesm1) = 0
         Theta(jpnwavesm1) = Theta(jpnwavesm2)
         Depth(jpnwavesm1) = 0.0D0
         fhold = (Theta(jpnwavesm1)-Thetar)*thsrinv
@@ -4383,9 +4393,8 @@ C     REMOVE WATER FROM UNSATURATED ZONE CAUSED BY EVAPOTRANSPIRATION
 C     ******************************************************************
       USE GWFUZFMODULE, ONLY: NWAV, NEARZERO, ZEROD6, RTSOLUTE, GRIDET,
      +                        Closezero, AIR_ENTRY, H_ROOT, ZEROD15,
-     +                        ZEROD9
+     +                        ZEROD9, ZEROD7
       USE GLOBAL,       ONLY: NLAY, LBOTM, BOTM, IOUT
-      USE GWFBASMODULE, ONLY: DELT
       IMPLICIT NONE
 C     ------------------------------------------------------------------
 C     SPECIFICATIONS:
@@ -4409,7 +4418,7 @@ C     ------------------------------------------------------------------
       DIMENSION depth2(Nwv), theta2(Nwv), flux2(Nwv), speed2(Nwv)
       DOUBLE PRECISION feps, ftheta1, ftheta2, depthinc, depthsave
       DOUBLE PRECISION ghdif, fm1, totalwc, totalwc1, HA, FKTHO, HROOT
-      DOUBLE PRECISION HCAP, PET, FACTOR, THO
+      DOUBLE PRECISION HCAP, PET, FACTOR, THO, bottom
       INTEGER ihold, ii, inck, itrwaveyes, j, jhold, jk, kj, kk, numadd,
      +        ltrail2(Nwv), itrwave2(Nwv), icheckwilt, icheckitr, jkp1,
      +        kjm1
@@ -4433,7 +4442,11 @@ C1------INITIALIZE VARIABLES.
       icheckwilt = 0
       thetaout = Etime*Rateud
       IF ( thetaout.LE.zero ) RETURN
-      thsrinv = 1.0/(Thetas-Thetar)
+      IF ( Thetas-Thetar.LT.ZEROD7 ) THEN
+        thsrinv = 1.0/ZEROD7
+      ELSE
+        thsrinv = 1.0/(Thetas-Thetar) 
+      END IF
       epsfksths = Eps*Fksat*thsrinv
       Etout = 0.0D0
       feps = 1.0D-5
@@ -4448,7 +4461,7 @@ C1------INITIALIZE VARIABLES.
         ltrail2(ii) = Ltrail(ii)
         itrwave2(ii) = Itrwave(ii)
       END DO
-      IF ( Wiltwc1.LT.Thetar ) Wiltwc1 = Thetar + .00001D0
+      IF ( Wiltwc1.LT.Thetar+.00001D0 ) Wiltwc1 = Thetar + .00001D0
       Wiltwc = Wiltwc1 - Thetar
       numadd = 0
       st = 0.0D0
@@ -4507,14 +4520,21 @@ C         DEPTH.
 !          IF ( fhold.LT.NEARZERO ) fhold = 0.0D0
 !          Speed(Jpnt+Numwaves) = epsfksths * (fhold**eps_m1)
 !  rgn added new calculation for speed 5/26/09.
+       bottom  = Theta(jpntm1+Numwaves)-Theta(Jpnt+Numwaves)
+       IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
             Speed(Jpnt+Numwaves) = (Flux(jpntm1+Numwaves)-
-     +                              Flux(Jpnt+Numwaves))/
-     +                             (Theta(jpntm1+Numwaves)-
-     +                              Theta(Jpnt+Numwaves))
+     +                              Flux(Jpnt+Numwaves))/bottom
             Depth(Jpnt+Numwaves) = Rootdepth
             Itrwave(Jpnt+Numwaves) = 0
             Ltrail(Jpnt+Numwaves) = 1
             Numwaves = Numwaves + 1
+            IF ( Numwaves.GT.NWAV ) THEN
+           WRITE (*, *) 'TOO MANY WAVES IN UNSAT CELL',IC,IR, Numwaves,
+     +                  '   PROGRAM TERMINATED IN TRANSPIRATION UZF - 3'
+           WRITE (IOUT, *)'TOO MANY WAVES IN UNSAT CELL',IC,IR,Numwaves,
+     +              '   PROGRAM TERMINATED IN UZFLOW-3; INCREASE NSETS2'
+            STOP
+          END IF
           ELSE
             numadd = 0
           END IF
@@ -4533,22 +4553,38 @@ C4------ONLY ONE WAVE IS DEEPER THAN ET EXTINCTION DEPTH.
               Flux(jpntp1) = Fksat*(((Theta(jpntp1)-Thetar)*
      +                       thsrinv)**Eps)
               Depth(jpntp1) = Rootdepth
-              Speed(jpntp1) = (Flux(Jpnt)-Flux(jpntp1))/
-     +                      (Theta(Jpnt)-Theta(jpntp1))
+              bottom  = Theta(Jpnt)-Theta(jpntp1)
+              IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+              Speed(jpntp1) = (Flux(Jpnt)-Flux(jpntp1))/bottom
               Itrwave(jpntp1) = 0
               Ltrail(jpntp1) = 1
               Numwaves = Numwaves + 1
+          IF ( Numwaves.GT.NWAV ) THEN
+           WRITE (*, *) 'TOO MANY WAVES IN UNSAT CELL',IC,IR, Numwaves,
+     +                  '   PROGRAM TERMINATED IN TRANSPIRATION UZF - 4'
+           WRITE (IOUT, *)'TOO MANY WAVES IN UNSAT CELL',IC,IR,Numwaves,
+     +              '   PROGRAM TERMINATED IN UZFLOW-4; INCREASE NSETS2'
+            STOP
+          END IF
             END IF
           ELSE IF ( Theta(Jpnt).GT.Thetar+Wiltwc ) THEN
             IF ( thetaout.GT.NEARZERO ) THEN
               Theta(jpntp1) = Thetar + Wiltwc
               Flux(jpntp1) = Fksat*(((Theta(jpntp1)-
      +                       Thetar)*thsrinv)**Eps)
-              Speed(jpntp1) = (Flux(Jpnt)-Flux(jpntp1))/
-     +                      (Theta(Jpnt)-Theta(jpntp1))
+              bottom  = Theta(Jpnt)-Theta(jpntp1)
+              IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+              Speed(jpntp1) = (Flux(Jpnt)-Flux(jpntp1))/bottom
               Itrwave(jpntp1) = 0
               Ltrail(jpntp1) = 1
               Numwaves = Numwaves + 1
+        IF ( Numwaves.GT.NWAV ) THEN
+           WRITE (*, *) 'TOO MANY WAVES IN UNSAT CELL',IC,IR, Numwaves,
+     +                  '   PROGRAM TERMINATED IN TRANSPIRATION UZF - 5'
+           WRITE (IOUT, *)'TOO MANY WAVES IN UNSAT CELL',IC,IR,Numwaves,
+     +              '   PROGRAM TERMINATED IN UZFLOW-5; INCREASE NSETS2'
+            STOP
+          END IF
             END IF
           END IF
         ELSE
@@ -4594,7 +4630,9 @@ C7------CREATE A NEW WAVE AT ET EXTINCTION DEPTH.
                 END DO
                 j = j + 1
                 IF ( itrwaveyes.GT.0 ) THEN
-                  Theta(j) = ((Rootdepth/Depth(itrwaveyes-1))**(1.0D0/
+                   bottom  = Depth(itrwaveyes-1)
+              IF ( bottom.LT.ZEROD9 ) bottom = ZEROD9
+                  Theta(j) = ((Rootdepth/bottom)**(1.0D0/
      +                    eps_m1))*(Theta(itrwaveyes-1)-Thetar) + Thetar
                   Flux(j) = Fksat*(((Theta(j)-Thetar)*thsrinv)**Eps)
                   fhold = (Theta(j)-Thetar)*thsrinv
@@ -4603,6 +4641,13 @@ C7------CREATE A NEW WAVE AT ET EXTINCTION DEPTH.
                 END IF
                 Depth(j) = Rootdepth
                 Numwaves = Numwaves + 1
+        IF ( Numwaves.GT.NWAV ) THEN
+           WRITE (*, *) 'TOO MANY WAVES IN UNSAT CELL',IC,IR, Numwaves,
+     +                  '   PROGRAM TERMINATED IN TRANSPIRATION UZF - 6'
+           WRITE (IOUT, *)'TOO MANY WAVES IN UNSAT CELL',IC,IR,Numwaves,
+     +              '   PROGRAM TERMINATED IN UZFLOW-6; INCREASE NSETS2'
+            STOP
+         END IF
               END IF
               IF ( itrwaveyes.GT.0 ) THEN
                 ihold = Itrwave(itrwaveyes)
@@ -4627,8 +4672,9 @@ C         CONTENT.
                     fhold = ((Theta(kj)-Thetar)*thsrinv)**Eps
                     IF ( fhold.LT.NEARZERO ) fhold = 0.0D0
                     ftheta2 = Fksat*fhold
-                    Speed(kj) = (ftheta1-ftheta2)/
-     +                          (Theta(kj-1)-Theta(kj))
+                    bottom  = Theta(kj-1)-Theta(kj)
+                    IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+                    Speed(kj) = (ftheta1-ftheta2)/bottom
                   END IF
                 END DO
               END IF
@@ -4682,16 +4728,18 @@ C9------ALL WAVES SHALLOWER THAN ET EXTINCTION DEPTH.
                     fhold = ((Theta(kk)-Thetar)*thsrinv)**Eps
                     IF ( fhold.LT.NEARZERO ) fhold = 0.0D0
                     ftheta2 = Fksat*fhold
-                    Speed(kk) = (ftheta1-ftheta2)/(Theta(kk-1)-
-     +                           Theta(kk))
+                    bottom  = Theta(kk-1)-Theta(kk)
+                    IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+                    Speed(kk) = (ftheta1-ftheta2)/bottom
                   END IF
                   Flux(kk) = Fksat*(((Theta(kk)-Thetar)*thsrinv)**Eps)
                   Ltrail(kk) = 1
                   Itrwave(kk) = 0
                 ELSE
                   Flux(kk) = Fksat*(((Theta(kk)-Thetar)*thsrinv)**Eps)
-                  Speed(kk) = (Flux(kk)-Flux(kk-1))/(Theta(kk)-
-     +                      Theta(kk-1))
+                  bottom  = Theta(kk)-Theta(kk-1)
+                  IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+                  Speed(kk) = (Flux(kk)-Flux(kk-1))/bottom
                   Itrwave(kk) = 0
                   Ltrail(kk) = 0
                 END IF
@@ -4708,7 +4756,9 @@ C9------ALL WAVES SHALLOWER THAN ET EXTINCTION DEPTH.
                   fhold = ((Theta(kk)-Thetar)*thsrinv)**Eps
                   IF ( fhold.LT.NEARZERO ) fhold = 0.0D0
                   ftheta2 = Fksat*fhold
-                  Speed(kk) = (ftheta1-ftheta2)/(Theta(kk-1)-Theta(kk))
+                  bottom  = Theta(kk-1)-Theta(kk)
+                  IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+                  Speed(kk) = (ftheta1-ftheta2)/bottom
                 END IF
               END IF
             ELSE
@@ -4736,7 +4786,9 @@ C9------ALL WAVES SHALLOWER THAN ET EXTINCTION DEPTH.
                   fhold = ((Theta(kj)-Thetar)*thsrinv)**Eps
                   IF ( fhold.LT.NEARZERO ) fhold = 0.0D0
                   ftheta2 = Fksat*fhold
-                  Speed(kj) = (ftheta1-ftheta2)/(Theta(kj-1)-Theta(kj))
+                  bottom  = Theta(kj-1)-Theta(kj)
+                  IF ( bottom.LT.ZEROD15 ) bottom = ZEROD15
+                  Speed(kj) = (ftheta1-ftheta2)/bottom
                   Flux(kj) = Fksat*(((Theta(kj)-Thetar)*thsrinv)**Eps)
                   Ltrail(kj) = 1
                   Itrwave(kj) = 0
@@ -4782,7 +4834,7 @@ C10-----CALCULATE ACTUAL ET.
 C
 C11-----SET ETOUT TO ZERO WHEN ET DEMAND LESS THAN ROUNDOFF ERROR.
         Etout = st - fm
-        fm = Etout/Delt
+        fm = Etout/Etime
         IF ( Etout.LT.0.0 ) THEN
           DO ii = 1, Nwv
             Depth(ii) = depth2(ii)

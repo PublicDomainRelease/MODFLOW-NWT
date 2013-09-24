@@ -1,4 +1,16 @@
 C
+      MODULE GSOLILUTINTERFACE
+        INTERFACE
+          SUBROUTINE EXPANDILUT( IWK, ISZ, JLU, ALU )
+            INTEGER, INTENT(INOUT) :: IWK
+            INTEGER, INTENT(IN)    :: ISZ
+            INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: JLU
+            DOUBLEPRECISION, DIMENSION(:), ALLOCATABLE, 
+     2        INTENT(INOUT) :: ALU
+          END SUBROUTINE EXPANDILUT
+        END INTERFACE
+      END MODULE GSOLILUTINTERFACE
+C
 C-------SOLVERS
 C      
 C-------LU DECOMPOSITION USING CROUT'S ALGORITHM
@@ -20,7 +32,7 @@ C     + + + DUMMY ARGUMENTS + + +
         DOUBLEPRECISION, DIMENSION(NR,NR),INTENT(INOUT) :: AU
         DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)   :: X
         DOUBLEPRECISION, DIMENSION(NR), INTENT(IN)      :: B
-        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT) :: X0
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)   :: X0
         INTEGER, DIMENSION(NR), INTENT(INOUT)           :: PINDEX
         DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)   :: S
 C     + + + LOCAL DEFINITIONS + + +
@@ -304,14 +316,177 @@ C---------RETURN
       END SUBROUTINE GSOL_BAND_BSOLVAP
 
 C
-C-------BICONJUGATE GRADIENT STABILIZED ITERATIVE SOLVER
-      SUBROUTINE GSOL_BCGSAP(IPC,ICNVG,ISOLN,NOUTER,NINNER,
-     2                       HCLOSE,RCLOSE,ETA,NR,NNZ,DAMP,IA,JA,A,
-     3                       NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
-     4                       X,B,X0,DSCALE1,DSCALE2,
-     5                       D,DHAT,P,PHAT,S,SHAT,V,T)
+C-------CONJUGATE GRADIENT ITERATIVE SOLVER
+      SUBROUTINE GSOL_CGAP(NCORESM,NCORESV,
+     2                     IPC,ICNVG,ISOLN,NOUTER,NINNER,
+     3                     HCLOSE,RCLOSE,ETA,NR,NNZ,DAMP,IA,JA,A,
+     4                     NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
+     5                     X,B,X0,DSCALE1,DSCALE2,
+     6                     D,P,Q,Z,T)
+        USE, INTRINSIC :: IEEE_ARITHMETIC
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN)    :: NCORESM
+        INTEGER, INTENT(IN)    :: NCORESV
+        INTEGER, INTENT(IN)    :: IPC
+        INTEGER, INTENT(INOUT) :: ICNVG
+        INTEGER, INTENT(INOUT) :: ISOLN
+        INTEGER, INTENT(IN)    :: NOUTER
+        INTEGER, INTENT(IN)    :: NINNER
+        DOUBLEPRECISION, INTENT(IN) :: HCLOSE
+        DOUBLEPRECISION, INTENT(IN) :: RCLOSE
+        DOUBLEPRECISION, INTENT(INOUT) :: ETA
+        INTEGER, INTENT(IN) :: NR
+        INTEGER, INTENT(IN) :: NNZ
+        DOUBLEPRECISION, INTENT(IN) :: DAMP
+        INTEGER, DIMENSION(NR+1), INTENT(IN) :: IA
+        INTEGER, DIMENSION(NNZ),  INTENT(IN) :: JA
+        DOUBLEPRECISION, DIMENSION(NNZ),  INTENT(IN)    :: A
+        INTEGER, INTENT(IN) :: NRLU
+        INTEGER, INTENT(IN) :: NNZLU
+        INTEGER, INTENT(IN) :: NJLU
+        INTEGER, INTENT(IN) :: NJW
+        INTEGER, INTENT(IN) :: NWLU
+        INTEGER, DIMENSION(NJLU), INTENT(IN) :: JLU
+        INTEGER, DIMENSION(NR),   INTENT(IN) :: IU
+        INTEGER, DIMENSION(NJW),  INTENT(IN) :: JW
+        DOUBLEPRECISION, DIMENSION(NWLU),  INTENT(INOUT) :: WLU
+        DOUBLEPRECISION, DIMENSION(NNZLU), INTENT(INOUT) :: Mi
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)    :: X
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(IN)       :: B
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)    :: X0
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(IN)       :: DSCALE1
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(IN)       :: DSCALE2
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)    :: D
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)    :: P
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)    :: Q
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)    :: Z
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT)    :: T
+C     + + + LOCAL DEFINITIONS + + +
+        DOUBLEPRECISION, PARAMETER :: DZERO = 0.0D0
+        DOUBLEPRECISION, PARAMETER :: DONE  = 1.0D0
+        INTEGER :: n
+        INTEGER :: its
+        INTEGER :: irel
+        DOUBLEPRECISION :: sum
+        DOUBLEPRECISION :: denom
+        DOUBLEPRECISION :: deltax
+        DOUBLEPRECISION :: alpha
+        DOUBLEPRECISION :: beta
+        DOUBLEPRECISION :: rho, rho0
+        DOUBLEPRECISION :: rtol, rtolmin
+        DOUBLEPRECISION :: dn, dn0
+        DOUBLEPRECISION :: dx
+        DOUBLEPRECISION :: usdx
+C     + + + FUNCTIONS + + +
+        DOUBLEPRECISION :: GSOL_L2NORM
+C     + + + CODE + + +
+        ICNVG = 0
+C---------DETERMINE FLOW CONVERGENCE CRITERIA
+        irel  = 0
+!        CALL GSOL_RTOLMIN( NR, RCLOSE, rtol )
+        CALL GSOL_SRTOLMIN( NR, DSCALE1, RCLOSE, rtol )
+        IF ( ETA.GT.DZERO ) THEN
+          irel    = 1
+          rtolmin = rtol
+        END IF
+C---------CALCULATE INITIAL RESIDUAL        
+        CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,X,T)
+        DO n = 1, NR
+          X0(n)   = X(n)
+          sum     = B(n) - T(n)
+          D(n)    = sum
+          P(n)    = DZERO
+          Q(n)    = DZERO
+          Z(n)    = DZERO
+        END DO
+C---------SET INITIAL VALUES
+C---------INNER ITERATION          
+        INNER: DO its = 1, NINNER
+          ISOLN = ISOLN + 1
+C           APPLY PRECONDITIONER TO UPDATE Z
+          CALL GSOL_PCA(IPC,NR,NNZ,IA,JA,
+     2                  NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
+     3                  D,Z)
+          rho = DOT_PRODUCT(D, Z)
+          IF ( rho.eq.DZERO ) THEN
+            ICNVG = -1
+            EXIT INNER
+          END IF
+C-----------COMPUTE DIRECTIONAL VECTORS
+          IF ( its.EQ.1 ) THEN
+            DO n = 1, NR
+              P(n) = Z(n)
+            END DO
+C-------------CALCULATE INITIAL FORCING FUNCTION FOR CURRENT INNER ITERATION
+            dn  = GSOL_L2NORM( NR, D )
+            dn0 = dn
+            IF ( irel.GT.0 ) THEN
+              rtol = ETA * dn
+            END IF
+          ELSE
+            beta = rho / rho0
+            CALL GSOL_AXPY(NCORESV, NR, Z,   beta, P, P)
+          END IF
+C-----------COMPUTE ITERATES
+C           UPDATE Q WITH A AND P
+          CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,P,Q)
+          denom = DOT_PRODUCT(P, Q)
+          IF ( denom.EQ.DZERO .OR. IEEE_IS_NAN(denom) )  THEN
+            ICNVG = -1
+            EXIT INNER
+          END IF
+          alpha = rho / denom
+C-----------UPDATE X
+          CALL GSOL_SETX(NR, DZERO, T)
+          CALL GSOL_AXPY(NCORESV, NR, T, alpha,    P, T)
+          CALL GSOL_AXPY(NCORESV, NR, X,  DONE,    T, X)
+C-----------FIND MAXIMUM CHANGE IN X
+          deltax = DZERO
+          DO n = 1, NR
+            dx     = T(n)
+            usdx   = ABS( dx * DSCALE2(n) )
+            IF ( usdx.GT.deltax ) THEN
+              deltax = usdx
+            END IF
+          END DO
+C-----------UPDATE RESIDUAL
+          CALL GSOL_AXPY(NCORESV, NR, D, -alpha, Q, D)
+C-----------TEST FOR OVERSOLVING
+          dn = GSOL_L2NORM( NR, D )
+          IF ( dn.LT.rtol .AND. deltax.LT.HCLOSE ) THEN
+            ICNVG = 1
+            EXIT INNER
+          END IF
+C-----------SAVE CURRENT INNER ITERATES
+          rho0   = rho
+        END DO INNER
+C---------UPDATE ETA          
+        IF ( irel.GT.0 ) THEN         
+          CALL GSOL_ETAC(ETA,dn0,dn)
+        END IF
+C---------APPLY DAMPENING
+        IF ( NOUTER.GT.1 .AND. DAMP.NE.DONE ) THEN
+          DO n = 1, NR
+            X(n) = (DONE-DAMP) * X0(n) + DAMP * X(n)
+          END DO
+        END IF
+C---------RETURN
+        RETURN
+      END SUBROUTINE GSOL_CGAP
+C
+C-------BICONJUGATE GRADIENT STABILIZED ITERATIVE SOLVER
+      SUBROUTINE GSOL_BCGSAP(NCORESM,NCORESV,
+     2                       IPC,ICNVG,ISOLN,NOUTER,NINNER,
+     3                       HCLOSE,RCLOSE,ETA,NR,NNZ,DAMP,IA,JA,A,
+     4                       NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
+     5                       X,B,X0,DSCALE1,DSCALE2,
+     6                       D,DHAT,P,PHAT,S,SHAT,V,T)
+        USE, INTRINSIC :: IEEE_ARITHMETIC
+        IMPLICIT NONE
+C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN)    :: NCORESM
+        INTEGER, INTENT(IN)    :: NCORESV
         INTEGER, INTENT(IN)    :: IPC
         INTEGER, INTENT(INOUT) :: ICNVG
         INTEGER, INTENT(INOUT) :: ISOLN
@@ -356,6 +531,7 @@ C     + + + LOCAL DEFINITIONS + + +
         INTEGER :: its
         INTEGER :: irel
         DOUBLEPRECISION :: sum
+        DOUBLEPRECISION :: denom
         DOUBLEPRECISION :: deltax
         DOUBLEPRECISION :: alpha, alpha0
         DOUBLEPRECISION :: beta
@@ -379,7 +555,7 @@ C---------DETERMINE FLOW CONVERGENCE CRITERIA
           rtolmin = rtol
         END IF
 C---------CALCULATE INITIAL RESIDUAL        
-        CALL GSOL_CMATVEC(NR,NNZ,IA,JA,A,X,T)
+        CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,X,T)
         DO n = 1, NR
           X0(n)   = X(n)
           sum     = B(n) - T(n)
@@ -408,9 +584,11 @@ C-------------CALCULATE INITIAL FORCING FUNCTION FOR CURRENT INNER ITERATION
             END IF
           ELSE
             beta = (rho / rho0) * (alpha0 / omega0)
-            DO n = 1, NR
-              P(n) = D(n) + beta * (P(n) - omega * V(n))
-            END DO
+            !DO n = 1, NR
+            !  P(n) = D(n) + beta * (P(n) - omega * V(n))
+            !END DO
+            CALL GSOL_AXPY(NCORESV, NR, P, -omega, V, P)
+            CALL GSOL_AXPY(NCORESV, NR, D,   beta, P, P)
           END IF
 C-----------COMPUTE ITERATES
 C           APPLY PRECONDITIONER TO UPDATE PHAT
@@ -418,17 +596,24 @@ C           APPLY PRECONDITIONER TO UPDATE PHAT
      2                  NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
      3                  P,PHAT)
 C           UPDATE V WITH A AND PHAT
-          CALL GSOL_CMATVEC(NR,NNZ,IA,JA,A,PHAT,V)
-          alpha = rho / DOT_PRODUCT(DHAT, V)
-          DO n = 1, NR
-            S(n) = D(n) - alpha * V(n)
-          END DO
+          CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,PHAT,V)
+          denom = DOT_PRODUCT(DHAT, V)
+          IF ( denom.EQ.DZERO .OR. IEEE_IS_NAN(denom) )  THEN
+            ICNVG = -1
+            EXIT INNER
+          END IF
+          alpha = rho / denom
+          !DO n = 1, NR
+          !  S(n) = D(n) - alpha * V(n)
+          !END DO
+          CALL GSOL_AXPY(NCORESV, NR, D, -alpha, V, S)
           sn    = GSOL_L2NORM( NR, S )
           IF ( sn.LT.rtol ) THEN
-            DO n = 1, NR
-              dx    = alpha * PHAT(n)
-              X(n)  = X(n) + dx
-            END DO
+            !DO n = 1, NR
+            !  dx    = alpha * PHAT(n)
+            !  X(n)  = X(n) + dx
+            !END DO
+            CALL GSOL_AXPY(NCORESV, NR, X, alpha, PHAT, X)
             dn    = sn
             ICNVG = 1
             EXIT INNER
@@ -438,20 +623,37 @@ C           APPLY PRECONDITIONER TO UPDATE SHAT
      2                  NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
      3                  S,SHAT)
 C           UPDATE T WITH A AND SHAT
-          CALL GSOL_CMATVEC(NR,NNZ,IA,JA,A,SHAT,T)
-          omega = DOT_PRODUCT(T, S) / DOT_PRODUCT(T, T)
+          CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,SHAT,T)
+          denom = DOT_PRODUCT(T, T)
+          IF ( denom.EQ.DZERO .OR. IEEE_IS_NAN(denom) )  THEN
+            ICNVG = -1
+            EXIT INNER
+          END IF
+          omega = DOT_PRODUCT(T, S) / denom
 C-----------UPDATE X AND RESIDUAL
+          CALL GSOL_SETX(NR, DZERO, D)
+          CALL GSOL_AXPY(NCORESV, NR, D, omega, SHAT, D)
+          CALL GSOL_AXPY(NCORESV, NR, D, alpha, PHAT, D)
+          CALL GSOL_AXPY(NCORESV, NR, X,  DONE,    D, X)
           deltax = DZERO
+!          DO n = 1, NR
+!            dx     = alpha * PHAT(n) + omega * SHAT(n)
+!            X(n)   = X(n) + dx
+!!            deltax = MAX( ABS( dx ), deltax )
+!            usdx   = ABS( dx * DSCALE2(n) )
+!            IF ( usdx.GT.deltax ) THEN
+!              deltax = usdx
+!            END IF
+!            D(n)   = S(n) - omega * T(n)
+!          END DO
           DO n = 1, NR
-            dx     = alpha * PHAT(n) + omega * SHAT(n)
-            X(n)   = X(n) + dx
-!            deltax = MAX( ABS( dx ), deltax )
+            dx     = D(n)
             usdx   = ABS( dx * DSCALE2(n) )
             IF ( usdx.GT.deltax ) THEN
               deltax = usdx
             END IF
-            D(n)   = S(n) - omega * T(n)
           END DO
+          CALL GSOL_AXPY(NCORESV, NR, S, -omega, T, D)
 C-----------TEST FOR OVERSOLVING
           dn = GSOL_L2NORM( NR, D )
           IF ( dn.LT.rtol .AND. deltax.LT.HCLOSE ) THEN
@@ -469,7 +671,7 @@ C---------UPDATE ETA
           CALL GSOL_ETAC(ETA,dn0,dn)
         END IF
 C---------APPLY DAMPENING
-        IF ( NOUTER.GT.1 ) THEN
+        IF ( NOUTER.GT.1 .AND. DAMP.NE.DONE ) THEN
           DO n = 1, NR
             X(n) = (DONE-DAMP) * X0(n) + DAMP * X(n)
           END DO
@@ -479,14 +681,17 @@ C---------RETURN
       END SUBROUTINE GSOL_BCGSAP
 C
 C-------RESTARTED GENERALIZED MINIMUM RESIDUAL ITERATIVE SOLVER
-      SUBROUTINE GSOL_GMRMAP(IPC,ICNVG,ISOLN,NOUTER,NINNER,
-     2                       RCLOSE,ETA,NR,NNZ,DAMP,
-     3                       IA,JA,A,
-     4                       NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
-     5                       X,B,X0,DSCALE1,DSCALE2,
-     6                       R,Z,D,T,CS,SN,S,Y,H,V)
+      SUBROUTINE GSOL_GMRMAP(NCORESM,NCORESV,
+     2                       IPC,ICNVG,ISOLN,NOUTER,NINNER,
+     3                       RCLOSE,ETA,NR,NNZ,DAMP,
+     4                       IA,JA,A,
+     5                       NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
+     6                       X,B,X0,DSCALE1,DSCALE2,
+     7                       R,Z,D,T,CS,SN,S,Y,H,V)
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN)    :: NCORESM
+        INTEGER, INTENT(IN)    :: NCORESV
         INTEGER, INTENT(IN)    :: IPC
         INTEGER, INTENT(INOUT) :: ICNVG
         INTEGER, INTENT(INOUT) :: ISOLN
@@ -557,7 +762,7 @@ C---------DETERMINE FLOW CONVERGENCE CRITERIA
 C---------SET INITIAL VALUES
         ICNVG = 0
 C---------CALCULATE INITIAL RESIDUAL
-        CALL GSOL_CMATVEC(NR,NNZ,IA,JA,A,X,R)
+        CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,X,R)
         DO n = 1, NR
           X0(n)   = X(n)
           sum     = B(n) - R(n)
@@ -594,7 +799,7 @@ C-------------CALCULATE INITIAL FORCING FUNCTION FOR CURRENT INNER ITERATION
               END IF
             END IF
 C             UPDATE t WITH A AND v(:,igmr)
-            CALL GSOL_CMATVEC(NR,NNZ,IA,JA,A,V(:,igmr),T)
+            CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,V(:,igmr),T)
 C             APPLY PRECONDITIONER TO UPDATE v(:,igmr+1)
             CALL GSOL_PCA(IPC,NR,NNZ,IA,JA,
      2                    NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
@@ -664,7 +869,7 @@ C---------------TERMINATE RESTART
           END DO GMITER
 C-----------UPDATE RESIDUAL
 C           UPDATE t WITH A AND X
-          CALL GSOL_CMATVEC(NR,NNZ,IA,JA,A,X,T)
+          CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,X,T)
           DO n = 1, NR
             sum     = B(n) - T(n)
             R(n)    = sum
@@ -843,12 +1048,13 @@ C
 C-------UPDATE PRECONDITIONER
 C
 C-------ROUTINE TO UPDATE THE PRECONDITIONER
-      SUBROUTINE GSOL_PCU(IPC,NR,NNZ,IA,JA,A,
+      SUBROUTINE GSOL_PCU(IOUT,IPC,NR,NNZ,IA,JA,A,
      2                    NRLU,NNZLU,NJLU,NJW,NWLU,
      3                    JLU,IU,JW,WLU,Mi,
      4                    NLEVELS,DROPTOL)          
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN) :: IOUT
         INTEGER, INTENT(IN) :: IPC
 C         COEFFICIENT MATRIX
         INTEGER, INTENT(IN) :: NR
@@ -870,11 +1076,17 @@ C         PRECONDITIONER MATRIX
         INTEGER, INTENT(IN) :: NLEVELS
         DOUBLEPRECISION, INTENT(IN) :: DROPTOL
 C     + + + LOCAL DEFINITIONS + + +
-        INTEGER :: lfil
+        CHARACTER (LEN=72) :: ciluterr
         INTEGER :: ierr
-        DOUBLEPRECISION :: dtol
+        INTEGER :: izero
+        DOUBLEPRECISION :: delta
 C     + + + FUNCTIONS + + +
+C     + + + FORMATS + + +
+2000    FORMAT (/,' MATRIX IS SEVERELY NON-DIAGONALLY DOMINANT.  CHECK',
+     &          ' INPUT FILES.',/,' -- STOP EXECUTION (GSOL_PCU)')
 C     + + + CODE + + +
+        izero = 0
+        delta = 0.0D0
         SELECT CASE(IPC)
 C           NO PRE-CONDITIONER
           CASE (0)
@@ -884,18 +1096,27 @@ C           JACOBI PRE-CONDITIONER
             CALL GSOL_PC_JACO(NR,NNZ,IA,A,Mi)
 C           ILU0 AND MILU0
           CASE (2,3)
-            CALL GSOL_PC_ILU0(IPC,NR,NNZ,IA,JA,IU,A,Mi)
+            LUPC: DO
+              CALL GSOL_PC_ILU0(IPC,NR,NNZ,IA,JA,IU,JW,
+     2                          A,Mi,delta,izero)
+              IF ( izero.NE.1 ) THEN
+                EXIT LUPC
+              END IF
+              delta = 1.5D0 * delta + 0.001
+              IF ( delta.GT.0.5D0 ) THEN
+                WRITE (IOUT,2000)
+                CALL USTOP('MATRIX IS SEVERELY NON-DIAGONALLY DOMINANT')
+              END IF
+            END DO LUPC
 C           ILU WITH DUAL TRUCATION STRATEGY AND LEVEL FILL
           CASE (4)
-!            CALL ilut(n,a,ja,ia,lfil,droptol,alu,jlu,ju,iwk,w,jw,ierr)
-            lfil = 7
-            dtol = 1.0D-03
             ierr = 0
             CALL ilut(NR,A,JA,IA,NLEVELS,DROPTOL,
      2                Mi,JLU,IU,NNZLU,WLU,JW,ierr)
             IF ( ierr.NE.0 ) THEN
-              WRITE (*,*) 'ILUT ERROR: ', ierr
-              STOP
+              WRITE (ciluterr,'(A,1X,I10)') 'ILUT ERROR: ', ierr
+              WRITE (IOUT,'(A)') ciluterr
+              CALL USTOP(ciluterr)
             END IF
 C           ADDITIONAL PRECONDITIONERS - ILU, etc.
         END SELECT
@@ -936,35 +1157,38 @@ C---------RETURN
         RETURN
       END SUBROUTINE GSOL_PC_JACO
 
-      SUBROUTINE GSOL_PC_ILU0(IPC,NR,NNZ,IA,JA,IU,A,Mi)
+      SUBROUTINE GSOL_PC_ILU0(IPC,NR,NNZ,IA,JA,IU,IW,A,Mi,DELTA,IZERO)
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
         INTEGER, INTENT(IN) :: IPC
         INTEGER, INTENT(IN) :: NR
         INTEGER, INTENT(IN) :: NNZ
-        INTEGER, DIMENSION(NR+1), INTENT(IN) :: IA
-        INTEGER, DIMENSION(NNZ),  INTENT(IN) :: JA
-        INTEGER, DIMENSION(NR),   INTENT(IN) :: IU
+        INTEGER, DIMENSION(NR+1),  INTENT(IN) :: IA
+        INTEGER, DIMENSION(NNZ),   INTENT(IN) :: JA
+        INTEGER, DIMENSION(NR),    INTENT(IN) :: IU
+        INTEGER, DIMENSION(NR), INTENT(INOUT) :: IW !RENAMED FROM JW TO IW WITHIN THIS SUBROUTINE
         DOUBLEPRECISION, DIMENSION(NNZ),  INTENT(IN)     :: A
         DOUBLEPRECISION, DIMENSION(NNZ),  INTENT(INOUT)  :: Mi
+        DOUBLEPRECISION, INTENT(IN) :: DELTA
+        INTEGER, INTENT(INOUT) :: IZERO
 C     + + + LOCAL DEFINITIONS + + +
         DOUBLEPRECISION, PARAMETER :: DZERO = 0.0D0
         DOUBLEPRECISION, PARAMETER :: DONE  = 1.0D0
-        INTEGER :: izero
         INTEGER :: ic0, ic1, id0, iu1
         INTEGER :: j, n
         INTEGER :: jj, jj0, jj1
 !        INTEGER :: jpos, jrow, jw
         INTEGER :: jrow, jw
-        INTEGER, DIMENSION(NR)  :: id, iw
+!        INTEGER, DIMENSION(NR)  :: id, iw
         DOUBLEPRECISION :: milumult
         DOUBLEPRECISION :: rs
         DOUBLEPRECISION :: tl
         DOUBLEPRECISION :: d
+        DOUBLEPRECISION :: sd1
 C     + + + FUNCTIONS + + +
 C     + + + CODE + + +
         milumult = DZERO
-        izero    = 0
+        IZERO    = 0
         IF ( IPC.EQ.3 ) milumult = DONE
 C
 C---------FILL PRECONDITIONED MATRIX (Mi) WITH A
@@ -973,8 +1197,8 @@ C---------FILL PRECONDITIONED MATRIX (Mi) WITH A
         END DO
 C---------INITIALIZE POINTERS TO DIAGONAL AND NON-ZERO COLUMN ENTRIES
         DO n = 1, NR
-          id(n) = IA(n)
-          iw(n) = 0
+!          id(n) = IA(n)
+          IW(n) = 0
         END DO
         MAIN: DO n = 1, NR
           ic0 = IA(n)
@@ -986,7 +1210,8 @@ C---------INITIALIZE POINTERS TO DIAGONAL AND NON-ZERO COLUMN ENTRIES
           rs   = DZERO
           LOWER: DO j = ic0 + 1, iu1
             jrow = JA(j)
-            tl = Mi(j) * Mi( id(jrow) )
+!            tl = Mi(j) * Mi( id(jrow) )
+            tl = Mi(j) * Mi( IA(jrow) )
             Mi(j) = tl
             jj0 = IU(jrow)
             jj1 = IA(jrow+1) - 1
@@ -999,28 +1224,42 @@ C---------INITIALIZE POINTERS TO DIAGONAL AND NON-ZERO COLUMN ENTRIES
               END IF
             END DO
           END DO LOWER
-          id0 = id(n)
+!          id0 = id(n)
+          id0 = IA(n)
           d   = Mi(id0)
-          tl  = d - rs * milumult
+          tl  = ( DONE + DELTA ) * d - rs * milumult
 C-----------CALCULATE INVERSE OF JACOBIAN DIAGONAL FOR SOLUTION
-          IF ( ABS(tl).GT.DZERO ) THEN
-            Mi(id0) = DONE / tl
-          ELSE
-            izero = 1
+          sd1 = SIGN(d,tl)
+          IF ( sd1.NE.d ) THEN
+            IZERO = 1
             EXIT MAIN
           END IF
+          IF ( ABS(tl).EQ.DZERO ) THEN
+            IZERO = 1
+            EXIT MAIN
+          END IF
+          Mi(id0) = DONE / tl
+          !IF ( ABS(tl).GT.DZERO ) THEN
+          !  Mi(id0) = DONE / tl
+          !ELSE
+          !  Izero = 1
+          !  EXIT MAIN
+          !END IF
 C-----------RESET POINTER FOR IW TO ZERO
           DO j = ic0, ic1
             jj = JA(j)
-            iw(jj) = 0
+            IW(jj) = 0
           END DO
         END DO MAIN
-C---------REVERT TO A IF ZERO ON DIAGONAL ENCOUNTERED
-        IF ( izero.GT.0 ) THEN
-          DO n = 1, NNZ
-            Mi(n) = A(n)
-          END DO
-        END IF
+!C---------REVERT TO A IF ZERO ON DIAGONAL ENCOUNTERED
+!        IF ( IPC.NE.3 ) THEN
+!          IF ( Izero.GT.0 ) THEN
+!            DO n = 1, NNZ
+!              Mi(n) = A(n)
+!            END DO
+!            Izero = 0
+!          END IF
+!        END IF
 C---------RETURN
         RETURN
       END SUBROUTINE GSOL_PC_ILU0
@@ -1103,10 +1342,11 @@ C---------RETURN
 
 C-------MATRIX AND VECTOR ROUTINES
 C       MATRIX VECTOR PRODUCT
-      SUBROUTINE GSOL_CMATVEC(NR,NNZ,IA,JA,A,D1,D2)
+      SUBROUTINE GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,D1,D2)
         !USE GWFSWRMODULE, ONLY: DZERO, NR, JAC
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN) :: NCORESM
         INTEGER, INTENT(IN) :: NR
         INTEGER, INTENT(IN) :: NNZ
         INTEGER, DIMENSION(NR+1), INTENT(IN) :: IA
@@ -1121,28 +1361,88 @@ C     + + + LOCAL DEFINITIONS + + +
         INTEGER :: ic0, ic1
         INTEGER :: icol
         INTEGER :: m, n
+        INTEGER :: n0, iblksize
+        INTEGER :: i
+        INTEGER :: istart, iend
+        INTEGER :: jstart, jend
+        INTEGER :: jlen
 C     + + + FUNCTIONS + + +
 C     + + + CODE + + +
-        DO n = 1, NR
-          sum = DZERO
-C           ADD DIAGONAL AND OFF-DIAGONAL TERMS
-          ic0 = IA(n)
-          ic1 = IA(n+1) - 1
-          DO m = ic0, ic1
-            icol = JA(m) 
-            sum = sum + A(m) * D1(icol)
+        IF ( NCORESM.NE.1 ) THEN
+          n0 = ( ( NR - 1 ) / NCORESM ) + 1
+!$OMP  PARALLEL 
+!$OMP& SHARED(NR,A,D1,D2)
+!$OMP& PRIVATE(iblksize,istart,iend,jstart,jend,jlen)
+!$OMP& NUM_THREADS(NCORESM)
+!$OMP  DO SCHEDULE(STATIC) 
+          DO i = 1, NCORESM
+            iblksize = MIN( n0, NR - ( i - 1 ) * n0 )
+            istart   = ( i - 1 ) * n0 + 1
+            iend     = istart + iblksize
+            jstart   = IA(istart)
+            jend     = IA(iend)
+            jlen     = jend - jstart + 1
+            IF ( iblksize.GT.0 ) THEN 
+              CALL GSOL_GEMV(iblksize,NR,jlen,jstart,
+     2                       IA(istart),JA(jstart),
+     3                       A(jstart),D1,D2(istart))
+            END IF
           END DO
-          D2(n) = sum
-        END DO
+!$OMP  END DO NOWAIT
+!$OMP  END PARALLEL
+        ELSE
+          DO n = 1, NR
+            sum = DZERO
+C             ADD DIAGONAL AND OFF-DIAGONAL TERMS
+            ic0 = IA(n)
+            ic1 = IA(n+1) - 1
+            DO m = ic0, ic1
+              icol = JA(m) 
+              sum = sum + A(m) * D1(icol)
+            END DO
+            D2(n) = sum
+          END DO
+        END IF
 C---------RETURN
         RETURN
       END SUBROUTINE GSOL_CMATVEC
+
+      SUBROUTINE GSOL_GEMV(IBLKSIZE,NIAC,JLEN,JSTART,IA,JA,A,D1,D2)
+        IMPLICIT NONE
+C         + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN) :: IBLKSIZE
+        INTEGER, INTENT(IN) :: NIAC
+        INTEGER, INTENT(IN) :: JLEN
+        INTEGER, INTENT(IN) :: JSTART
+        INTEGER, DIMENSION(IBLKSIZE+1),       INTENT(IN)    :: IA
+        INTEGER, DIMENSION(JLEN),             INTENT(IN)    :: JA
+        DOUBLEPRECISION, DIMENSION(JLEN),     INTENT(IN)    :: A
+        DOUBLEPRECISION, DIMENSION(NIAC),     INTENT(IN)    :: D1
+        DOUBLEPRECISION, DIMENSION(IBLKSIZE), INTENT(INOUT) :: D2
+C         + + + LOCAL DEFINITIONS + + +
+        INTEGER :: i, j
+        INTEGER :: j0, j1, jcol
+        DOUBLEPRECISION, PARAMETER :: dzero = 0.0d0
+C         + + + FUNCTIONS + + +
+C         + + + CODE + + +
+        DO i = 1, IBLKSIZE
+          j0 = IA(i)   - JSTART + 1
+          j1 = IA(i+1) - JSTART
+          D2(i) = dzero
+          DO j = j0, j1
+            jcol = JA(j)
+            D2(i) = D2(i) + A(j) * D1(jcol)
+          END DO
+        END DO
+C---------RETURN
+        RETURN
+      END SUBROUTINE GSOL_GEMV
       
 C       ADD PRODUCT OF CONSTANT AND VECTOR TO VECTOR
-      SUBROUTINE GSOL_VECPCVEC(NR, V1, C, V2, R)
-        !USE GWFSWRMODULE, ONLY: DZERO, NR
+      SUBROUTINE GSOL_AXPY(NCORESV, NR, V1, C, V2, R)
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN) :: NCORESV
         INTEGER, INTENT(IN) :: NR
         DOUBLEPRECISION, DIMENSION(NR), INTENT(IN)    :: V1
         DOUBLEPRECISION, INTENT(IN) :: C
@@ -1150,16 +1450,75 @@ C     + + + DUMMY ARGUMENTS + + +
         DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT) :: R
 C     + + + LOCAL DEFINITIONS + + +
         INTEGER :: n
+        INTEGER :: n0
+        INTEGER :: i
+        INTEGER :: iblksize, istart
         DOUBLEPRECISION, PARAMETER :: DZERO = 0.0D0
 C     + + + FUNCTIONS + + +
 C     + + + CODE + + +
-        DO n = 1, NR
-          R(n) = V1(n) + C * V2(n)
-        END DO
-        
+        IF ( NCORESV.NE.1 ) THEN
+          n0 = ( ( NR - 1 ) / NCORESV ) + 1
+!$OMP  PARALLEL 
+!$OMP& SHARED(NR,V1,C,V2,R)
+!$OMP& PRIVATE(iblksize,istart)
+!$OMP& NUM_THREADS(NCORESV)
+!$OMP  DO SCHEDULE(STATIC) 
+          DO i = 1, NCORESV
+            iblksize = MIN( n0, NR - ( i - 1 ) * n0 )
+            istart   = ( i - 1 ) * n0 + 1
+            !iend     = istart + iblksize
+            IF ( iblksize.GT.0 ) THEN 
+              CALL GSOL_MCAXPY(iblksize,V1(istart),
+     2                         C,V2(istart),R(istart))
+            END IF
+          END DO
+!$OMP  END DO NOWAIT
+!$OMP  END PARALLEL
+        ELSE
+          DO n = 1, NR
+            R(n) = V1(n) + C * V2(n)
+          END DO
+        END IF
 C---------RETURN
         RETURN
-      END SUBROUTINE GSOL_VECPCVEC
+      END SUBROUTINE GSOL_AXPY
+
+      SUBROUTINE GSOL_MCAXPY(IBLKSIZE, D1, DC, D2, DR)
+        IMPLICIT NONE
+C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN) :: IBLKSIZE
+        DOUBLEPRECISION, DIMENSION(IBLKSIZE), INTENT(IN)    :: D1
+        DOUBLEPRECISION, INTENT(IN) :: DC
+        DOUBLEPRECISION, DIMENSION(IBLKSIZE), INTENT(IN)    :: D2
+        DOUBLEPRECISION, DIMENSION(IBLKSIZE), INTENT(INOUT) :: DR
+C     + + + LOCAL DEFINITIONS + + +
+        INTEGER :: n
+C     + + + FUNCTIONS + + +
+C     + + + CODE + + +
+         DO n = 1, IBLKSIZE
+          DR(n) = D1(n) + DC * D2(n)
+         END DO
+C---------RETURN
+        RETURN
+      END SUBROUTINE GSOL_MCAXPY
+
+C       SET VECTOR TO A CONSTANT
+      SUBROUTINE GSOL_SETX(NR, C, R)
+        IMPLICIT NONE
+C     + + + DUMMY ARGUMENTS + + +
+        INTEGER, INTENT(IN) :: NR
+        DOUBLEPRECISION, INTENT(IN) :: C
+        DOUBLEPRECISION, DIMENSION(NR), INTENT(INOUT) :: R
+C     + + + LOCAL DEFINITIONS + + +
+        INTEGER :: n
+C     + + + FUNCTIONS + + +
+C     + + + CODE + + +
+        DO n = 1, NR
+          R(n) = C
+        END DO
+C---------RETURN
+        RETURN
+      END SUBROUTINE GSOL_SETX
 
 C-------CALCULATE THE L2 NORM OF A VECTOR
       DOUBLEPRECISION FUNCTION GSOL_L2NORM(NR,V) RESULT(value)
@@ -1261,6 +1620,7 @@ C
 C
       SUBROUTINE ILUTSIZE(N,NNZ,JA,IA,LFIL,IWK)
 C-----------------------------------------------------------------------
+      USE GSOLILUTINTERFACE
       IMPLICIT NONE 
       INTEGER, INTENT(IN)    :: N
       INTEGER, INTENT(IN)    :: NNZ

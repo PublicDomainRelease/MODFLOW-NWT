@@ -53,7 +53,7 @@ C     READ STREAM DATA THAT IS CONSTANT FOR ENTIRE SIMULATION:
 C     REACH DATA AND PARAMETER DEFINITIONS
 !--------REVISED FOR MODFLOW-2005 RELEASE 1.9, FEBRUARY 6, 2012
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.6:  December 5, 2012
+!rgn------NEW VERSION NUMBER 1.0.8:  September 1, 2013
 C     ******************************************************************
 C     SPECIFICATIONS:
 C     ------------------------------------------------------------------
@@ -300,11 +300,12 @@ Cdep  allocate space for stream outflow derivatives for lake package
       ALLOCATE (DLKOTFLW(200,nssar), SLKOTFLW(200,nssar))
       ALLOCATE (DLKSTAGE(200,nssar))
       IF ( NUMTAB.GT.0 ) THEN
-        ALLOCATE (TABFLOW(MAXVAL,NSS), TABTIME(MAXVAL,NSS))
+        ALLOCATE (TABFLOW(MAXVAL,nssar+NUMTAB+1), 
+     +            TABTIME(MAXVAL,nssar+NUMTAB+1))
       ELSE
         ALLOCATE (TABFLOW(1,1), TABTIME(1,1))
       END IF 
-      ALLOCATE (ISFRLIST(3,nssar))
+      ALLOCATE (ISFRLIST(3,nssar+NUMTAB))
       TABFLOW = 0.0
       TABTIME = 0.0
       ISFRLIST = 0
@@ -7599,6 +7600,7 @@ C1------INITIALIZE TRAIL WAVES WHEN SURFACE FLUX DECREASES.
             STOP
         END IF
       ELSE
+        Itrwave(jpnwavesm1) = 0
         Ltrail(jpnwavesm1) = 1
         Theta(jpnwavesm1) = Theta(jpnwavesm2)
         fhold = (Theta(jpnwavesm1)-Thetar)/(Thetas-Thetar)

@@ -1318,10 +1318,10 @@ C--FOR EACH CELL CALCULATE FLOW THRU LOWER FACE & STORE IN BUFFER
  !               TOP=BOTM(J,I,LBOTM(K+1)-1)
  !               IF(TMP.LT.TOP) HD=TOP
  !             ENDIF
-              IF ( HNEW(J,I,K).GT.BOTM(J,I,K) ) THEN
+!              IF ( HNEW(J,I,K).GT.BOTM(J,I,K) ) THEN
                 HDIFF=HNEW(J,I,K)-HD
                 BUFF(J,I,K)=HDIFF*CV(J,I,K)
-              END IF
+!              END IF
             ENDIF
           ENDDO
         ENDDO

@@ -378,15 +378,15 @@ C5A-----GET LAYER, ROW & COLUMN OF CELL CONTAINING WELL.
       IL=WELL(1,L)
       Q=ZERO
 C
-C5B-----IF THE CELL IS NO-FLOW OR CONSTANT HEAD, IGNORE IT.
-      IF(IBOUND(IC,IR,IL).LE.0)GO TO 99
-C
 C5C-----GET FLOW RATE FROM WELL LIST.
       Q=WELL(4,L)
       QSAVE = Q
       bbot = Botm(IC, IR, Lbotm(IL))
       ttop = Botm(IC, IR, Lbotm(IL)-1)
       Hh = HNEW(ic,ir,il)
+C
+C5B-----IF THE CELL IS NO-FLOW OR CONSTANT HEAD, IGNORE IT.
+      IF(IBOUND(IC,IR,IL).LE.0)GO TO 99
       IF ( Q.LT.zero  .AND. Iunitnwt.NE.0) THEN
         IF ( LAYTYPUPW(il).GT.0 ) THEN
           Qp = smooth3(Hh,Ttop,Bbot,dQp)

@@ -160,9 +160,9 @@ C     ******************************************************************
 C     ------------------------------------------------------------------
 C     LOCAL VARIABLES
 C     ------------------------------------------------------------------
-      INTEGER*4 NSOL,IGRID,IUNITLAK,IOG,IG,IG2,IG3,IRCH,II,IUNITGWT
-      INTEGER*4  IUNITUZF,LK,DFLAG,ISOL
-      REAL*4 DUM,DUMMY
+      INTEGER NSOL,IGRID,IUNITLAK,IOG,IG,IG2,IG3,IRCH,II,IUNITGWT
+      INTEGER  IUNITUZF,LK,DFLAG,ISOL
+      REAL DUM,DUMMY
       CHARACTER*1 A
       CHARACTER*2 B
       CHARACTER*7 CONCNAME
@@ -1040,7 +1040,7 @@ C-------SUBROUTINE GWF2GAG7DA
       SUBROUTINE GWF2GAG7DA(IGRID)
 C  Deallocate GAG data for a grid.
       USE GWFGAGMODULE
-      INTEGER*4 IGRID
+      INTEGER IGRID
 C
       DEALLOCATE (GWFGAGDAT(IGRID)%NUMGAGE)
       DEALLOCATE (GWFGAGDAT(IGRID)%IGGLST)
@@ -1051,7 +1051,7 @@ C-------SUBROUTINE SGWF2GAG7PNT
       SUBROUTINE SGWF2GAG7PNT(IGRID)
 C  Change GAG data to a different grid.
       USE GWFGAGMODULE
-      INTEGER*4 IGRID
+      INTEGER IGRID
 C
       NUMGAGE=>GWFGAGDAT(IGRID)%NUMGAGE
       IGGLST=>GWFGAGDAT(IGRID)%IGGLST

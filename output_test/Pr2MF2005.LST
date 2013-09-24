@@ -1,7 +1,7 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.7 01/15/2013
-                    BASED ON MODFLOW-2005 VERSION 1.9.01 05/01/2012
+                            VERSION 1.0.8 09/01/2013
+                    BASED ON MODFLOW-2005 VERSION 1.11.00 08/30/2013
 
  LIST FILE: .\Ex_prob2\Pr2MF2005.LST
                          UNIT    1
@@ -76,7 +76,7 @@
 
    MODEL LAYER BOTTOM EL. =   15.0000     FOR LAYER  11
 
-   MODEL LAYER BOTTOM EL. =   10.0000     FOR LAYER  12
+   MODEL LAYER BOTTOM EL. =  10.00000     FOR LAYER  12
 
    MODEL LAYER BOTTOM EL. =   5.00000     FOR LAYER  13
 
@@ -6098,7 +6098,7 @@
 
             IN - OUT =          -0.4727              IN - OUT =      -2.4902E-02
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+ PERCENT DISCREPANCY =          -0.00     PERCENT DISCREPANCY =          -0.00
 
 
 
@@ -8963,7 +8963,7 @@
 
             IN - OUT =          -3.6250              IN - OUT =      -2.0508E-02
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+ PERCENT DISCREPANCY =          -0.00     PERCENT DISCREPANCY =          -0.00
 
 
 
@@ -11580,7 +11580,7 @@
        CONSTANT HEAD =           0.1204         CONSTANT HEAD =           0.0000
             RECHARGE =     2212500.0000              RECHARGE =        3125.0000
 
-            TOTAL IN =     2212500.5000              TOTAL IN =        3125.0000
+            TOTAL IN =     2212500.2500              TOTAL IN =        3125.0000
 
           OUT:                                     OUT:
           ----                                     ----
@@ -11590,9 +11590,9 @@
 
            TOTAL OUT =     2212503.7500             TOTAL OUT =        3124.9976
 
-            IN - OUT =          -3.2500              IN - OUT =       2.4414E-03
+            IN - OUT =          -3.5000              IN - OUT =       2.4414E-03
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+ PERCENT DISCREPANCY =          -0.00     PERCENT DISCREPANCY =           0.00
 
 
 
@@ -20099,7 +20099,7 @@
 
             IN - OUT =         -12.5000              IN - OUT =      -8.3008E-03
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+ PERCENT DISCREPANCY =          -0.00     PERCENT DISCREPANCY =          -0.00
 
 
 
@@ -20114,6 +20114,6 @@
          TOTAL TIME 2.27232E+08 3.78720E+06  63120.      2630.0      7.2005    
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2013/01/23 15:52:13
- Elapsed run time:  1.189 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2013/09/26  8:45:18
+ Elapsed run time:  1.123 Seconds
 

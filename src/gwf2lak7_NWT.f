@@ -162,7 +162,7 @@ C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
 C------UPDATED FOR MF-2005, FEBRUARY 6, 2012  
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.5:  April 5, 2012
+!rgn------NEW VERSION NUMBER 1.0.8:  September 1, 2013
 C     ******************************************************************
 C     INITIALIZE POINTER VARIABLES USED BY SFR1 TO SUPPORT LAKE3 AND
 C     GAGE PACKAGES AND THE GWT PROCESS
@@ -2088,14 +2088,14 @@ Cdep 890         RATIN=RATIN+RATE
                    GWOUT(LAKE)=GWOUT(LAKE)+RATE
                  END IF
 C11-------IF SAVING COMPACT BUDGET, WRITE FLOW FOR ONE LAKE FACE.
-899              IF(IBD.EQ.2) THEN
-                   FACE(1)=ILAKE(5,L)
-                   R=RATE
-                   CALL UBDSVB(ILKCB,NCOL,NROW,IC,IR,IL1,R,FACE(1),1,
-     1                 NAUX,1,IBOUND,NLAY)
-                 END IF
                END IF
              END IF
+  899        IF(IBD.EQ.2.and.II.EQ.2) THEN
+               FACE(1)=ILAKE(5,L)
+               R=RATE
+               CALL UBDSVB(ILKCB,NCOL,NROW,IC,IR,IL1,R,FACE(1),1,
+     1                 NAUX,1,IBOUND,NLAY)
+             END IF    
            END DO
          END DO
 C

@@ -235,7 +235,7 @@ C     ******************************************************************
 C
 C        SPECIFICATIONS:
 C     ------------------------------------------------------------------
-      USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND,HNEW,RHS,HCOF
+      USE GLOBAL,      ONLY:NCOL,NROW,NLAY,IBOUND,HNEW,RHS,HCOF,BOTM
       USE GWFEVTMODULE,ONLY:NEVTOP,EVTR,EXDP,SURF,IEVT
 C
       DOUBLE PRECISION HH,SS,XX,DD

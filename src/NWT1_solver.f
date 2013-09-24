@@ -4,7 +4,7 @@
 !
       SUBROUTINE GWF2NWT1AR(In, Mxiter, Iunitlak, Igrid)
 !
-!------NEWTON SOLVER VERSION NUMBER 1.0.6:  DECEMBER 5, 2012
+!------NEWTON SOLVER VERSION NUMBER 1.0.8:  September 1, 2013
 !      RICHARD G. NISWONGER
       USE GLOBAL,     ONLY:NCOL,NROW,NLAY,ITRSS,LAYHDT,LAYHDS,LAYCBD,
      1                     NCNFBD,IBOUND,BUFF,BOTM,NBOTM,DELR,DELC,IOUT,
@@ -26,7 +26,7 @@
 !     LOCAL VARIABLES
 !     ------------------------------------------------------------------
       INTEGER lloc, LLOCSAVE, istart, istop, i, ic, ir, il, jj
-      CHARACTER(LEN=200) line
+      CHARACTER(LEN=300) line
       REAL r, toldum, ftoldum, relaxdum, thetadum, amomentdum
       REAL akappadum, gammadum, Breducdum, Btoldum, Thickdum,ZERO
       INTEGER IANAME,KHANI,N,KK,nc,nr,nl,j,k,NCNVRT,NHANI,NWETD
@@ -48,7 +48,7 @@
 !1------IDENTIFY PACKAGE AND INITIALIZE.
       WRITE (Iout, 9001) In
  9001 FORMAT (1X, /' NWT1 -- Newton Solver, ',
-     +       'VERSION 1.0.6, 12/05/2012', /, 9X, 'INPUT READ FROM UNIT',
+     +       'VERSION 1.0.8, 09/01/2013', /, 9X, 'INPUT READ FROM UNIT',
      +        I3,/)
       i = 1
       Itreal = 0
@@ -1156,6 +1156,7 @@ C--Update heads.
 !        write(iout,222)( Hnew(ic, ir, 1), ic = 1, Ncol)
 !      end do
 ! 222  format(113e20.10)
+      CALL Head_save()   !From Scott B. 9/7/2013
       DO il = 1, Nlay
         IF ( LAYHDT(il).GT.0 ) THEN
           DO ir = 1, Nrow
@@ -1349,7 +1350,7 @@ C--Update heads.
           ichld = ic
           irhld = ir
           ilhld = il
-        ENDIF 
+        ENDIF
       ENDDO
       END SUBROUTINE GWF2NWT1UPH2
 !
@@ -1401,7 +1402,7 @@ C--Update heads.
       term2 = (-Cvm1-Ccm1-Crm1-Crr-Ccc-Cvv+Hcoff)*H
       term3 = Crr*Hcp1 + Ccc*Hrp1 + Cvv*Hvp1 - Rhss
       GW_func = term1 + term2 + term3
-!      if(ic==271)then
+!      if(ic==166.and.ir==159.and.il==1)then
 !      write(iout,222)ic,ir,il,cvm1*(Hvm1-h),ccm1*(hrm1-h),crm1*(hcm1-h),
 !     +cvv*(hvp1-h),ccc*(hrp1-h),crr*(hcp1-h),rhss,gw_func
 !      end if
@@ -1678,13 +1679,13 @@ C--Update heads.
 !        I1 = IA(ij)
 !        I2 = IA(ij+1)-1
 !        do i=i1,i2
-!        if ( kper.gt.28)then
-!        if(ic==49.and.ir==236.and.il==1)then
+!        if ( kstp.eq.2)then
+!        if(ic==166.and.ir==159.and.il==1)then
 !        WRITE(IOUT,66)ij,BB(ij),HNEW(ic,ir,il),BOTM(ic,ir,il-1),
 !     +                BOTM(ic,ir,il),HCOFF,RHSS,(A(I),I=I1,I2)
 !       write(iout,*)IA(ij),i,A(I),BB(ij)
 !        end if
-!        end if      
+!!        end if      
 ! 66      FORMAT(I9,1X,3G15.6,2X,11G15.6)
 !       end do
       END DO

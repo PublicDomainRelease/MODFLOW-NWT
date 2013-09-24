@@ -50,8 +50,8 @@ C1------grids to be defined.
 C
 C2------IDENTIFY PACKAGE AND INITIALIZE NMNW2.
       WRITE(IOUT,1)IN
-    1 format(/,1x,'MNW2 -- MULTI-NODE WELL 2 PACKAGE, VERSION 1.0.7,',
-     +' 12/20/2012.',/,4X,'INPUT READ FROM UNIT ',i3)
+    1 format(/,1x,'MNW2 -- MULTI-NODE WELL 2 PACKAGE, VERSION 1.0.8,',
+     +' 09/01/2013.',/,4X,'INPUT READ FROM UNIT ',i3)
       NMNW2=0
       ntotnod=0
 c-lfk-Dec 2012
@@ -3237,7 +3237,7 @@ c--LFK 11/27/2012
 c        if(MNW2(21,iw).GT.0) then
         if(MNW2(21,iw).GT.0.and.LOSSTYPE.NE.4) then
           CALL MNW2HORIZ(IGRID,LOSSTYPE,NNODES,firstnode,lastnode,
-     & IW,kstp,kper,ipr,alpha)
+     & IW,kstp,kper,ipr,alpha,Iuupw)
         else
 c   for all other wells, define CWC in node loop   
 c   Loop over nodes in well
@@ -4809,6 +4809,9 @@ c
           Cf = MNWNOD(9,INODE)
           PLoss = MNWNOD(10,INODE)
           Qact = MNWNOD(4,INODE)
+          L1=MNWNOD(1,INODE)       !RGN        
+          R1=MNWNOD(2,INODE)       !RGN       
+          C1=MNWNOD(3,INODE)       !RGN       
 c   compute conductance term for segment
           if(ivert1(INODE).eq.0) then
              Kz=MNWNOD(33,INODE)
@@ -4827,7 +4830,8 @@ c              cond1 = cel2wel2(LOSSTYPE,Txx1,Tyy1,dx1,dy1,
 c     &                 rw,Rskin,Kskin,B,Cf,PLoss,thck1,Qact,
               cond1 = cel2wel2(LOSSTYPE,Txx,Tyy,dx1,dy1,
      &                 rw,Rskin,Kskin,B,Cf,PLoss,thck1*2,Qact,
-     &                 WELLID(iw),Skin)
+     &                 WELLID(iw),Skin,iw,C1,R1,L1,Iuupw)  !RGN
+                           
          end if
       else
          cond1=0.D0 
@@ -4847,6 +4851,9 @@ c calculate CWC of second segment of node
           Cf = MNWNOD(9,INODE)
           PLoss = MNWNOD(10,INODE)
           Qact = MNWNOD(4,INODE)
+          L1=MNWNOD(1,INODE)       !RGN        
+          R1=MNWNOD(2,INODE)       !RGN       
+          C1=MNWNOD(3,INODE)       !RGN      
 c   compute conductance term for segment
           if(ivert2(INODE).eq.0) then
              Kz=MNWNOD(33,INODE)
@@ -4865,7 +4872,7 @@ c            cond2 = cel2wel2(LOSSTYPE,Txx1,Tyy1,dx1,dy1,
 c    &                 rw,Rskin,Kskin,B,Cf,PLoss,thck1,Qact,
              cond2 = cel2wel2(LOSSTYPE,Txx,Tyy,dx1,dy1,
      &                 rw,Rskin,Kskin,B,Cf,PLoss,thck1*2,Qact,
-     &                 WELLID(iw),Skin)
+     &                 WELLID(iw),Skin,iw,C1,R1,L1,Iuupw)  !RGN
           end if
       else
          cond2=0.D0 
@@ -4901,6 +4908,9 @@ c calculate CWC of first segment in node
           Cf = MNWNOD(9,INODE+1)
           PLoss = MNWNOD(10,INODE+1)
           Qact = MNWNOD(4,INODE+1)
+          L1=MNWNOD(1,INODE)       !RGN        
+          R1=MNWNOD(2,INODE)       !RGN       
+          C1=MNWNOD(3,INODE)       !RGN      
 c   compute conductance term for segment
           if(ivert1(INODE+1).eq.0) then
 c--LFK

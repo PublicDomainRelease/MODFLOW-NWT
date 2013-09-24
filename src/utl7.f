@@ -207,6 +207,10 @@ C     ******************************************************************
       CHARACTER*16 CAUX(NCAUX)
       DIMENSION RLIST(LDIM,MXLIST)
       CHARACTER*200 LINE,FNAME
+      CHARACTER*20 FMTARG, ACCARG
+      CHARACTER*20 FILEFMT
+      CHARACTER*30 CERR
+      LOGICAL LVAL
       DATA NUNOPN/99/
       INCLUDE 'openspec.inc'
 C     ------------------------------------------------------------------
@@ -217,6 +221,7 @@ C
 C2------Check for and decode EXTERNAL and OPEN/CLOSE records.
       IN=INPACK
       ICLOSE=0
+      IBINARY=0
       READ(IN,'(A)') LINE
       SFAC=1.
       LLOC=1
@@ -224,38 +229,80 @@ C2------Check for and decode EXTERNAL and OPEN/CLOSE records.
       IF(LINE(ISTART:ISTOP).EQ.'EXTERNAL') THEN
          CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,I,R,IOUT,IN)
          IN=I
-         IF(IPRFLG.EQ.1)WRITE(IOUT,111) IN
-  111    FORMAT(1X,'Reading list on unit ',I4)
-         READ(IN,'(A)') LINE
+C          TEST IF EXTERNAL FILE IS OPEN
+         INQUIRE( UNIT=IN, OPENED=LVAL )
+         IF ( LVAL.EQV. .FALSE. ) THEN
+           WRITE ( CERR,110 ) IN
+  110    FORMAT('External unit ', I4,' is not open')     
+           WRITE ( IOUT,'(1X,A)' ) CERR
+           CALL USTOP(CERR)
+         END IF
+C          TEST IF OPEN EXTERNAL FILE IS FORMATTED OR UNFORMATTED/BINARY
+C          SEE FORM VARIABLE IN openspec.inc
+         FMTARG=FORM
+         INQUIRE( UNIT=IN, FORM=FILEFMT )
+         IF ( FILEFMT.EQ.FMTARG ) THEN
+           IBINARY=1
+         END IF
+         IF(IPRFLG.EQ.1) THEN
+           IF ( IBINARY.NE.1 ) THEN
+             WRITE(IOUT,111) IN
+  111        FORMAT(1X,'Reading list on unit ',I4)
+           ELSE
+             WRITE(IOUT,1111) IN
+ 1111        FORMAT(1X,'Reading list on binary unit ',I4)
+           END IF
+         END IF
+         IF (IBINARY.NE.1) READ(IN,'(A)') LINE
       ELSE IF(LINE(ISTART:ISTOP).EQ.'OPEN/CLOSE') THEN
          CALL URWORD(LINE,LLOC,ISTART,ISTOP,0,N,R,IOUT,IN)
          FNAME=LINE(ISTART:ISTOP)
          IN=NUNOPN
-         IF(IPRFLG.EQ.1)WRITE(IOUT,115) IN,FNAME
-  115    FORMAT(1X,/1X,'OPENING FILE ON UNIT ',I4,':',/1X,A)
-         OPEN(UNIT=IN,FILE=FNAME,ACTION=ACTION(1))
+C          TEST IF OPEN\CLOSE FILE EXISTS
+         INQUIRE( FILE=FNAME, EXIST=LVAL )
+         IF ( LVAL.EQV. .FALSE. ) THEN
+           WRITE ( IOUT,112 ) LINE(ISTART:ISTOP)
+  112      FORMAT('Specified OPEN/CLOSE file ',(A),' does not exit')
+           CALL USTOP('Specified OPEN/CLOSE file does not exit')
+         END IF
+         CALL URWORD(LINE,LLOC,ISTART,ISTOP,0,N,R,IOUT,IN)
+         IF (LINE(ISTART:ISTOP).EQ.'(BINARY)') THEN
+           IBINARY=1
+           IF(IPRFLG.EQ.1)WRITE(IOUT,1115) IN,FNAME
+ 1115      FORMAT(1X,/1X,'OPENING BINARY FILE ON UNIT ',I4,':',/1X,A)
+           FMTARG=FORM
+           ACCARG=ACCESS
+           OPEN(UNIT=IN,FILE=FNAME,ACTION=ACTION(1),FORM=FMTARG,
+     1          ACCESS=ACCARG,STATUS='OLD')
+         ELSE
+           IF(IPRFLG.EQ.1)WRITE(IOUT,115) IN,FNAME
+  115      FORMAT(1X,/1X,'OPENING FILE ON UNIT ',I4,':',/1X,A)
+           OPEN(UNIT=IN,FILE=FNAME,ACTION=ACTION(1))
+         END IF
          ICLOSE=1
-         READ(IN,'(A)') LINE
+         IF (IBINARY.NE.1) READ(IN,'(A)') LINE
       END IF
 C
-C3------Check for SFAC record.
-      LLOC=1
-      CALL URWORD(LINE,LLOC,ISTART,ISTOP,1,I,R,IOUT,IN)
-      IF(LINE(ISTART:ISTOP).EQ.'SFAC') THEN
-         CALL URWORD(LINE,LLOC,ISTART,ISTOP,3,I,SFAC,IOUT,IN)
-         IF(IPRFLG.EQ.1) THEN
-           WRITE(IOUT,116) SFAC
-  116      FORMAT(1X,'LIST SCALING FACTOR=',1PG12.5)
-           IF(ISCLOC1.EQ.ISCLOC2) THEN
-              WRITE(IOUT,113) ISCLOC1
+C3------Check for SFAC record in ascii records.
+      IF (IBINARY.NE.1) THEN
+        LLOC=1
+        CALL URWORD(LINE,LLOC,ISTART,ISTOP,1,I,R,IOUT,IN)
+        IF(LINE(ISTART:ISTOP).EQ.'SFAC') THEN
+           CALL URWORD(LINE,LLOC,ISTART,ISTOP,3,I,SFAC,IOUT,IN)
+           IF(IPRFLG.EQ.1) THEN
+             WRITE(IOUT,116) SFAC
+  116        FORMAT(1X,'LIST SCALING FACTOR=',1PG12.5)
+             IF(ISCLOC1.EQ.ISCLOC2) THEN
+                WRITE(IOUT,113) ISCLOC1
   113         FORMAT(1X,'(THE SCALE FACTOR WAS APPLIED TO FIELD',I2,')')
-           ELSE
-              WRITE(IOUT,114) ISCLOC1,ISCLOC2
-  114         FORMAT(1X,'(THE SCALE FACTOR WAS APPLIED TO FIELDS',
-     1           I2,'-',I2,')')
-           END IF
-         ENDIF
-         READ(IN,'(A)') LINE
+             ELSE
+                WRITE(IOUT,114) ISCLOC1,ISCLOC2
+  114           FORMAT(1X,'(THE SCALE FACTOR WAS APPLIED TO FIELDS',
+     1             I2,'-',I2,')')
+             END IF
+           ENDIF
+           READ(IN,'(A)') LINE
+        END IF
       END IF
 C
 C3------Write a label for the list if the list will be printed.
@@ -269,49 +316,65 @@ C4------Setup indices for reading the list
       NREAD1=NREAD2-NAUX
       N=NLIST+LSTBEG-1
 C
-C5------Read the list.
-      DO 250 II=LSTBEG,N
+C4A-----READ THE LIST -- BINARY OR ASCII
+      IF (IBINARY.NE.0) THEN
+        READ(IN) ((RLIST(JJ,II),JJ=1,NREAD2),II=LSTBEG,N)
+      ELSE
+C
+C5------READ AN ASCII LIST
+        DO 240 II=LSTBEG,N
 C
 C5A-----Read a line into the buffer.  (The first line has already been
 C5A-----read to scan for EXTERNAL and SFAC records.)
-      IF(II.NE.LSTBEG) READ(IN,'(A)') LINE
+        IF(II.NE.LSTBEG) READ(IN,'(A)') LINE
 C
 C5B-----Get the non-optional values from the line.
-      IF(IFREFM.EQ.0) THEN
-         READ(LINE,'(3I10,9F10.0)') K,I,J,(RLIST(JJ,II),JJ=4,NREAD1)
-         LLOC=10*NREAD1+1
-      ELSE
-         LLOC=1
-         CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,K,R,IOUT,IN)
-         CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,I,R,IOUT,IN)
-         CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,J,R,IOUT,IN)
-         DO 200 JJ=4,NREAD1
-         CALL URWORD(LINE,LLOC,ISTART,ISTOP,3,IDUM,RLIST(JJ,II),IOUT,IN)
-200      CONTINUE
-      END IF
-      RLIST(1,II)=K
-      RLIST(2,II)=I
-      RLIST(3,II)=J
+        IF(IFREFM.EQ.0) THEN
+          READ(LINE,'(3I10,9F10.0)') K,I,J,(RLIST(JJ,II),JJ=4,NREAD1)
+           LLOC=10*NREAD1+1
+        ELSE
+          LLOC=1
+          CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,K,R,IOUT,IN)
+          CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,I,R,IOUT,IN)
+          CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,J,R,IOUT,IN)
+          DO 200 JJ=4,NREAD1
+          CALL URWORD(LINE,LLOC,ISTART,ISTOP,3,IDUM,RLIST(JJ,II),
+     1                IOUT,IN)
+200       CONTINUE
+        END IF
+        RLIST(1,II)=K
+        RLIST(2,II)=I
+        RLIST(3,II)=J
 C
-C5C------Scale fields ISCLOC1-ISCLOC2 by SFAC
+C5E-----Get the optional values from the line
+        IF(NAUX.GT.0) THEN
+           DO 210 JJ=NREAD1+1,NREAD2
+           CALL URWORD(LINE,LLOC,ISTART,ISTOP,3,IDUM,RLIST(JJ,II),
+     1                 IOUT,IN)
+210        CONTINUE
+        END IF
+C
+240     CONTINUE
+      ENDIF 
+C
+C6----SCALE THE DATA AND CHECK 
+      DO 250 II=LSTBEG,N
+      K=RLIST(1,II)
+      I=RLIST(2,II)
+      J=RLIST(3,II)
+C
+C6A------Scale fields ISCLOC1-ISCLOC2 by SFAC
       DO 204 ILOC=ISCLOC1,ISCLOC2
         RLIST(ILOC,II)=RLIST(ILOC,II)*SFAC
 204   CONTINUE
 C
-C5D-----Get the optional values from the line
-      IF(NAUX.GT.0) THEN
-         DO 210 JJ=NREAD1+1,NREAD2
-         CALL URWORD(LINE,LLOC,ISTART,ISTOP,3,IDUM,RLIST(JJ,II),IOUT,IN)
-210      CONTINUE
-      END IF
-C
-C5E-----Write the values that were read if IPRFLG is 1.
+C6B-----Write the values that were read if IPRFLG is 1.
       NN=II-LSTBEG+1
       IF(IPRFLG.EQ.1)
      1    WRITE(IOUT,205) NN,K,I,J,(RLIST(JJ,II),JJ=4,NREAD2)
-205   FORMAT(1X,I6,I7,I7,I7,26G16.4)
+205       FORMAT(1X,I6,I7,I7,I7,26G16.4)
 C
-C5F-----Check for illegal grid location
+C6C-----Check for illegal grid location
       IF(K.LT.1 .OR. K.GT.NLAY) THEN
          WRITE(IOUT,*) ' Layer number in list is outside of the grid'
          CALL USTOP(' ')
@@ -326,7 +389,7 @@ C5F-----Check for illegal grid location
       END IF
   250 CONTINUE
 C
-C6------Done reading the list.  If file is open/close, close it.
+C7------Done reading the list.  If file is open/close, close it.
       IF(ICLOSE.NE.0) CLOSE(UNIT=IN)
 C
       RETURN
