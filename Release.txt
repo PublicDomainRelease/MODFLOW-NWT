@@ -5,11 +5,48 @@ release.txt
 
 
 This file describes changes introduced into MODFLOW-NWT with each official
-release; these changes may substantially affect users.
+release; these changes may substantially affect users. Executable files for 
+personal computers are provided as well as the source code at the following URL:
+
+http://water.usgs.gov/ogw/modflow-nwt/
 
 
 NOTE: Any use of trade, product or firm names is for descriptive purposes
 only and does not imply endorsement by the U.S. Government.
+
+o Version 1.0.9 07/01/2014:
+
+Basic (BAS) package
+
+Fixed output file control for parallel writing of output to files.
+
+Well (WEL) package
+
+Initialization of a variable was added as it was not previously getting initialized 
+correctly.
+
+Unsaturated-Zone Flow (UZF) package
+
+A bug was fixed to correct the applied infiltration rate as printed to the UZF1 gage
+output file summed over the entire model. Previous versions did not include applied 
+infiltration rates in excess of VKS. This bug did not affect calculations or 
+solutions made by UZF, rather only the values for applied infiltration written
+to UZF1 gage output summed over the entire model were affected.
+
+Lake (LAK) Package
+
+Fixed compact budget for outputting lake seepage. A small change was made that sets  
+layer indices for calculating lakebed conductance.
+
+Multi-Node Well (MNW2) Package
+
+A bug was fixed that was causing the cell to well transmissivity to incorrectly be
+set to zero.
+
+Link-MT3DMS (LMT) Package
+
+Some changes were made to output model results to be compatible with MT3DMS for simulations
+that include UZF1.
 
 o Version 1.0.8 09/24/2013:
 
@@ -26,6 +63,10 @@ Lake (LAK) Package
 A bug was fixed to correctly print lake seepage to unformatted budget files. This 
 bug affects models with lake cells that are surrounded by inactive groundwater cells
 in the same lake.
+
+Small changes were made to the following source code files to remove specification of 
+machine constants for single precision variables: mach_mod.f, modules.f, NWT1_gmres.f, 
+NWT1_ilupc_mod.f, and NWT1_module.f
 
 Streamflow Routing (SFR2) Package
 
@@ -717,24 +758,26 @@ References
 
 Anderman, E. R., & Hill, M. C. (2000). MODFLOW-2000: The US Geological Survey Modular Ground-water
 Model--documentation of the Hydrogeologic-Unit Flow (HUF) Package. US Department of the Interior,
-US Geological Survey.
+US Geological Survey. Available online at http://pubs.er.usgs.gov/publication/ofr03347
 
 Bakker, Mark, Schaars, Frans, Hughes, J.D., Langevin, C.D., and Dausman, A.M., 2013, 
 Documentation of the seawater intrusion (SWI2) package for MODFLOW: U.S. Geological Survey 
-Techniques and Methods, book 6, chap. A46, 47 p.
+Techniques and Methods, book 6, chap. A46, 47 p. Available online at http://pubs.er.usgs.gov/publication/tm6A46
 
 Hughes, J.D., Langevin, C.D., Chartier, K.L., and White, J.T., 2012, Documentation of the Surface-Water 
 Routing (SWR1) Process for modeling surface-water flow with the U.S. Geological Survey Modular Ground-Water 
 Model (MODFLOW-2005): U.S. Geological Survey Techniques and Methods, book 6, chap. A40 (Version 1.0), 113 p. 
+Available online at http://pubs.er.usgs.gov/publication/tm6A40
 
 Konikow, L.F., Hornberger, G.Z., Halford, K.J., and Hanson, R.T., 2009, Revised multi-node well 
 (MNW2) package for MODFLOW ground-water flow model: U.S. Geological Survey Techniques and Methods 
-6–A30, 67 p.
+6–A30, 67 p. Available online at http://pubs.er.usgs.gov/publication/tm6A30
 
 Niswonger, R.G., Panday, Sorab, and Ibaraki, Motomu, 2011, MODFLOW-NWT, A Newton formulation for 
 MODFLOW-2005: U.S. Geological Survey Techniques and Methods 6-A37, 44 p.
+Available online at http://pubs.er.usgs.gov/publication/tm6A37
 
 Niswonger, R.G., Prudic, D.E., and Regan, R.S., 2006, Documentation of the Unsaturated-Zone Flow (UZF1) 
 Package for modeling unsaturated flow between the land surface and the water table with MODFLOW-2005: 
 U.S. Geological Survey Techniques and Methods 6-A19, 62 p.  
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+Available online at http://pubs.er.usgs.gov/publication/tm6A19                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                

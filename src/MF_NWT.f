@@ -1,7 +1,7 @@
 C     ******************************************************************
 C     MAIN CODE FOR U.S. GEOLOGICAL SURVEY MODULAR MODEL -- MODFLOW-NWT
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.6:  December 5, 2012
+!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
 C     ******************************************************************
 C
 C        SPECIFICATIONS:
@@ -25,7 +25,7 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2,VERSION3
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.0.8 09/01/2013')
+      PARAMETER (VERSION='1.0.9 07/01/2014')
       PARAMETER (VERSION2='1.11.0 08/08/2013')
       PARAMETER (VERSION3='1.03.0 08/30/2013')
       PARAMETER (MFVNAM='-NWT-SWR1')
@@ -109,6 +109,10 @@ C6------ALLOCATE AND READ (AR) PROCEDURE
       IF(IUNIT(19).GT.0) CALL GWF2IBS7AR(IUNIT(19),IUNIT(54),IGRID)
       IF(IUNIT(20).GT.0) CALL GWF2CHD7AR(IUNIT(20),IGRID)
       IF(IUNIT(21).GT.0) CALL GWF2HFB7AR(IUNIT(21),IGRID)
+! Modify conductance for HFB when using UPW.
+      IF ( IUNIT(62).GT.0 ) THEN
+        IF(IUNIT(21).GT.0) CALL GWF2HFB7UPW(IGRID)
+      END IF
       IF(IUNIT(44).GT.0) CALL GWF2SFR7AR(IUNIT(44),IUNIT(1),IUNIT(23),
      1                           IUNIT(37),IUNIT(15),NSOL,IOUTS,
      2                           IUNIT(62),IUNIT(55),IGRID)
@@ -543,7 +547,7 @@ C7C4----CALCULATE BUDGET TERMS. SAVE CELL-BY-CELL FLOW TERMS.
      2                        IUNIT(8),IGRID)
           IF(IUNIT(22).GT.0) CALL GWF2LAK7BD(KKSTP,KKPER,IUNIT(15),
      1                       IUNIT(46),IUNIT(44),IUNIT(55),NSOL,IGRID)
- ! Moved call to UZF1BD to follow SFR7BD for printing net recharge in UZF.
+! Moved call to UZF1BD to follow SFR7BD for printing net recharge in UZF.
           IF(IUNIT(55).GT.0) CALL GWF2UZF1BD(KKSTP,KKPER,IUNIT(22),
      1                             IUNIT(44),IGRID)
           IF(IUNIT(50).GT.0) CALL GWF2MNW27BD(KKSTP,KKPER,IUNIT(62),

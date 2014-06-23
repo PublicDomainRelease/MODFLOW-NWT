@@ -1,6 +1,6 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.8 09/01/2013
+                            VERSION 1.0.9 07/01/2014
                     BASED ON MODFLOW-2005 VERSION 1.11.00 08/30/2013
 
  LIST FILE: .\Ex_prob1b\Pr1bMFNWT.LST
@@ -119,7 +119,7 @@
  HEADS WILL BE SAVED ON UNIT    0    DRAWDOWNS WILL BE SAVED ON UNIT    0
  # MODFLOW-NWT Input File Problem 1b
 
- NWT1 -- Newton Solver, VERSION 1.0.8, 09/01/2013
+ NWT1 -- Newton Solver, VERSION 1.0.9, 07/01/2014
          INPUT READ FROM UNIT 23
 
  SPECIFIED OPTION:
@@ -275,6 +275,6 @@
          TOTAL TIME  86400.      1440.0      24.000     1.00000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2013/09/26  8:45:15
- Elapsed run time:  0.006 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2014/06/10 15:56:02
+ Elapsed run time:  0.005 Seconds
 

@@ -7,7 +7,7 @@ C     ALLOCATE ARRAY STORAGE FOR UNSATURATED FLOW, RECHARGE, AND ET
 C     READ AND CHECK VARIABLES THAT REMAIN CONSTANT
 !--------REVISED FOR MODFLOW-2005 RELEASE 1.9, FEBRUARY 6, 2012
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.8:  September 1, 2013
+!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
 C     ******************************************************************
       USE GWFUZFMODULE
       USE GLOBAL,       ONLY: NCOL, NROW, NLAY, IOUT, ITRSS, ISSFLG, 
@@ -46,7 +46,7 @@ C     ------------------------------------------------------------------
       DATA aname(8)/'  RESIDUAL WATER CONTENT'/
 C     ------------------------------------------------------------------
       Version_uzf =
-     +'$Id: gwf2uzf1_NWT.f 4071 2012-01-05 23:30:24Z rniswon $'
+     +'$Id: gwf2uzf1_NWT.f 4071 2014-07-01 23:30:24Z rniswon $'
       ALLOCATE(NUMCELLS, TOTCELLS, Iseepsupress, IPRCNT)
       Iseepsupress = 0   ! Iseepsupress =1 means seepout not calculated
       NUMCELLS = NCOL*NROW
@@ -1697,13 +1697,13 @@ C5------CALL UZFLOW TO ROUTE WAVES FOR LATEST ITERATION.
                   RHS(ic, ir, il) = RHS(ic, ir, il) -
      +                              cellarea*finfhold
                 END IF         
- !             ELSE
- !               REJ_INF(ic, ir) = cellarea * finfhold
+!             ELSE
+!               REJ_INF(ic, ir) = cellarea * finfhold
               END IF
               etact = 0.0D0               
             END IF
           END IF
-          REJ_INF(ic, ir) = cellarea * (finfhold-finfact)
+!          REJ_INF(ic, ir) = cellarea * (finfhold-finfact)
 C
 C6------GROUNDWATER IS DISCHARGING TO LAND SURFACE.
 
@@ -2963,7 +2963,8 @@ C29-----ACCUMULATE INFLOW AND OUTFLOW VOLUMES FROM CELLS.
           UZTSRAT(7) = UZTSRAT(7) + GWET(ic, ir)
           IF ( IETBUD.GT.0 )
      +         CUMGWET(ic,ir) = CUMGWET(ic,ir) + GWET(ic, ir)
-          cumapplinf = cumapplinf + cellarea*FINF(ic, ir)
+          cumapplinf = cumapplinf + cellarea*FINF(ic, ir) + 
+     +                 Excespp(ic, ir)    !RGN 6/20/2014
           UZTSRAT(1) = UZTSRAT(1) + volinflt/DELT
           UZTSRAT(2) = UZTSRAT(2) + volet/DELT
           UZTSRAT(3) = UZTSRAT(3) + volflwtb/DELT
@@ -3003,6 +3004,7 @@ C SET UZ INTERCELL FLUX TO ZERO WHEN BELOW WATER TABLE
           END IF
         END IF
       END DO
+C
 C
 C31-----UPDATE RATES AND BUFFERS WITH ET FOR UZF OR MODFLOW BUDGET ITEMS.
 C
@@ -3162,14 +3164,14 @@ C35-----UPDATE RATES AND BUFFERS FOR SFR-DIVERTED INFILTRATION.
 !        END IF
 C   
 C37-----SAVE INFILTRATION RATES TO UNFORMATTED FILE.
-        IF ( IUZFB22.LT.0 .OR. IUZFB11.LT.0 ) THEN
-          IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textinf2, IUZFCB1,
-     +                                BUFF, NCOL, NROW, NLAY, IOUT)
-          IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textinf,  
-     +                                   IUZFCB2, BUFF, LAYNUM, NUZTOP,
-     +                                   NCOL, NROW, NLAY, IOUT, DELT,  
-     +                                   PERTIM, TOTIM, IBOUND)
-      END IF
+!        IF ( IUZFB22.LT.0 .OR. IUZFB11.LT.0 ) THEN
+!          IF ( ibd.GT.0 ) CALL UBUDSV(Kkstp, Kkper, textinf2, IUZFCB1,
+!     +                                BUFF, NCOL, NROW, NLAY, IOUT)
+!          IF ( ibduzf.GT.0 ) CALL UBDSV3(Kkstp, Kkper, textinf2,  
+!     +                                   IUZFCB2, BUFF, LAYNUM, NUZTOP,
+!     +                                   NCOL, NROW, NLAY, IOUT, DELT,  
+!     +                                   PERTIM, TOTIM, IBOUND)
+!      END IF
 C
 C38-----UPDATE RATES AND BUFFERS FOR RECHARGE.
       IF ( ibd.GT.0 .OR. ibduzf.GT.0 .AND. IETBUD.EQ.0 ) THEN
@@ -3420,8 +3422,7 @@ cdep changed conditional end if location 7/30/08
 
 C
 C59----PRINT TIME SERIES OF UZ FLOW AND STORAGE OR MOISTURE CONTENT
-C        PROFILES FOR SELECTED CELLS.
-        
+C        PROFILES FOR SELECTED CELLS.      
         IF ( NUZGAG.GT.0 ) THEN
 C
 C60----LOOP OVER GAGING STATIONS.

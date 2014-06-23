@@ -58,12 +58,16 @@ HISTORY
        
        MODFLOW-NWT Version 1.0.7 01/15/2013 - Also see the file
         ‘release.txt’ for additional release notes.
+        
        MODFLOW-NWT Version 1.0.8 09/24/2013 - Also see the file
         ‘release.txt’ for additional release notes.
         
+       MODFLOW-NWT Version 1.0.9 07/01/2014 - Also see the file
+       ‘release.txt’ for additional release notes.
+        
 SYSTEM REQUIREMENTS
 
-     MODFLOW-NWT is written in Fortran 90 programming language.The code has 
+     MODFLOW-NWT is written in Fortran 90 programming language. The code has 
      been used on personal computers running various forms of the Microsoft
      Windows operating system.
 
@@ -101,19 +105,33 @@ FUNTIONALITY
          SWR -- Surface-Water Routing Package
          UZF -- Unsaturated-Zone Package
          WEL -- Well Package
-                                    
+         
+     Other packages that are included with the MODFLOW-NWT release but have not been
+     tested include:
+     
+     MODFLOW-2005 packages:
+     
+         DRT -- Drain Return Package
+         ETS -- Evapotranspiration Segments Package
+         FHB -- Specified Flow Package
+         Hydmod -- Hydrograph data for BAS Package
+         IBS -- Interbed Storage Package
+         RES -- Reservoir Package
+         STR -- Stream Package
+         SUB -- Subsidence Package
+
 DOCUMENTATION
 
 Niswonger, R.G., Panday, Sorab, and Ibaraki, Motomu, 2011, MODFLOW-NWT, 
 A Newton formulation for MODFLOW-2005: U.S. Geological Survey Techniques 
-and Methods 6–A37, 44 p.
+and Methods 6–A37, 44 p. Available online at http://pubs.usgs.gov/tm/tm6a37/
 
 
 REFERENCE
 
 Harbaugh, A.W., 2005, MODFLOW-2005, the U.S. Geological Survey modular
 ground-water model--the Ground-Water Flow Process: U.S. Geological Survey
-Techniques and Methods 6-A16, variously paginated.
+Techniques and Methods 6-A16, variously paginated. Available online at http://pubs.water.usgs.gov/tm6A16/
 
 
 CONTACT

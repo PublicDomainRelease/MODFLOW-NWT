@@ -1928,7 +1928,15 @@ C12-----FOR DATA FILES, CHECK FOR "REPLACE" OR "OLD" OPTION
      &      LINE(IOPT1:IOPT2).EQ.'OLD')
      &      FILSTAT = LINE(IOPT1:IOPT2)
       ENDIF
-      IF (FILACT.EQ.' ') FILACT=ACTION(2)
+C12A----Open file as read-only when 'OLD' is present to allow parallel
+C12A----model runs to read data from file simultaneously.
+      IF (FILACT.EQ.' ') THEN
+        IF (FILSTAT.EQ.'OLD') THEN
+          FILACT=ACTION(1)
+        ELSE
+          FILACT=ACTION(2)
+        ENDIF
+      ENDIF
 C
 C13-----WRITE THE FILE NAME AND OPEN IT.
       WRITE(IOUT,50) FNAME(1:IFLEN),

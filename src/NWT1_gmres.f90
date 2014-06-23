@@ -1,5 +1,6 @@
 
       MODULE GMRESMODULE
+      USE machine_constants, ONLY: kdp
       IMPLICIT NONE
       DOUBLE PRECISION, SAVE, POINTER :: Stop_tol_gmres
       INTEGER, SAVE, POINTER :: IorderILU, Idir, Msdr
@@ -12,7 +13,7 @@
 !C------------------------------------------------------------------
       SUBROUTINE GMRES7AR(IN)
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.5:  APRIL 5, 2012
+!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
 
       USE GLOBAL, ONLY: IOUT,STRT,IBOUND
       USE GMRESMODULE
@@ -30,7 +31,7 @@
 !     ------------------------------------------------------------------
 !     LOCAL VARIABLES
 !     ------------------------------------------------------------------
-      INTEGER lloc, istart, istop, i, n 
+      INTEGER lloc, istart, istop, i
       CHARACTER(LEN=200) line
       REAL Stop_toldum, R
 !     ------------------------------------------------------------------
@@ -154,26 +155,26 @@
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: n        ! ... The row dimension of A
   INTEGER, INTENT(IN) :: msdr     ! ... Size of Krylov subspace
-!  REAL(KIND=kdp), DIMENSION(:), INTENT(IN OUT) :: rhs     ! ... right hand side vector
-  REAL(KIND=kdp), INTENT(IN OUT) :: rhs(Numcell) 
-!  REAL(KIND=kdp), DIMENSION(:), INTENT(IN OUT) :: sol     ! ... solution vector, initial guess
+!  DOUBLE PRECISION, DIMENSION(:), INTENT(IN OUT) :: rhs     ! ... right hand side vector
+  DOUBLE PRECISION, INTENT(IN OUT) :: rhs(Numcell) 
+!  DOUBLE PRECISION, DIMENSION(:), INTENT(IN OUT) :: sol     ! ... solution vector, initial guess
 !                                                          ! ...   on input
-  REAL(KIND=kdp), INTENT(IN OUT) :: sol(Numcell)
-  REAL(KIND=kdp), INTENT(IN) :: stop_tol    ! ... tolerance for stopping criterion. Iterations stop
+  DOUBLE PRECISION, INTENT(IN OUT) :: sol(Numcell)
+  DOUBLE PRECISION, INTENT(IN) :: stop_tol    ! ... tolerance for stopping criterion. Iterations stop
   ! ...   when L2-norm(current residual)/L2-norm(initial residual) <= stop_tol
   ! ...   a small absolute tolerance is also used 
   INTEGER, INTENT(IN) :: maxits     ! ... maximum number of iterations allowed
-!  REAL(KIND=kdp), DIMENSION(:), INTENT(IN) :: aa    ! ... Matrix A in compressed
-  REAL(KIND=kdp), INTENT(IN) :: aa(Numnonzero)
+!  DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: aa    ! ... Matrix A in compressed
+  DOUBLE PRECISION, INTENT(IN) :: aa(Numnonzero)
 !  INTEGER, DIMENSION(:), INTENT(IN) :: ja           ! ... sparse row format
   INTEGER, INTENT(IN) :: ja(Numnonzero)
 !  INTEGER, DIMENSION(:), INTENT(IN) :: ia
   INTEGER, INTENT(IN) :: ia(Numcell+1)
-!  REAL(KIND=kdp), DIMENSION(:), INTENT(IN) :: alu     ! ...  LU matrix stored in Modified 
+!  DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: alu     ! ...  LU matrix stored in Modified 
                                                       ! ...    Sparse Row (MSR) format
                                                       ! ...  The diagonal (stored in alu(1:n))
                                                       ! ...   is inverted. 
-  REAL(KIND=kdp), INTENT(IN) :: alu(Istor_gmres)
+  DOUBLE PRECISION, INTENT(IN) :: alu(Istor_gmres)
   ! INTEGER, DIMENSION(:), INTENT(IN) :: jlu    ! ... Each i-th row of alu,jlu matrices
   ! ...   contains the i-th row of L (excluding 
   ! ...   the unit diagonal) followed by the i-th
@@ -187,28 +188,28 @@
   !            1 : iteration limit reached without convergence
   !           -1 : initial solution gives residual of zero
   INTEGER, INTENT(OUT):: n_iter           ! ... Total iterations at convergence
-  REAL(kind=kdp), INTENT(OUT) :: r_norm    ! ... Norm of relative residual at convergence
+  DOUBLE PRECISION, INTENT(OUT) :: r_norm    ! ... Norm of relative residual at convergence
   !
   ! ... Patch since automatic arrays clash with Java using Visual Fortran90 v6.0
-!!$  REAL(KIND=kdp), DIMENSION(n,msdr+1), TARGET :: vv     ! ... work array. stores the Arnoldi
-  REAL(KIND=kdp), DIMENSION(:,:), ALLOCATABLE, TARGET :: vv    ! ... work array. stores the Arnoldi
+!!$  DOUBLE PRECISION, DIMENSION(n,msdr+1), TARGET :: vv     ! ... work array. stores the Arnoldi
+  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE, TARGET :: vv    ! ... work array. stores the Arnoldi
                                                                ! ...   basis vectors
   !
-  REAL(KIND=kdp), DIMENSION(:), POINTER :: vvp1   ! ... work array pointer to vector slice
-  REAL(KIND=kdp), DIMENSION(:), POINTER :: vvp2   ! ... work array pointer to vector slice
-  REAL(KIND=kdp), EXTERNAL :: ddot, dnrm2
+  DOUBLE PRECISION, DIMENSION(:), POINTER :: vvp1   ! ... work array pointer to vector slice
+  DOUBLE PRECISION, DIMENSION(:), POINTER :: vvp2   ! ... work array pointer to vector slice
+  DOUBLE PRECISION, EXTERNAL :: ddot, dnrm2
   !
   INTEGER :: i, i1, ii, itno, j, jj, k, k1
   INTEGER :: a_err, da_err
-  REAL(KIND=kdp) :: eps1, gam, ro, t
-!!$  REAL(KIND=kdp), DIMENSION(msdr+1,msdr) :: hh
-!!$  REAL(KIND=kdp), DIMENSION(msdr) :: c, s
-!!$  REAL(KIND=kdp), DIMENSION(msdr+1) :: rs
-  REAL(KIND=kdp), DIMENSION(:,:), ALLOCATABLE :: hh
-  REAL(KIND=kdp), DIMENSION(:), ALLOCATABLE :: c, s, rs, mvy
-  REAL(KIND=kdp), PARAMETER :: eps_a=1.e-16_kdp   ! *** make multiple of mach eps
+  DOUBLE PRECISION :: eps1, gam, ro, t
+!!$  DOUBLE PRECISION, DIMENSION(msdr+1,msdr) :: hh
+!!$  DOUBLE PRECISION, DIMENSION(msdr) :: c, s
+!!$  DOUBLE PRECISION, DIMENSION(msdr+1) :: rs
+  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: hh
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: c, s, rs, mvy
+  DOUBLE PRECISION, PARAMETER :: eps_a=1.e-16_kdp   ! *** make multiple of mach eps
   ! ... Set string for use with RCS ident command
-  CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 4067 $'
+  CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6461 $'
   !     ------------------------------------------------------------------
   !...
   ! ... comments follow Templates p.20 as closely as possible
@@ -387,9 +388,9 @@ CONTAINS
     ! given an LU decomposition of a matrix stored in (alu, jlu, ju)
     ! in modified sparse row format MSR
     IMPLICIT NONE
-    REAL(KIND=kdp), DIMENSION(:), INTENT(IN) :: y     ! ... right hand side vector
-    REAL(KIND=kdp), DIMENSION(:), INTENT(OUT) :: x    ! ... solution vector
-    REAL(KIND=kdp), DIMENSION(:), INTENT(IN) :: alu   ! ... LU matrix stored in Modified 
+    DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: y     ! ... right hand side vector
+    DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: x    ! ... solution vector
+    DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: alu   ! ... LU matrix stored in Modified 
                                                       ! ...   Sparse Row (MSR) format
                                                       ! ... Provided by ILU routine
     INTEGER, DIMENSION(:), INTENT(IN) :: jlu    ! ... Each i-th row of alu,jlu matrices
@@ -401,7 +402,7 @@ CONTAINS
     !
     INTEGER :: i, k
     ! ... Set string for use with RCS ident command
-    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 4067 $'
+    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6461 $'
     !     ------------------------------------------------------------------
     !...
     ! ... forward solve
@@ -427,16 +428,16 @@ CONTAINS
     ! ... y = A*x
     !-----------------------------------------------------------------------
     IMPLICIT NONE
-    REAL(KIND=kdp), DIMENSION(:), INTENT(IN) :: x     ! ... vector x
-    REAL(KIND=kdp), DIMENSION(:), INTENT(OUT) :: y    ! ... result vector y 
-    REAL(KIND=kdp), DIMENSION(:), INTENT(IN) :: a     ! ... Matrix A in compressed
+    DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: x     ! ... vector x
+    DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: y    ! ... result vector y 
+    DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: a     ! ... Matrix A in compressed
     INTEGER, DIMENSION(:), INTENT(IN) :: ja           ! ... sparse row format
     INTEGER, DIMENSION(:), INTENT(IN) :: ia
     !
     INTEGER :: i, k
-    REAL(KIND=kdp) :: t
+    DOUBLE PRECISION :: t
     ! ... Set string for use with RCS ident command
-    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 4067 $'
+    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6461 $'
     !     ------------------------------------------------------------------
     !...
     DO  i = 1,n                ! ... n is known from host

@@ -1,6 +1,6 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.0.8 09/01/2013
+                            VERSION 1.0.9 07/01/2014
                     BASED ON MODFLOW-2005 VERSION 1.11.00 08/30/2013
 
  LIST FILE: swi2ex4sww.lst
@@ -125,7 +125,7 @@
  # SWI2 example problem 4 for MODFLOW-NWT
  #HEADTOL  FLUXTOL MAXITEROUT THICKFACT LINMETH IPRNWT IBOTAV OPTIONS DBDREDUCE DBDINCREASE DBDGAMMA MOMFACT BACKFLAG MAXBACKITER BACKTOL BACKREDUCE
 
- NWT1 -- Newton Solver, VERSION 1.0.8, 09/01/2013
+ NWT1 -- Newton Solver, VERSION 1.0.9, 07/01/2014
          INPUT READ FROM UNIT 27
 
  SIMPLE OPTION:
@@ -41110,6 +41110,6 @@
          TOTAL TIME 7.25328E+09 1.20888E+08 2.01480E+06  83950.      229.84    
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2013/09/26  8:53:06
- Elapsed run time: 45.203 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2014/06/10 16:19:44
+ Elapsed run time: 47.002 Seconds
 

@@ -4,7 +4,7 @@
 !
       SUBROUTINE GWF2NWT1AR(In, Mxiter, Iunitlak, Igrid)
 !
-!------NEWTON SOLVER VERSION NUMBER 1.0.8:  September 1, 2013
+!------NEWTON SOLVER VERSION NUMBER 1.0.9:  July 1, 2014
 !      RICHARD G. NISWONGER
       USE GLOBAL,     ONLY:NCOL,NROW,NLAY,ITRSS,LAYHDT,LAYHDS,LAYCBD,
      1                     NCNFBD,IBOUND,BUFF,BOTM,NBOTM,DELR,DELC,IOUT,
@@ -48,7 +48,7 @@
 !1------IDENTIFY PACKAGE AND INITIALIZE.
       WRITE (Iout, 9001) In
  9001 FORMAT (1X, /' NWT1 -- Newton Solver, ',
-     +       'VERSION 1.0.8, 09/01/2013', /, 9X, 'INPUT READ FROM UNIT',
+     +    'VERSION 1.0.9, 07/01/2014', /, 9X, 'INPUT READ FROM UNIT',
      +        I3,/)
       i = 1
       Itreal = 0
@@ -672,10 +672,12 @@ C-------STRAIGHT LINE WITH PARABOLIC SMOOTHING
         ENDIF
         isum = 0
         IF ( Ibound(ic, ir, il).NE.0 ) THEN
-          IF ( IL.GT.1 ) isum = isum + abs(Ibound(ic, ir, il-1))
+          IF ( NCOL+NROW.LT.7 ) THEN
+            IF ( IL.GT.1 ) isum = isum + abs(Ibound(ic, ir, il-1))
+            IF ( IL.LT.NLAY ) isum = isum + abs(Ibound(ic, ir, il+1))
+          END IF
           IF ( IR.GT.1 ) isum = isum + abs(Ibound(ic, ir-1, il))
           IF ( IC.GT.1 ) isum = isum + abs(Ibound(ic-1, ir, il))
-          IF ( IL.LT.NLAY ) isum = isum + abs(Ibound(ic, ir, il+1))
           IF ( IR.LT.NROW ) isum = isum + abs(Ibound(ic, ir+1, il))
           IF ( IC.LT.NCOL ) isum = isum + abs(Ibound(ic+1, ir, il))
           IF ( isum.GT.0 ) THEN
@@ -1629,11 +1631,12 @@ C--Update heads.
      +                         (HNEW(icc,irr,ill)-HNEW(ic,ir,il))
             END DO
           END IF
-          A(IA(ij)) = A(IA(ij))-Cvm1-Ccm1-Crm1-Cvv-Ccc-Crr+Hcoff
+          I = IA(ij)
+          A(I) = A(I)-Cvm1-Ccm1-Crm1-Cvv-Ccc-Crr+Hcoff
 ! Calculate the right hand side
           ferr = -GW_func(ic, ir, il)
           BB(ij) = ferr
-          BB(ij) = BB(ij) + A(IA(ij))*HNEW(ic,ir,il)
+          BB(ij) = BB(ij) + A(I)*HNEW(ic,ir,il)
           sum  = 0.0D0
           DO I = IA(ij)+1,IA(ij+1)-1
             ill = Diag(JA(I), 1)

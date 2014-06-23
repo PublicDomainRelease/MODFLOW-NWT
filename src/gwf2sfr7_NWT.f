@@ -53,7 +53,7 @@ C     READ STREAM DATA THAT IS CONSTANT FOR ENTIRE SIMULATION:
 C     REACH DATA AND PARAMETER DEFINITIONS
 !--------REVISED FOR MODFLOW-2005 RELEASE 1.9, FEBRUARY 6, 2012
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.8:  September 1, 2013
+!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
 C     ******************************************************************
 C     SPECIFICATIONS:
 C     ------------------------------------------------------------------
@@ -90,7 +90,7 @@ C     ------------------------------------------------------------------
       REAL epsslpe
 C     ------------------------------------------------------------------
       Version_sfr =
-     +'$Id: gwf2sfr7_NWT.f 2359 2012-04-05 00:41:23Z rniswon $'
+     +'$Id: gwf2sfr7_NWT.f 2359 2014-07-01 00:41:23Z rniswon $'
       iterp = 1
       idum(1) = 0
       ALLOCATE (NSS, NSTRM,TOTSPFLOW)
@@ -1395,7 +1395,7 @@ C22-----CHECK VALUES IN STREAM CROSS SECTION LIST (XSEC).
         END DO
  9030   FORMAT (/, ' *** WARNING *** STREAMBED THICKNESS', 
      +          'FOR SEGMENT ',I10,' REACH ',I10,  
-     +          ' IS ', E10.4,' WHICH IS ZERO OR LESS. '/,
+     +          ' IS ', E11.4,' WHICH IS ZERO OR LESS. '/,
      +          ' VALUE MUST BE GREATER THAN ZERO-- IT HAS BEEN ',
      +          'RESET TO 1.0')
  9014   FORMAT (1X, /, ' *** ERROR *** EIGHT POINT CROSS ', 
@@ -1844,7 +1844,7 @@ C     *****************************************************************
 C     ADD STREAM TERMS TO RHS AND HCOF IF FLOW OCCURS IN MODEL CELL
 !--------REVISED FOR MODFLOW-2005 RELEASE 1.9, FEBRUARY 6, 2012
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.6:  December 5, 2012
+!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
 C     *****************************************************************
 !      USE GWFRCHMODULE,ONLY:RECH  !cjm
       USE GWFUZFMODULE,ONLY:FINF  !cjm
@@ -1890,8 +1890,9 @@ C     -----------------------------------------------------------------
      +                 flwpet1, flwpet2, err, dlhold, precip, etstr, 
      +                 runof, runoff, qa, qb, qc, qd, hstrave, fbot
       DOUBLE PRECISION fbcheck, hld, totflwt, sbdthk, thetas, epsilon, 
-     +                 thr, thet1, dvrsn, rhsh1, hcofh1, rhsh2, 
-     +                 hcofh2, depthtr, dwdh, wetpermsmooth,cstrsmooth
+     +                 thr, thet1, dvrsn,
+     +                 depthtr, dwdh, wetpermsmooth,cstrsmooth
+!      DOUBLE PRECISION rhsh1, rhsh2, hcofh1, hcofh2
       REAL areamax, avhc, errold, fks, ha, qcnst, seep, 
      +     stgon, strlen, roughch, roughbnk, widthch, deltinc, qlat, 
      +     fltest, Transient_bd, dvt, dum, totdum  !CJM
@@ -1953,10 +1954,10 @@ C3------DETERMINE LAYER, ROW, COLUMN OF EACH REACH.
 !          flowin = 0.0D0
           flowin = strm(10, l)
           dvrsn = 0.0D0
-          rhsh1 = 0.0d0
-          rhsh2 = 0.0d0
-          hcofh1 = 0.0d0
-          hcofh2 = 0.0d0
+!         rhsh1 = 0.0d0
+!         rhsh2 = 0.0d0
+!         hcofh1 = 0.0d0
+!         hcofh2 = 0.0d0
           Transient_bd = 0.0
 !dep changed to allow allocation of QA and QB from Steady State
           IF ( irt.EQ.1 ) THEN
@@ -5863,7 +5864,7 @@ C         FROM STREAMFLOW FOR SEGMENTS WITH ICALC=4.
             WRITE (IOUT, 9032) nn, QSTAGE(ipt, nseg), 
      +                         QSTAGE(nstrpts+ipt, nseg), 
      +                         QSTAGE(2*nstrpts+ipt, nseg)
- 9032       FORMAT (5X, I6, 2X, 3(3X, 1PE10.4))
+ 9032       FORMAT (5X, I6, 2X, 3(2X, 1PE11.4))
             ipt = ipt + 1
           END DO
         END IF

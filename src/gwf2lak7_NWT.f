@@ -21,10 +21,10 @@ C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWFLAKMODULE; 
 C------UPDATED FOR MF-2005, 1.9 RELEASE, FEBRUARY 6, 2012  
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
+C------NEW VERSION NUMBER 1.0.9:  July 1, 2014  
 C------MINOR UPDATES JAN. 2013 (LFK)
         CHARACTER(LEN=64),PARAMETER ::Version_lak =
-     +'$Id: gwf2lak7_NWT.f 2370 2012-04-05 17:35:48Z rniswon $'
+     +'$Id: gwf2lak7_NWT.f 2370 2014-07-01 17:35:48Z rniswon $'
         INTEGER,SAVE,POINTER   ::NLAKES,NLAKESAR,ILKCB,NSSITR,LAKUNIT
         INTEGER,SAVE,POINTER   ::MXLKND,LKNODE,ICMX,NCLS,LWRT,NDV,NTRB,
      +                           IRDTAB
@@ -162,7 +162,7 @@ C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
 C------UPDATED FOR MF-2005, FEBRUARY 6, 2012  
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.8:  September 1, 2013
+!rgn------NEW VERSION NUMBER FOR NWT 1.0.9:  July 1, 2014
 C     ******************************************************************
 C     INITIALIZE POINTER VARIABLES USED BY SFR1 TO SUPPORT LAKE3 AND
 C     GAGE PACKAGES AND THE GWT PROCESS
@@ -522,7 +522,7 @@ C
 C------OLD USGS VERSION 7.1;  JUNE 2006 GWF2LAK7RP
 C        REVISED FEBRUARY 6, 2012
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
+C------NEW VERSION NUMBER 1.0.9:  July 1, 2014  
 C     ******************************************************************
 C       READ INPUT DATA FOR THE LAKE PACKAGE.
 C     ------------------------------------------------------------------
@@ -1183,7 +1183,7 @@ C
 C
 C------OLD VERSION 7.1 JUNE 2006 GWF2LAK7AD; REVISED FEBRUARY 6, 2012
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
+C------NEW VERSION NUMBER 1.0.9:  July 1, 2014  
 C
 C     ******************************************************************
 C     ADVANCE TO NEXT TIME STEP FOR TRANSIENT LAKE SIMULATION, AND COPY
@@ -1327,7 +1327,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7FM; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
+C------NEW VERSION NUMBER 1.0.9:  July 1, 2014  
 C     ******************************************************************
 C     ADD LAKE TERMS TO RHS AND HCOF IF SEEPAGE OCCURS IN MODEL CELLS
 C     ******************************************************************
@@ -1811,7 +1811,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7BD; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.0.5:  April 5, 2012  
+C------NEW VERSION NUMBER 1.0.9:  July 1, 2014
 C     ******************************************************************
 C     CALCULATE VOLUMETRIC BUDGET FOR LAKES
 C     ******************************************************************
@@ -2026,15 +2026,18 @@ C           IS DEPENDENT ON VALUE OF THET1.
              FLOBOT = 0.0D0
              FLOBO3 = 0.0D0
              FLOTOUZF = 0.0D0 
+             RATE = 0.0
              IL1 = IL
-             DO WHILE (IL1 .LE. NLAY)
-               IF( IBOUND(IC,IR,IL1).GT.0 ) THEN 
-                 EXIT
-               ELSE
-                 IL1 = IL1 + 1
-               END IF
-             END DO
-             IF ( IL1.GT.NLAY ) IL1 = NLAY 
+             IF ( ITYPE.EQ.0 ) THEN       !RGN 2-18-2014 added this if check
+               DO WHILE (IL1 .LE. NLAY)               
+                 IF( IBOUND(IC,IR,IL1).GT.0 ) THEN 
+                   EXIT
+                 ELSE
+                   IL1 = IL1 + 1
+                 END IF
+               END DO
+               IF ( IL1.GT.NLAY ) IL1 = NLAY 
+             END IF
              IF( IBOUND(IC,IR,IL1).LE.0 ) THEN
  !  Commented next line out 12/27/10
  !              IF ( CONDUC.GT.CLOSEZERO )WRITE(IOUT,506) L,IC,IR,IL
@@ -2090,12 +2093,12 @@ Cdep 890         RATIN=RATIN+RATE
 C11-------IF SAVING COMPACT BUDGET, WRITE FLOW FOR ONE LAKE FACE.
                END IF
              END IF
-  899        IF(IBD.EQ.2.and.II.EQ.2) THEN
+899          IF(IBD.EQ.2.and.II.EQ.2) THEN
                FACE(1)=ILAKE(5,L)
                R=RATE
                CALL UBDSVB(ILKCB,NCOL,NROW,IC,IR,IL1,R,FACE(1),1,
-     1                 NAUX,1,IBOUND,NLAY)
-             END IF    
+     1                     NAUX,1,IBOUND,NLAY)
+                 END IF    
            END DO
          END DO
 C
