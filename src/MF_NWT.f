@@ -1,7 +1,7 @@
 C     ******************************************************************
 C     MAIN CODE FOR U.S. GEOLOGICAL SURVEY MODULAR MODEL -- MODFLOW-NWT
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
+!rgn------NEW VERSION NUMBER 1.1.0, 7/21/2016
 C     ******************************************************************
 C
 C        SPECIFICATIONS:
@@ -25,9 +25,9 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2,VERSION3
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.0.9 07/01/2014')
+      PARAMETER (VERSION='1.1.0, 7/21/2016')
       PARAMETER (VERSION2='1.11.0 08/08/2013')
-      PARAMETER (VERSION3='1.03.0 08/30/2013')
+      PARAMETER (VERSION3='1.04.0 07/21/2016')
       PARAMETER (MFVNAM='-NWT-SWR1')
 C
       CHARACTER*80 HEADNG(2)
@@ -154,7 +154,7 @@ c      IF(IUNIT(14).GT.0) CALL LMG7AR(IUNIT(14),MXITER,IGRID)
      1                   CALL GWF2HYD7STR7AR(IUNIT(43),IGRID)
       IF(IUNIT(43).GT.0 .AND. IUNIT(44).GT.0)
      1                   CALL GWF2HYD7SFR7AR(IUNIT(43),IGRID)
-      IF(IUNIT(49).GT.0) CALL LMT7BAS7AR(INUNIT,CUNIT,IGRID)
+      IF(IUNIT(49).GT.0) CALL LMT8BAS7AR(INUNIT,CUNIT,IGRID)
 !      IF(IUNIT(61).GT.0) THEN
 !        CALL FMP2AR(
 !     1  IUNIT(61),IUNIT(44),IUNIT(52),IUNIT(55),IGRID)                  !FMP2AR CALL ADDED BY SCHMID
@@ -169,9 +169,9 @@ C  Observation allocate and read
       IF(IUNIT(36).GT.0) CALL OBS2STR7AR(IUNIT(36),IUNIT(18),IGRID)
       IF(IUNIT(38).GT.0) CALL OBS2CHD7AR(IUNIT(38),IGRID)
 ! Modify conductance for HFB when using UPW.
-      IF ( IUNIT(62).GT.0 ) THEN
-        IF(IUNIT(21).GT.0) CALL GWF2HFB7UPW(IGRID)
-      END IF
+      !IF ( IUNIT(62).GT.0 ) THEN
+      !  IF(IUNIT(21).GT.0) CALL GWF2HFB7UPW(IGRID)
+      !END IF
 C
 C7------SIMULATE EACH STRESS PERIOD.
       DO 100 KPER = 1, NPER
@@ -184,7 +184,7 @@ C7------SIMULATE EACH STRESS PERIOD.
 C
 C7B-----READ AND PREPARE INFORMATION FOR STRESS PERIOD.
 C----------READ USING PACKAGE READ AND PREPARE MODULES.
-        IF(IUNIT(2).GT.0) CALL GWF2WEL7RP(IUNIT(2),IGRID)
+        IF(IUNIT(2).GT.0) CALL GWF2WEL7RP(IUNIT(2),KPER,IGRID)
         IF(IUNIT(3).GT.0) CALL GWF2DRN7RP(IUNIT(3),IGRID)
         IF(IUNIT(4).GT.0) CALL GWF2RIV7RP(IUNIT(4),IGRID)
         IF(IUNIT(5).GT.0) CALL GWF2EVT7RP(IUNIT(5),IGRID)
@@ -198,9 +198,7 @@ C----------READ USING PACKAGE READ AND PREPARE MODULES.
         IF(IUNIT(20).GT.0) CALL GWF2CHD7RP(IUNIT(20),IGRID)
         IF(IUNIT(44).GT.0) CALL GWF2SFR7RP(IUNIT(44),IUNIT(15),
      1                                     IUNIT(22),KKPER,KKSTP,
-     2                                     NSOL,IOUTS,IUNIT(1),
-     3                                     IUNIT(23),IUNIT(37),
-     4                                     IUNIT(62), IUNIT(55), IGRID)
+     2                                     NSOL,IOUTS,IUNIT(55),IGRID)
       IF(IUNIT(43).GT.0 .AND. IUNIT(44).GT.0)
      1                     CALL GWF2HYD7SFR7RP(IUNIT(43),KKPER,IGRID)
         IF(IUNIT(55).GT.0) CALL GWF2UZF1RP(IUNIT(55),KKPER,IUNIT(44),
@@ -227,11 +225,6 @@ C
 C7C-----SIMULATE EACH TIME STEP.
         DO 90 KSTP = 1, NSTP(KPER)
           KKSTP = KSTP
-          IF ( IRESTART.EQ.1 ) THEN
-            IF ( KPER.EQ.KPERSTART .AND. KSTP.EQ.KSTPSTART ) THEN
-              CALL RESTARTHEADS(IOUT)
-            END IF
-          END IF
 C
 C7C1----CALCULATE TIME STEP LENGTH. SET HOLD=HNEW.
           IF(IUNIT(62).GT.0 ) CALL GWF2UPWUPDATE(1,Igrid)
@@ -278,21 +271,8 @@ C7C1----CALCULATE TIME STEP LENGTH. SET HOLD=HNEW.
      2                                       IGRID,IUNIT(54))  !SWR - JDH
 C
 C---------INDICATE IN PRINTOUT THAT SOLUTION IS FOR HEADS
-          IF ( IRESTART.GT.0 ) THEN
-            IF ( KPER.LT.KPERSTART ) THEN
-              CALL UMESPR('SKIPPING STEP TO RESTART',' ',IOUT)
-              WRITE(*,26)KPER,KSTP
-            ELSE IF ( KPER.EQ.KPERSTART .AND. KSTP.LT.KSTPSTART ) THEN
-              CALL UMESPR('SKIPPING STEP TO RESTART',' ',IOUT)
-              WRITE(*,26)KPER,KSTP
-            ELSE
-              CALL UMESPR('SOLVING FOR HEAD',' ',IOUT)
-              WRITE(*,25)KPER,KSTP
-            END IF
-          ELSE
-            CALL UMESPR('SOLVING FOR HEAD',' ',IOUT)
-            WRITE(*,25)KPER,KSTP
-          END IF
+          CALL UMESPR('SOLVING FOR HEAD',' ',IOUT)
+          WRITE(*,25)KPER,KSTP
    25     FORMAT(' Solving:  Stress period: ',i5,4x,
      &       'Time step: ',i5,4x,'Groundwater-Flow Eqn.')
    26     FORMAT('Skipping:  Stress period: ',i5,4x,
@@ -302,17 +282,8 @@ C7C2----ITERATIVELY FORMULATE AND SOLVE THE FLOW EQUATIONS.
 !          DO 30 KITER = 1, MXITER
            KITER = 0
            ITREAL2 = 0
-           NOITER = 1
            IF ( IUNIT(63).GT.0 ) ITREAL = 0
-           IF ( IRESTART.GT.0 ) THEN
-             NOITER = 0
-             IF ( KPER.GT.KPERSTART ) THEN
-               NOITER = 1
-             ELSE IF ( KPER.EQ.KPERSTART .AND. KSTP.GE.KSTPSTART ) THEN
-               NOITER = 1 
-             END IF
-           END IF
-           DO WHILE (ITREAL2.LT.MXITER .AND. NOITER.EQ.1)
+           DO WHILE (ITREAL2.LT.MXITER)
             KITER = KITER + 1
             KKITER = KITER
             IF ( IUNIT(63).EQ.0 ) ITREAL2 = KITER
@@ -447,7 +418,6 @@ C7C2C---IF CONVERGENCE CRITERION HAS BEEN MET STOP ITERATING.
           KITER = MXITER
 C
    33     CONTINUE
-          IF ( NOITER.EQ.1 ) THEN
           IF(IUNIT(62).GT.0 ) CALL GWF2UPWUPDATE(2,Igrid)
 C
 C7C3----DETERMINE WHICH OUTPUT IS NEEDED.
@@ -563,7 +533,7 @@ CLMT
 CLMT----CALL LINK-MT3DMS SUBROUTINES TO SAVE FLOW-TRANSPORT LINK FILE
 CLMT----FOR USE BY MT3DMS FOR TRANSPORT SIMULATION
 CLMT
-          IF(IUNIT(49).GT.0) CALL LMT7BD(KKSTP,KKPER,IGRID)
+          IF(IUNIT(49).GT.0) CALL LMT8BD(KKSTP,KKPER,IGRID)
 CLMT                              
 C
 C
@@ -620,7 +590,6 @@ C7C6---JUMP TO END OF PROGRAM IF CONVERGENCE WAS NOT ACHIEVED.
               END IF
             END IF
           END IF
-        END IF
 C
 C-----END OF TIME STEP (KSTP) AND STRESS PERIOD (KPER) LOOPS
    90   CONTINUE
@@ -702,7 +671,7 @@ C9------LAST BECAUSE IT DEALLOCATES IUNIT.
       IF(IUNIT(36).GT.0) CALL OBS2STR7DA(IGRID)
       IF(IUNIT(38).GT.0) CALL OBS2CHD7DA(IGRID)
       IF(IUNIT(43).GT.0) CALL GWF2HYD7DA(IGRID)
-      IF(IUNIT(49).GT.0) CALL LMT7DA(IGRID)
+      IF(IUNIT(49).GT.0) CALL LMT8DA(IGRID)
 !      IF(IUNIT(61).GT.0) CALL FMP2DA(IGRID)
       CALL GWF2BAS7DA(IGRID)
 C
@@ -873,39 +842,3 @@ C     Write times to file if requested
 C
       RETURN
       END
-      
-      
-      SUBROUTINE RESTARTHEADS(IOUT)
-C     ******************************************************************
-C     READ HEADS FOR RESTART AND COPY INTO HNEW
-C     ******************************************************************
-C
-      USE GLOBAL,      ONLY:STRT,NCOL,NROW,NLAY,IUNITSTART,HNEW,IBOUND,
-     +                      IXSEC
-      USE GWFBASMODULE,ONLY:HNOFLO
-      DOUBLE PRECISION HNF
-      CHARACTER*24 ANAME(1)
-      DATA ANAME(1) /'            RESTART HEAD'/
-C        SPECIFICATIONS:
-C     ------------------------------------------------------------------      
-C
-C8G-----READ INITIAL HEADS FOR RESTART.
-      IF(IXSEC.EQ.0) THEN
-         DO 300 K=1,NLAY
-         KK=K
-         CALL U2DREL(STRT(:,:,KK),ANAME(1),NROW,NCOL,KK,IUNITSTART,IOUT)
-  300    CONTINUE
-      ELSE
-         CALL U2DREL(STRT(:,:,1),ANAME(1),NLAY,NCOL,-1,IUNITSTART,IOUT)
-      END IF
-C
-C9------COPY INITIAL HEADS FROM STRT TO HNEW.
-      HNF = HNOFLO
-      DO 400 K=1,NLAY
-      DO 400 I=1,NROW
-      DO 400 J=1,NCOL
-      HNEW(J,I,K)=STRT(J,I,K)
-      IF(IBOUND(J,I,K).EQ.0) HNEW(J,I,K)=HNF
-  400 CONTINUE
-      RETURN 
-      END SUBROUTINE

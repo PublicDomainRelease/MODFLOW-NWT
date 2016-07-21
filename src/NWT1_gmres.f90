@@ -1,6 +1,5 @@
 
       MODULE GMRESMODULE
-      USE machine_constants, ONLY: kdp
       IMPLICIT NONE
       DOUBLE PRECISION, SAVE, POINTER :: Stop_tol_gmres
       INTEGER, SAVE, POINTER :: IorderILU, Idir, Msdr
@@ -13,7 +12,7 @@
 !C------------------------------------------------------------------
       SUBROUTINE GMRES7AR(IN)
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
+!rgn------NEW VERSION NUMBER 1.1.0, 6/21/2016
 
       USE GLOBAL, ONLY: IOUT,STRT,IBOUND
       USE GMRESMODULE
@@ -209,7 +208,7 @@
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: c, s, rs, mvy
   DOUBLE PRECISION, PARAMETER :: eps_a=1.e-16_kdp   ! *** make multiple of mach eps
   ! ... Set string for use with RCS ident command
-  CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6461 $'
+  CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6960 $'
   !     ------------------------------------------------------------------
   !...
   ! ... comments follow Templates p.20 as closely as possible
@@ -351,7 +350,9 @@
      DO  k=1,n
         sol(k) = sol(k) + mvy(k)     ! ... current solution
      END DO
-     rhs = mvy
+     DO  k=1,n                       ! .... changed to explicit loop
+      rhs(k) = mvy(k)
+     END DO
      IF (ro <= eps1 + eps_a) EXIT          ! ... convergence on relative residual
      IF (itno >= maxits) THEN   !   RGN changed this. Used to be IF (itno == maxits) THEN
         iierr = 1     ! ... iteration limit reached
@@ -402,7 +403,7 @@ CONTAINS
     !
     INTEGER :: i, k
     ! ... Set string for use with RCS ident command
-    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6461 $'
+    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6960 $'
     !     ------------------------------------------------------------------
     !...
     ! ... forward solve
@@ -437,7 +438,7 @@ CONTAINS
     INTEGER :: i, k
     DOUBLE PRECISION :: t
     ! ... Set string for use with RCS ident command
-    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6461 $'
+    CHARACTER(LEN=80) :: ident_string='$RCSfile: gmres.f90,v $//$Revision: 6960 $'
     !     ------------------------------------------------------------------
     !...
     DO  i = 1,n                ! ... n is known from host

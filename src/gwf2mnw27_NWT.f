@@ -29,7 +29,7 @@
 C     ******************************************************************
 C     ALLOCATE ARRAY STORAGE FOR MNW2 PACKAGE.
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.0.9:  July 1, 2014
+!rgn------NEW VERSION NUMBER 1.1.0, 6/21/2016
 C     ******************************************************************
 C
 C     SPECIFICATIONS:
@@ -65,7 +65,7 @@ C3------CELL-BY-CELL FLOW TERMS, AND PRINT FLAG
 c--LFK
         IF (MNWMAX.LT.0) THEN
            CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,NODTOT,R,IOUT,IN)
-           MNWMAX=MNWMAX*-1
+           MNWMAX=MNWMAX*(-1)
         END IF
 c--LFK
       CALL URWORD(LINE,LLOC,ISTART,ISTOP,2,IWL2CB,R,IOUT,IN)
@@ -1083,8 +1083,8 @@ c     if partial penetration ne 0, set ZPD to 1d30.  this will act as a flag
 c     until ZDP (and ZPL) are set for the well)
                 MNWNOD(20,NODNUM)=1d30         
               ELSE
-                WRITE(iout,*) '***ERROR*** MNW2 screen in no-flow node'
-                STOP 'MNW2 - screen in no-flow node' 
+               WRITE(iout,*) '***WARNING*** MNW2 screen in no-flow node'   !RGN 6/6/16 (other cells can be active)
+!                STOP 'MNW2 - screen in no-flow node'                      !RGN 6/6/16
               END IF
 c     if a node has been created (nodecount>0), then check to see if this interval
 c     is still in that node (still NODNUM)
@@ -1123,8 +1123,8 @@ c     if partial penetration ne 0, set ZPD to 1d30.  this will act as a flag
 c     until ZDP (and ZPL) are set for the well)
                   MNWNOD(20,NODNUM)=1d30         
                 ELSE
-                 WRITE(iout,*) '***ERROR*** MNW2 screen in no-flow node'
-                 STOP 'MNW2 - screen in no-flow node' 
+              WRITE(iout,*) '***WARNING*** MNW2 screen in no-flow node'          !RGN 6/6/16 (other cells can be active)
+!                 STOP 'MNW2 - screen in no-flow node'                           !RGN 6/6/16
                 END IF
 	        END IF
             END IF
@@ -1276,7 +1276,7 @@ c     for MNWs defined by intervals
          write(iout,'(100A)') ' Node  Lay  Row  Col '
          do INODE=firstnode,lastnode
           nod=INODE-firstnode+1
-c  if more than one interval made up this node, write composite 
+c  if more than one interval made up this node, write 'composite' 
           if(MNWNOD(12,INODE).ne.MNWNOD(13,INODE)) then
 C-LFK           write(iout,'(1x,I4,1x,I4,1x,I4,1x,I4,2x,9A)')
            write(iout,'(1x,I4,1x,I4,1x,I4,1x,I4,2x,10A)')
@@ -2343,9 +2343,21 @@ cdebug              if(iqslv.ne.0.and.kiter.gt.1.and.kiter.lt.NoMoIter) then
               if(iqslv.ne.0.and.kiter.gt.1) then
                 hhnew=hnew(ic,ir,il)
                 qact = ( hlim - hhnew) * cond
+                if ( mnw2(5,iw) < 0.0 .and. abs(MNW2(2,iw)).eq.1) then  !RGN 1/15/16
+                  if ( qact > 0.0 ) then
+                      qact = 0.0
+                      cond = 0.0
+                  end if
+                end if                                                  !RGN to hear
 !RGN modifications for NWT. 3/21/12
                 IF ( Iuupw.GT.0 ) THEN
                   qact2 = cond*(hwel-hhnew)
+                  if ( mnw2(5,iw) < 0.0 .and. abs(MNW2(2,iw)).eq.1) then  !RGN 1/15/16
+                    if ( qact > 0.0 ) then
+                        qact2 = 0.0
+                        cond = 0.0
+                    end if
+                  end if                                               !RGN to hear
                   hlim = hwel
                 END IF
                 hcof(ic,ir,il) = hcof(ic,ir,il) - cond
@@ -2496,14 +2508,17 @@ c
                  END IF
 ! Added next line to limit well-bore head to the cell bottom 
 ! for unconfined condtions. RGN 3/20/12
-                 IF ( LAYHDT(IL).GT.0 ) THEN
+                 IF ( LAYHDT(IL).GT.0 .AND. MNW2(6,iw).NE.0 ) THEN
                    IF ( hlim.LT.BOTM(ic,ir,lbotm(il)) ) 
      +                  hlim = BOTM(ic,ir,lbotm(il))
                    if ( hwell.LT.hlim ) hwell = hlim
                  END IF
               hcell=hnew(ic,ir,il)
               cond = MNWNOD(14,INODE)
-              q = cond*(hwell-hcell)
+              q = cond*(hwell-hcell)    !RGN 1/15/16
+              if ( mnw2(5,iw) < 0.0 .and. abs(MNW2(2,iw)).eq.1) then
+                if ( q > 0.0 ) q = 0.0
+              end if                    !to hear
               END IF
 c
 c              ioch = 0
@@ -2583,12 +2598,29 @@ c-lfk
               ir=MNWNOD(2,INODE)              
               ic=MNWNOD(3,INODE)              
               if( ibound(ic,ir,il).eq.0 ) MNWNOD(4,INODE) = 0.0D0
-              if( MNWNOD(4,INODE).le.0.0D0 ) then
-                qin = qin  + MNWNOD(4,INODE)
+              IF(Iuupw.NE.0.AND.HNEW(IC,IR,IL).LE.BOTM(IC,IR,LBOTM(IL)))
+     +                                           MNWNOD(4,INODE) = 0.0D0!seb ADDED CHECK FOR WHEN HNEW<BOT, SCOTT SHOULD THIS BE HERE, WHAT IF Hwel>BOT, there would be flow, but very minimal. NOTE MNWNOD(4,INODE)=Qact
+              q=MNWNOD(4,INODE)
+              IF ( Iuupw.GT.0 ) THEN                                    !seb ADDED BLOCK TO MATCH WHAT IS WRITTEN TO BUDGET
+                hwell = MNWNOD(15,INODE)
+                   IF ( LAYHDT(IL).GT.0  .AND. MNW2(6,iw).NE.0) THEN    !ADDED  .AND. MNW2(6,iw).NE.0 OTHERWISE HLIM is not defined
+                     IF ( hlim.LT.BOTM(ic,ir,lbotm(il)) ) 
+     +                    hlim = BOTM(ic,ir,lbotm(il))
+                     if ( hwell.LT.hlim ) hwell = hlim
+                   END IF
+                hcell=hnew(ic,ir,il)
+                cond = MNWNOD(14,INODE)
+                q = cond*(hwell-hcell)
+                if ( mnw2(5,iw) < 0.0 ) then
+                  if ( q > 0.0 ) q = 0.0
+                end if
+              END IF
+              if( q.le.0.0D0 ) then
+                qin = qin  + q                                          !seb CHANGED MNWNOD(4,INODE) to q   --SCOTT SHOULDN'T qin and qout be used for ratin and ratout, rather than q?
               else
-                qout = qout  + MNWNOD(4,INODE)
+                qout = qout  + q                                        ! seb originally + MNWNOD(4,INODE)
               endif
-              qnet  = qnet  + MNWNOD(4,INODE)
+              qnet  = qnet  + q                                         ! seb originally + MNWNOD(4,INODE)
             enddo
             mnw2(18,iw) = qnet
 c
@@ -2684,8 +2716,21 @@ c   Loop over nodes in well
                 ir=MNWNOD(2,INODE)
                 il=MNWNOD(1,INODE)
                 Q = MNWNOD(4,INODE)
+                IF ( Iuupw.GT.0 ) THEN                                  !seb ADDED BLOCK TO MATCH WHAT IS WRITTEN TO BUDGET
+                  hwell = MNWNOD(15,INODE)
+                     IF ( LAYHDT(IL).GT.0 .AND. MNW2(6,iw).NE.0) THEN
+                       hlim=mnw2(7,iw)
+                       IF ( hlim.LT.BOTM(ic,ir,lbotm(il)) ) 
+     +                      hlim = BOTM(ic,ir,lbotm(il))
+                       if ( hwell.LT.hlim ) hwell = hlim
+                     END IF
+                  hcell=hnew(ic,ir,il)
+                  cond = MNWNOD(14,INODE)
+                  q = cond*(hwell-hcell)
+                END IF
 c  lfk  active well check
-                if(MNW2(1,iw).eq.0) Q=0.0
+                if(MNW2(1,iw).eq.0) Q=0.0D0
+                IF(NMNW2.EQ.0) Q=0.0D0                                  !seb SET FLOW RATE TO 0 WHEN NOT MNW2 WELLS ARE IN USE
 c
                 call UBDSVB(ioc,ncol,nrow,IC,IR,IL,real(Q),
      +                    real(mnw2(:,iw)),
@@ -2694,6 +2739,7 @@ c
 c            endif
             enddo
           else                  !!  Write full 3D array
+            IF(NMNW2.EQ.0) buff=0.0                                     !seb SET FLOW RATE TO 0 WHEN NOT MNW2 WELLS ARE IN USE
             call ubudsv(kstp,kper,text,ioc, buff,ncol,nrow,nlay,iout)
           endif
         endif
@@ -3586,7 +3632,7 @@ c        if irecalc=0, use saved cond
           cond= MNWNOD(14,INODE)
          endif
 c        output node info  
-c  if more than one interval made up this node, write composite 
+c  if more than one interval made up this node, write 'composite' 
           if(MNWNOD(12,INODE).ne.MNWNOD(13,INODE)) then
 c--LFK
             ctext=' COMPOSITE'
@@ -3716,7 +3762,7 @@ c--LFK--Dec 2012   IF Vert.Segment, Length & Cond. = 1/2 of calc. value.
 c
 c       For the "NONE" option, multiply the Kh by 1000 to equivalate Hnew and hwell
         if(LOSSTYPE.EQ.0) then
-          cel2wel2=1.0D3*((Txx*Tyy)**0.5D0)/thck    
+          cel2wel2=1.0D4*((Txx*Tyy)**0.5D0)/thck    
 c
 c       THEIM option (LOSSTYPE.EQ.1) only needs A, so no need to calculate  B or C
 c
@@ -5113,7 +5159,7 @@ c    this makes conductance very small
         cel2wel2SEG = ( Txx * Tyy )** 0.5D0
 c       For the "NONE" option, multiply the Kh by 1000 to equivalate Hnew and hwell
       else if(LOSSTYPE.EQ.0) then
-        cel2wel2SEG=1.0D3*((Kx*Ky)**0.5D0)   
+        cel2wel2SEG=1.0D4*((Kx*Ky)**0.5D0)   
       else 
 c
 c    define ro (effective radius) for each direction 

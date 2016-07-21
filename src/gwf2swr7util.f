@@ -323,7 +323,7 @@ C-------CONJUGATE GRADIENT ITERATIVE SOLVER
      4                     NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
      5                     X,B,X0,DSCALE1,DSCALE2,
      6                     D,P,Q,Z,T)
-        USE, INTRINSIC :: IEEE_ARITHMETIC
+C        USE, INTRINSIC :: IEEE_ARITHMETIC
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
         INTEGER, INTENT(IN)    :: NCORESM
@@ -432,7 +432,7 @@ C-----------COMPUTE ITERATES
 C           UPDATE Q WITH A AND P
           CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,P,Q)
           denom = DOT_PRODUCT(P, Q)
-          IF ( denom.EQ.DZERO .OR. IEEE_IS_NAN(denom) )  THEN
+          IF ( denom.EQ.DZERO .OR. (ISNAN(denom).EQV. .TRUE.) )  THEN
             ICNVG = -1
             EXIT INNER
           END IF
@@ -482,7 +482,7 @@ C-------BICONJUGATE GRADIENT STABILIZED ITERATIVE SOLVER
      4                       NRLU,NNZLU,NJLU,NJW,NWLU,JLU,IU,JW,WLU,Mi,
      5                       X,B,X0,DSCALE1,DSCALE2,
      6                       D,DHAT,P,PHAT,S,SHAT,V,T)
-        USE, INTRINSIC :: IEEE_ARITHMETIC
+C        USE, INTRINSIC :: IEEE_ARITHMETIC
         IMPLICIT NONE
 C     + + + DUMMY ARGUMENTS + + +
         INTEGER, INTENT(IN)    :: NCORESM
@@ -598,7 +598,7 @@ C           APPLY PRECONDITIONER TO UPDATE PHAT
 C           UPDATE V WITH A AND PHAT
           CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,PHAT,V)
           denom = DOT_PRODUCT(DHAT, V)
-          IF ( denom.EQ.DZERO .OR. IEEE_IS_NAN(denom) )  THEN
+          IF ( denom.EQ.DZERO .OR. (ISNAN(denom).EQV. .TRUE.) )  THEN
             ICNVG = -1
             EXIT INNER
           END IF
@@ -625,7 +625,7 @@ C           APPLY PRECONDITIONER TO UPDATE SHAT
 C           UPDATE T WITH A AND SHAT
           CALL GSOL_CMATVEC(NCORESM,NR,NNZ,IA,JA,A,SHAT,T)
           denom = DOT_PRODUCT(T, T)
-          IF ( denom.EQ.DZERO .OR. IEEE_IS_NAN(denom) )  THEN
+          IF ( denom.EQ.DZERO .OR. (ISNAN(denom).EQV. .TRUE.) )  THEN
             ICNVG = -1
             EXIT INNER
           END IF

@@ -10,9 +10,332 @@ personal computers are provided as well as the source code at the following URL:
 
 http://water.usgs.gov/ogw/modflow-nwt/
 
+MODFLOW Files: Up-to-date descriptions of the input requirements for all 
+MODFLOW-NWT Packages and Processes are provided in the Online Guide to 
+MODFLOW-NWT (http://water.usgs.gov/ogw/modflow-nwt/MODFLOW-NWT-Guide/). 
+
 
 NOTE: Any use of trade, product or firm names is for descriptive purposes
 only and does not imply endorsement by the U.S. Government.
+
+o Version 1.1.0 07/21/2016:
+
+MODFLOW-NWT version 1.1.0 is based on MODFLOW-2005 version 1.11.0. This 
+means that MODFLOW-2005 source files used in MODFLOW-NWT were updated to
+reflect changes made for MODFLOW-2005 version 1.11.0. Refer to release 
+notes for MODFLOW-2005 version 1.11.0 for these changes.
+
+This release provides support for the new transport model called MT3D-USGS. 
+Changes to MODFLOW-NWT to support MT3D-USGS were made to the source file 
+lmt8_NWT.f. These changes include writing output for the UZF, SFR2, and 
+LAK7 packages that is required for simulating transport in the unsaturated 
+zone, streams, and lakes. Refer to the MT3D-USGS documentation report 
+(Bedekar and others, 2016) for details. Refer to the LMT release notes file
+"LMT8.pdf" located in ..\MODFLOW-NWT_1.1.0\doc
+
+Upstream Weighting (UPW) Package
+
+An error was fixed in the calculation of the derivative for smoothing conductance  
+during complete wetting of a cell. Testing using several problems indicated that 
+this change has minimal effects on the solution.
+
+NWT solver (NWT) Package
+
+Previous versions of MODFLOW-NWT reported a warning when the difference between
+a specified cell top and cell bottom was less than 100*Thickfact, where Thickfact 
+is an input variable specified within the NWT solver input file. These cells were 
+set to inactive by setting IBOUND=0. This conditions is now treated as an error
+and the model will stop if TOP-BOT<100*Thickfact.
+
+An error was fixed in the calculation of the derivative for smoothing conductance  
+during complete wetting of a cell. Testing using several problems indicated that 
+this change has minimal effects on the solution.
+
+A minor memory allocation error was fixed in GMRES that affected compilations using 
+the gfortran compiler
+
+Default solver input values for the xmd solver (Linmeth=2) were modified to improve 
+convergence. Solver input values for the SIMPLE, MODERATE, and COMPLEX default options
+are:
+
+Simple:
+        DBDTHETA     = 0.97
+        DBDKAPPA     = 0.0001
+        DBDGAMMA     = 0.0
+        MOMFACT      = 0.0
+        BACKFLAG     = 0
+        MAXBACKITER  = 20
+        BACKTOL      = 1.5
+        BACKREDUCE   = 0.97
+        IACL         = 1
+        NORDER       = 0
+        LEVEL        = 1
+        NORTH        = 5
+        IREDSYS      = 1
+        RRCTOLS      = 0.0
+        IDROPTOL     = 1
+        EPSRNS       = 5.0e-3
+        HCLOSEXMD    = 1.0e-3
+        MXITERXMD    = 50
+Moderate:
+        DBDTHETA     = 0.90
+        DBDKAPPA     = 0.00001
+        DBDGAMMA     = 0.0
+        MOMFACT      = 0.1
+        BACKFLAG     = 0
+        MAXBACKITER  = 20
+        BACKTOL      = 1.1
+        BACKREDUCE   = 0.9
+        IACL         = 1         
+        NORDER       = 0                
+        LEVEL        = 1        
+        NORTH        = 10     
+        IREDSYS      = 1
+        RRCTOLS      = 0.0
+        IDROPTOL     = 1
+        EPSRNS       = 5.0e-3  
+        HCLOSEXMD    = 1.0e-3  
+        MXITERXMD    = 100      
+Complex:
+        DBDTHETA     = 0.85
+        DBDKAPPA     = 0.00001
+        DBDGAMMA     = 0.0
+        MOMFACT      = 0.1
+        BACKFLAG     = 1
+        MAXBACKITER  = 50
+        BACKTOL      = 1.1
+        BACKREDUCE   = 0.7
+        IACL         = 2
+        NORDER       = 0
+        LEVEL        = 15
+        NORTH        = 1
+        IREDSYS      = 1
+        RRCTOLS      = 0.0
+        IDROPTOL     = 1
+        EPSRNS       = 1.0e-3
+        HCLOSEXMD    = 1.0e-4
+        MXITERXMD    = 200
+
+Streamflow Routing (SFR2) Package
+
+The input format for specifying character variable options has changed. Rather than
+specifying character variable options in a single line in a particular order, 
+each character variable option is specified on a separate line. If additional input 
+is required along with the character variable option then this value is specified on 
+the same line as the character variable option separated by one or more spaces. Options 
+must be proceeded with the "OPTIONS" specification and followed by the "END"  
+specification. Characters can be specified as upper or lower case.
+
+Optional character variables for SFR2 in any order:
+
+OPTIONS
+[REACHINPUT]
+[TRANSROUTE]
+[TABFILES Numtab Maxval]
+[LOSSFACTOR Factor]
+END
+
+Definitions for new character variable option:
+
+LOSSFACTOR -- An optional character variable. When LOSSFACTOR is specified, the 
+              real variable Factor is multiplied by STRHC1 or Hc1fact and Hc2fact 
+              to calculate seepage loss from streams. Calculation of groundwater 
+              seepage to streams is unchanged.
+
+Some variables in the SFR2 Package were initialized. Some variables were changed
+to arrays for use in MT3D-USGS.
+
+Unsaturated-Zone Flow (UZF) Package
+
+Note that the following changes to the UZF options will no longer support previous
+versions of UZF input files that used key word options. Previous UZF1 input 
+files must be modified to be consistent with the new character variable input
+options described below.
+
+Some variables in the UZF Package for calculating runoff were initialized.
+A minor bug was fixed that relates to simulating unsaturated-zone flow 
+beneath lakes.
+
+New Options were added to UZF1 to allow the hydraulic conductivity used to
+calculate rejected infiltration and surface leakage to be different than
+the vertical hydraulic conductivity of the unsaturated zone (VKS). 
+
+A new function was added for simulating groundwater ET. This function simulates
+a constant ET rate over the extinction depth rather than linearly reducing 
+ET as groundwater head decreases. The ET is smoothly reduced to zero using the 
+same polynomial function used to reduce pumping in drying cells (Niswonger 
+and others, 2011). ET is smoothly reduced as groundwater head drops to the  
+extinction depth. The smoothing interval is specified as a factor of the extinction  
+depth.
+
+The input format for specifying character variable options has changed. Rather than
+specifying character variable options in a single line in a particular order, 
+each character variable option is specified on a separate line. If additional input 
+is required along with the character variable option then this value is specified on 
+the same line as the character variable option separated by one or more spaces. 
+Options must be proceeded with the "OPTIONS" specification and followed by the "END"  
+specification. Letters can be specified as upper or lower case.
+
+Optional character variables for UZF1 in any order:
+
+OPTIONS
+[SPECIFYTHTR] 
+[SPECIFYTHTI] 
+[NOSURFLEAK] 
+[SPECIFYSURFK] 
+[REJECTSURFK] 
+[SEEPSURFK] 
+[ETSQUARE smoothfact]
+[NETFLUX unitrech unitdis]  
+END 
+
+Definitions of new variables:
+
+SPECIFYSURFK -- An optional character variable. When SPECIFYSURFK is specified, the 
+                variable SURFK is specified in Data Set 4b.
+
+REJECTSURFK -- An optional character variable. When REJECTSURFK is specified, SURFK 
+               instead of VKS is used for calculating rejected infiltration. 
+               REJECTSURFK only is included if SPECIFYSURFK is included.
+              
+SEEPSURFK -- An optional character variable. When SEEPSURFK is specified, SURFK 
+             instead of VKS is used for calculating surface leakage. SEEPSURFK 
+             only is included if SPECIFYSURFK is included.
+
+ETSQUARE -- An optional character variable. When ETSQUARE is specified, 
+            groundwater ET is simulated using a constant potential ET
+            rate, and is smoothed over a specified smoothing interval. This
+            option is recommended only when using the NWT solver.
+
+smoothfact --  An optional real variable specified if ETSQAURE is specified. For 
+               example, if the interval factor (smoothfact) is specified as 
+               smoothfact=0.1 (recommended), then the smoothing interval will be
+               calculated as: SMOOTHINT = 0.1*EXTDP and is applied over the 
+               range for groundwater head (h): 
+
+               h < CELTOP-EXTDP, ET is zero;
+               CELTOP-EXTDP < h < CELTOP-EXTDP+SMOOTHINT, ET is smoothed;
+               CELTOP-EXTDP+SMOOTHINT < h, ET is equal to potential ET.
+               
+NETFLUX -- An optional character variable. When NETFLUX is specified, the sum 
+           of recharge (L3/T) and the sum of discharge (L3/T) is written to separate 
+           unformatted files using module UBDSV3. Unitrech and Unitdis are the unit   
+           numbers to which these values are written when “SAVE BUDGET” is specified 
+           in Output Control. Values written to Unitrech are the sum of recharge  
+           values for the UZF, SFR2, and LAK packages, and values written 
+           to Unitdis are the sum of discharge values for the UZF, SFR2, and 
+           LAK packages. Values are averaged over the period between output times.
+
+
+DATA SET 4b:
+
+[SURFK (NCOL, NROW)] -- U2DREL
+
+SURFK -- An optional array of positive real values used to define the hydraulic 
+         conductivity (LT-1). SURFK is used for calculating the rejected infiltration  
+         and/or surface leakage. IF SURFK is set greater than VKS then it is
+         set equal to VKS.
+
+A new test problem is included in \MODFLOW-NWT_1.1.0\data called UZFtestoptions
+that provides example input for these new options.
+
+Lake (LAK) Package
+
+Some variables were changed to arrays in order to save data for MT3D-USGS.
+A minor bug was fixed that relates to simulating unsaturated-zone flow 
+beneath lakes.
+
+WELL (WEL) Package
+
+Note that the following changes to the Well Package input no longer supports
+previous input files that read the key word option SPECIFY in Data Set 2B.
+ 
+The input format for specifying the keyword (character) variable SPECIFY has changed.
+This character variable is now specified within the OPTIONS block that is specified 
+between Data Set 0 and Data Set 1. A new character variable option was added
+that allows users to specify pumping rates using separate tabular input files 
+for each well. Each tabular input file consists of a series of simulation
+times and pumping rates that should begin with time equal to zero. The applied pumping 
+rate will be interpolated from the tabular input file using the times at the end and 
+beginning of the time step. Options must be proceeded with the "OPTIONS" specification   
+and followed by the "END" specification. Characters can be specified as upper or lower case.
+
+Optional character variables for WELL in any order:
+
+OPTIONS
+[SPECIFY PHIRAMP IUNITRAMP]
+[TABFILES NUMTAB MAXVAL]
+END
+
+Definitions for new character variable option:
+
+TABFILES -- An optional character variable. When TABFILES is specified, all pumping
+rates for all wells in the model will be input using separate time series tabular
+input files. 
+
+NUMTAB -- An integer variable that is the number of tabular input files that
+will be read for interpolating pumping rates for each well in the model. A 
+separate tabular input file is required for each well in the model. Wells
+can be made inactive by specifying pumping rates of zero for times when a well
+is inactive.
+
+MAXVAL -- An integer value equal to the maximum number of time series
+values specified in the tabular input file, not including header lines. 
+Tabular input files each can have a different number of values and MAXVAL
+is the number of lines in the tabular input file that has the most lines
+as compared to all other tabular input files.
+
+IF TABFILES is specified then DATA SET 6 is replaced with the following NUMTAB
+lines for stress period 1 only. DATA SET 6 is not required for stress periods
+following the first stress period when the TABFILES option is used.
+
+[TABUNIT TABVAL TABLAY TABROW TABCOL]   #repeat this line NUMTAB times for stress period 1. 
+
+TABUNIT -- An integer value equal to the unit number for the tabular input file.
+This unit number must match the unit number specified in the MODFLOW Name file
+as type data.
+
+TABVAL -- An integer value equal to the number of lines in this tabular input file 
+not including header lines.
+
+TABLAY -- An integer value equal to the MODFLOW layer for the cell to which the 
+pumping rates will be applied.
+
+TABROW -- An integer value equal to the MODFLOW row for the cell to which the 
+pumping rates will be applied.
+
+TABCOL -- An integer value equal to the MODFLOW column for the cell to which the 
+pumping rates will be applied.
+
+A new test problem was added to the directory .\MODFLOW-NWT_1.1.0\data
+that includes example input files for using the tabular input file option
+for specifying pumping. 
+
+A bug was fixed that sets pumping applied to inactive cells to zero. This bug
+only affects results printed to the cell by cell budget file. A small error was
+fixed in the calculation of the derivative used for smoothing the pumping rate
+to zero for drying cells.
+
+Multi-Node Well (MNW2) Package
+
+A bug was fixed to correct budget calculations when the UPW Package was
+used with MNW2. The model stopped and an error was reported when a well 
+was screened in multiple cells and one of the cells was inactive. This error
+was changed to be a warning if one of the screened cells is active and
+execution continues.
+
+Surface Water Routing (SWR) Process
+
+The names of the source files were changed from gwf2swr7_NWT.f to gwf2swr7.f
+and gsol7.f to gwf2swr7util.f. See SWRProcess_release.txt for a summary of
+the changes made to SWR Process v 1.04.
+
+
+Source files that were modified for this release are: gwf2uzf1_NWT.f,gwfuzfmodule_NWT.f,
+gwf2sfr7_NWT.f,gwfsfrmodule_NWT.f,gwf2lak7_NWT.f, NWT1_gmres.f90, gwf2swr7.f,
+gwf2swr7util.f, gwf2mnw27_NWT.f, gmres.f90, NWT1_solver.f and NWT1_xmd.f, and
+lmt8_NWT.f.
+
 
 o Version 1.0.9 07/01/2014:
 
@@ -23,7 +346,7 @@ Fixed output file control for parallel writing of output to files.
 Well (WEL) package
 
 Initialization of a variable was added as it was not previously getting initialized 
-correctly.
+correctly. Fixed minor error in smoothing function derivative.
 
 Unsaturated-Zone Flow (UZF) package
 
@@ -763,6 +1086,10 @@ US Geological Survey. Available online at http://pubs.er.usgs.gov/publication/of
 Bakker, Mark, Schaars, Frans, Hughes, J.D., Langevin, C.D., and Dausman, A.M., 2013, 
 Documentation of the seawater intrusion (SWI2) package for MODFLOW: U.S. Geological Survey 
 Techniques and Methods, book 6, chap. A46, 47 p. Available online at http://pubs.er.usgs.gov/publication/tm6A46
+
+Bedekar, V., Morway, E.D., Langevin, C.D., Tonkin, M.T., 2016, MT3D-USGS Version 1: A U.S. Geological Survey 
+Release of MT3DMS Updated with New and Expanded Transport Capabilities for MODFLOW, U.S. Geological Survey, 
+Techniques and Methods 6-A53 variously p. 
 
 Hughes, J.D., Langevin, C.D., Chartier, K.L., and White, J.T., 2012, Documentation of the Surface-Water 
 Routing (SWR1) Process for modeling surface-water flow with the U.S. Geological Survey Modular Ground-Water 
