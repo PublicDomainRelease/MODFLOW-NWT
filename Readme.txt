@@ -1,13 +1,13 @@
 
 
-                     MODFLOW-NWT - Version: 1.1.0
+                     MODFLOW-NWT - Version: 1.1.1
                  Newton Formulation for MODFLOW-2005
 
 
 NOTE: Any use of trade, product or firm names is for descriptive purposes 
       only and does not imply endorsement by the U.S. Government.
 
-MODFLOW-NWT version 1.1.0 is packaged for personal computers using one of the 
+MODFLOW-NWT version 1.1.1 is packaged for personal computers using one of the 
 Microsoft Windows operating systems. Executable files for personal 
 computers are provided as well as the source code at the following URL:
 
@@ -43,7 +43,7 @@ A. DISTRIBUTION FILE
 
 The following distribution file is for use on personal computers:
 
-         MODFLOW-NWT_1.1.0.zip
+         MODFLOW-NWT_1.1.1.zip
 
 The distribution file contains:
 
@@ -60,7 +60,7 @@ file contains the following directory structure.
 
 
    |
-   |--MODFLOW-NWT_1.1.0
+   |--MODFLOW-NWT_1.1.1
    |    |--bin           ; Compiled MODFLOW-NWT executables for personal computers
    |    |--data          ; Sample problems
    |    |--doc           ; Documentation report for MODFLOW-NWT and the Surface-
@@ -69,7 +69,7 @@ file contains the following directory structure.
    |    |--output_test_64   ; Output files from running the sample problems, 64 bit versions
    |    |--src           ; Source code for MODFLOW-NWT
 
-Included in directory MODFLOW-NWT_1.1.0\doc is the MODFLOW-NWT documentation 
+Included in directory MODFLOW-NWT_1.1.1\doc is the MODFLOW-NWT documentation 
 report, which is a Portable Document Format (PDF) file. The PDF file is 
 readable and printable on various computer platforms using Acrobat Reader 
 from Adobe. The Acrobat Reader is freely available from the following World
@@ -80,17 +80,17 @@ Wide Web site:
 B. INSTALLING
 
 To make the executable versions of MODFLOW-NWT accessible from any
-directory, the directory containing the executables (MODFLOW-NWT_1.1.0\bin)
+directory, the directory containing the executables (MODFLOW-NWT_1.1.1\bin)
 should be included in the PATH environment variable.  
 
 As an alternative, the executable files, MODFLOW-NWT.exe and MODFLOW-NWT_64.exe, 
-in the MODFLOW-NWT_1.1.0\bin directory can be copied into a directory already
+in the MODFLOW-NWT_1.1.1\bin directory can be copied into a directory already
 included in the PATH environment variable.
 
 
 C. EXECUTING THE SOFTWARE
 
-A 32 bit and a 64 bit executable are provided in the MODFLOW-NWT_1.1.0\bin  
+A 32 bit and a 64 bit executable are provided in the MODFLOW-NWT_1.1.1\bin  
 directory. Two executables are provided because computers often use either  
 the 32 bit Windows XP or the 64 bit Windows 7 operating systems. Large 
 simulations may not run on a 32 bit operating system due to limitations 
@@ -99,7 +99,7 @@ system provides much more available RAM than a 32 bit operating system.
 Thus, it is recommended that a 64 bit executable be used on a 64 bit operating  
 system for large simulations.   
 
-After the executable files in the MODFLOW-NWT_1.1.0\bin directory are installed in
+After the executable files in the MODFLOW-NWT_1.1.1\bin directory are installed in
 a directory that is included in your PATH, MODFLOW-NWT is initiated in
 a Windows Command-Prompt window using the commands:
 
@@ -148,16 +148,18 @@ that was modified from the hypothetical test simulation described by Niswonger a
 Prudic (2005) to provide an example of specifying tabular time series input
 files for specifying pumping rates. Another test problem (Uzf_testoptions) was added
 that was modified from test simulation 2 of Niswonger and others (2006) to provide
-as example of the new input options for UZF. These test problems can be run using 
-either the 32-bit or 64-bit version of the MODFLOW-NWT executable. Saved 
-results for these simulations are included in the Output_test and Output_test_64
-directories for comparison.
+as example of the new input options for UZF. Another test problem (SFR_LAK_floodplain) 
+was created that combines the SFR2, LAK7, and UZF1 packages was added to demonstrate  
+how the lake package can be used to simulate floodplains adjacent to streams simulated.
+by SFR2. These test problems can be run using  either the 32-bit or 64-bit version of 
+the MODFLOW-NWT executable. Saved results for these simulations are included in the 
+Output_test and Output_test_64 directories for comparison.
 
 E. COMPILING
 
-The executable files provided in MODFLOW-NWT_1.1.0\bin were created using the Intel  
+The executable files provided in MODFLOW-NWT_1.1.1\bin were created using the Intel  
 Visual Fortran 12.1 compiler. Although executable versions of the program are  
-provided, the source code also is provided in the MODFLOW-NWT_1.1.0\src directory so 
+provided, the source code also is provided in the MODFLOW-NWT_1.1.1\src directory so 
 that MODFLOW-NWT can be recompiled if necessary. However, the USGS cannot provide  
 assistance to those compiling MODFLOW-NWT.
 

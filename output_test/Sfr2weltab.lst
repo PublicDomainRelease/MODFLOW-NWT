@@ -1,6 +1,6 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                            VERSION 1.1.0, 7/21/2016
+                            VERSION 1.1.1, 7/21/2016
                     BASED ON MODFLOW-2005 VERSION 1.11.00 08/30/2013
 
  LIST FILE: .\Sfr2weltab\Sfr2weltab.lst
@@ -82,7 +82,7 @@
  FILE TYPE:DATA   UNIT   90   STATUS:UNKNOWN
  FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
 
- BAS -- BASIC PACKAGE, VERSION 1.1.0, 6/21/2016 INPUT READ FROM UNIT   41
+ BAS -- BASIC PACKAGE, VERSION 1.1.1, 7/28/2016 INPUT READ FROM UNIT   41
  
  MODFLOW was compiled using mixed precision
  Precision of REAL variables:           6
@@ -296,7 +296,7 @@
  # Test Problem 3 for MODFLOW-NWT
  #HEADTOL  FLUXTOL MAXITEROUT THICKFACT LINMETH IPRNWT IBOTAV OPTIONS DBDREDUCE DBDINCREASE DBDGAMMA MOMFACT BACKFLAG MAXBACKITER BACKTOL BACKREDUCE
 
- NWT1 -- Newton Solver, VERSION 1.1.0, 6/21/2016
+ NWT1 -- Newton Solver, VERSION 1.1.1, 7/28/2016
          INPUT READ FROM UNIT 43
 
  SPECIFIED OPTION:
@@ -330,7 +330,7 @@
  MAX. NUMBER OF LINEAR ITERATIONS  (MXITERXMD) =        50
 
 
- UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.1.0, 6/21/2016
+ UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.1.1, 7/28/2016
          INPUT READ FROM UNIT 42
 
  # LPF Package input file for hypothetical test simulation
@@ -357,7 +357,7 @@
 
            SPECIFIC YIELD =  0.200000     FOR LAYER   1
 
- WEL -- WELL PACKAGE FOR NWT VERSION 1.1.0,  6/21/2016 INPUT READ FROM UNIT   91
+ WEL -- WELL PACKAGE FOR NWT VERSION 1.1.1,  7/28/2016 INPUT READ FROM UNIT   91
  # header lines
  # header lines
  No named parameters
@@ -46144,6 +46144,6 @@
          TOTAL TIME 1.29600E+08 2.16000E+06  36000.      1500.0      4.1068    
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2016/07/25 16:51:49
- Elapsed run time: 25.965 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2016/07/28 11:59:25
+ Elapsed run time: 24.272 Seconds
 

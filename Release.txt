@@ -18,6 +18,16 @@ MODFLOW-NWT (http://water.usgs.gov/ogw/modflow-nwt/MODFLOW-NWT-Guide/).
 NOTE: Any use of trade, product or firm names is for descriptive purposes
 only and does not imply endorsement by the U.S. Government.
 
+o Version 1.1.1 07/28/2016:
+
+MODFLOW-NWT version 1.1.1 is based on MODFLOW-2005 version 1.11.0.
+
+Unsaturated-Zone Flow (UZF) Package
+
+A bug was fixed to initialize a variable. This bug could affect convergence
+for problems that simulate linear groundwater ET in the UZF Package when
+using the NWT solver. 
+
 o Version 1.1.0 07/21/2016:
 
 MODFLOW-NWT version 1.1.0 is based on MODFLOW-2005 version 1.11.0. This 

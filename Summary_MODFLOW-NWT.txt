@@ -67,6 +67,9 @@ HISTORY
        
        MODFLOW-NWT Version 1.1.0 07/21/2016 - Also see the file
        ‘release.txt’ for additional release notes.
+       
+       MODFLOW-NWT Version 1.1.1 07/28/2016 - Also see the file
+       ‘release.txt’ for additional release notes.
         
 SYSTEM REQUIREMENTS
 
