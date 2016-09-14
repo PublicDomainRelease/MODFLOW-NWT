@@ -1,7 +1,7 @@
 C     ******************************************************************
 C     MAIN CODE FOR U.S. GEOLOGICAL SURVEY MODULAR MODEL -- MODFLOW-NWT
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.1.1, 7/21/2016
+!rgn------NEW VERSION NUMBER 1.1.2, 9/15/2016
 C     ******************************************************************
 C
 C        SPECIFICATIONS:
@@ -25,9 +25,9 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2,VERSION3
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.1.1, 7/21/2016')
+      PARAMETER (VERSION='1.1.2, 9/15/2016')
       PARAMETER (VERSION2='1.11.0 08/08/2013')
-      PARAMETER (VERSION3='1.04.0 07/21/2016')
+      PARAMETER (VERSION3='1.04.0 09/15/2016')
       PARAMETER (MFVNAM='-NWT-SWR1')
 C
       CHARACTER*80 HEADNG(2)
@@ -43,7 +43,7 @@ C
      &           'STOB', 'HUF2', 'CHOB', 'ETS ', 'DRT ', '    ', 'GMG ',  ! 42
      &           'HYD ', 'SFR ', '    ', 'GAGE', 'LVDA', '    ', 'LMT6',  ! 49
      &           'MNW2', 'MNWI', 'MNW1', 'KDEP', 'SUB ', 'UZF ', 'gwm ',  ! 56
-     &           'SWT ', 'cfp ', 'pcgn', '    ', 'FMP ', 'UPW ', 'NWT ',  ! 63
+     &           'SWT ', 'cfp ', 'pcgn', '    ', 'fmp ', 'UPW ', 'NWT ',  ! 63
      &           'SWR ', 'SWI2', '    ', '    ', '    ', '    ', '    ',  ! 70     - SWR - JDH 
      &           30*'    '/                                               ! 71-100 - SWR - JDH
 C     ------------------------------------------------------------------
