@@ -1,7 +1,7 @@
 C     ******************************************************************
 C     MAIN CODE FOR U.S. GEOLOGICAL SURVEY MODULAR MODEL -- MODFLOW-NWT
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER 1.1.2, 9/15/2016
+!rgn------NEW VERSION NUMBER 1.1.3, 8/01/2017
 C     ******************************************************************
 C
 C        SPECIFICATIONS:
@@ -25,7 +25,7 @@ C
 C-------ASSIGN VERSION NUMBER AND DATE
       CHARACTER*40 VERSION,VERSION2,VERSION3
       CHARACTER*10 MFVNAM
-      PARAMETER (VERSION='1.1.2, 9/15/2016')
+      PARAMETER (VERSION='1.1.3, 8/01/2017')
       PARAMETER (VERSION2='1.11.0 08/08/2013')
       PARAMETER (VERSION3='1.04.0 09/15/2016')
       PARAMETER (MFVNAM='-NWT-SWR1')
@@ -288,6 +288,7 @@ C7C2----ITERATIVELY FORMULATE AND SOLVE THE FLOW EQUATIONS.
             KKITER = KITER
             IF ( IUNIT(63).EQ.0 ) ITREAL2 = KITER
             IF(IUNIT(62).GT.0) CALL GWF2UPWUPDATE(2,Igrid)
+      
 C
 C7C2A---FORMULATE THE FINITE DIFFERENCE EQUATIONS.
             CALL GWF2BAS7FM(IGRID)
@@ -573,8 +574,15 @@ C7C5---PRINT AND/OR SAVE DATA.
 C
 C7C6---JUMP TO END OF PROGRAM IF CONVERGENCE WAS NOT ACHIEVED.
           IF ( IUNIT(63).GT.0 ) THEN
-            IF ( ICNVGFLG.EQ.0 ) THEN
-              IF(ICNVG.EQ.0) GO TO 110
+            IF(ICNVG.EQ.0) THEN
+              NCVGERR=NCVGERR+1
+              IF ( ICNVGFLG.EQ.0 ) THEN
+                WRITE(IOUT,87) BUDPERC
+                WRITE(IOUT,*) 'STOPPING SIMULATION'
+                GO TO 110
+              ELSE
+                WRITE(IOUT,*) 'CONTINUING EXECUTION'
+              END IF
             END IF
           ELSE
             IF(ICNVG.EQ.0) THEN
