@@ -23,7 +23,7 @@ C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7AR; 
 C------UPDATED FOR MF-2005, FEBRUARY 6, 2012  
 !rgn------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-!rgn------NEW VERSION NUMBER FOR NWT 1.1.3, 8/01/2017
+!rgn------NEW VERSION NUMBER FOR NWT 1.1.4, 4/01/2018
 C     ******************************************************************
 C     INITIALIZE POINTER VARIABLES USED BY SFR1 TO SUPPORT LAKE3 AND
 C     GAGE PACKAGES AND THE GWT PROCESS
@@ -402,7 +402,7 @@ C
 C------OLD USGS VERSION 7.1;  JUNE 2006 GWF2LAK7RP
 C        REVISED FEBRUARY 6, 2012
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.1.3, 8/01/2017  
+C------NEW VERSION NUMBER 1.1.4, 4/01/2018  
 C     ******************************************************************
 C       READ INPUT DATA FOR THE LAKE PACKAGE.
 C     ------------------------------------------------------------------
@@ -1074,13 +1074,13 @@ C        6 is type 0
       ENDIF
 
  900  IF (IUNITBCF.GT.0) THEN  ! rsr, moved if block from main
-        CALL SGWF2LAK7BCF7RPS()
+        CALL SGWF2LAK7BCF7RPS(LWRT)
       ELSE IF (IUNITLPF.GT.0) THEN
-        CALL SGWF2LAK7LPF7RPS()
+        CALL SGWF2LAK7LPF7RPS(LWRT)
       ELSE IF (IUNITHUF.GT.0) THEN
-        CALL SGWF2LAK7HUF7RPS()
+        CALL SGWF2LAK7HUF7RPS(LWRT)
       ELSE IF (IUNITUPW.GT.0) THEN
-        CALL SGWF2LAK7UPW1RPS()
+        CALL SGWF2LAK7UPW1RPS(LWRT)
       ELSE
         WRITE (IOUT, *) 'LAK Package requires BCF, LPF, UPW, or HUF'
         CALL USTOP(' ')
@@ -1095,7 +1095,7 @@ C
 C
 C------OLD VERSION 7.1 JUNE 2006 GWF2LAK7AD; REVISED FEBRUARY 6, 2012
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.1.3, 8/01/2017  
+C------NEW VERSION NUMBER 1.1.4, 4/01/2018  
 C
 C     ******************************************************************
 C     ADVANCE TO NEXT TIME STEP FOR TRANSIENT LAKE SIMULATION, AND COPY
@@ -1239,7 +1239,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7FM; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.1.3, 8/01/2017  
+C------NEW VERSION NUMBER 1.1.4, 4/01/2018  
 C     ******************************************************************
 C     ADD LAKE TERMS TO RHS AND HCOF IF SEEPAGE OCCURS IN MODEL CELLS
 C     ******************************************************************
@@ -1562,7 +1562,7 @@ C           INFLOW (INCLUDING AVAILABLE LAKE STORAGE).
           END IF
 C
 C14------LIMIT EVAPORATION TO LAKE INFLOW WHEN EVAPORATION EXCEEDS
-C          INFLOW (INCLUDING AVAILABLE LAKE STRORAGE AND WITHDRAWALS).
+C          INFLOW (INCLUDING AVAILABLE LAKE STORAGE AND WITHDRAWALS).
           IF ( EVAP(LAKE)>=FLWITER(LAKE) ) THEN
             EVAP(LAKE)=FLWITER(LAKE)
             FLWITER(LAKE) = 0.0D0
@@ -1662,13 +1662,13 @@ C16D----DETERMINE DERIVATIVE AND COMPUTE NEW LAKE STAGE.
                   DSTG = ABS(DSTG)
                 ELSE
 C16E----LINEAR CASE. SIMPLY CALCULATE STAGE BASED ON VOLUME.
-                  VOL2 = RESID1
+                  VOL2 = RESID1*DELT
                   IF ( VOL2.LT.0.0 ) VOL2 = 0.0
                   STGNEW(LAKE) = STGTERP(VOL2,LAKE)
                   DSTG = ABS(STGNEW(LAKE) - STGITER(LAKE))
                   NCNCVR(LAKE) = 1
                 END IF
- !     IF (lake==1 .and. kkper==2)then
+ !     IF (lake==1 .and. kkper==1)then
  !     write(521,222)PRECIP(LAKE),EVAP(LAKE),RUNF(LAKE),RUNOFF(LAKE),
  !    1                WITHDRW(LAKE),SURFIN(LAKE),SURFOT(LAKE),
  !    2                SEEP(LAKE),VOLNEW1,VOLOLDD(LAKE),STGITER(LAKE),
@@ -1735,7 +1735,7 @@ C
 C
 C------OLD USGS VERSION 7.1; JUNE 2006 GWF2LAK7BD; 
 C------REVISION NUMBER CHANGED TO BE CONSISTENT WITH NWT RELEASE
-C------NEW VERSION NUMBER 1.1.3, 8/01/2017
+C------NEW VERSION NUMBER 1.1.4, 4/01/2018
 C     ******************************************************************
 C     CALCULATE VOLUMETRIC BUDGET FOR LAKES
 C     ******************************************************************
@@ -3063,7 +3063,7 @@ C
 C-- RETURN
       RETURN
       END
-      SUBROUTINE SGWF2LAK7BCF7RPS()
+      SUBROUTINE SGWF2LAK7BCF7RPS(LWRT)
 C
 C     ******************************************************************
 C     COMPUTE VERTICAL CONDUCTANCES AND HORIZONTAL CONDUCTANCES PER UNIT
@@ -3078,7 +3078,7 @@ C     ------------------------------------------------------------------
 !!      USE GLOBAL,       ONLY: NLAY, IOUT, DELR, DELC, LAYHDT,NCOL,NROW
       USE GWFBCFMODULE, ONLY: IWDFLG, HY, CVWD, TRPY
 C
-      WRITE(IOUT,108)
+      IF ( LWRT <= 0 ) WRITE(IOUT,108)
   108 FORMAT(//9X,'C',15X,'INTERFACE CONDUCTANCES BETWEEN LAKE AND ',
      1  'AQUIFER CELLS'/
      2  3X,'L',5X,'O',10X,'(IF TYPE = 6, CONDUCTANCE (L^2/T) IS ',
@@ -3121,15 +3121,15 @@ C
           CNDFCT(II) = 1.0/(0.5/CVWD(I,J,K-1)+1.0/CNDFC1)
         END IF
   315   IF (IWDFLG.EQ.0) THEN
-          WRITE(IOUT,7324) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1        BEDLAK(II),CNDFC1,CNDFCT(II)
+          IF ( LWRT <= 0 ) WRITE(IOUT,7324) (ILAKE(I1,II),I1=1,5),
+     1        DELC(J),DELR(I),BEDLAK(II),CNDFC1,CNDFCT(II)
 c-lfk
  7324   FORMAT(1X,5I3,2X,1P,4E10.2,10X,E11.3)
 C 7324     FORMAT(1X,5I3,2X,1P,4E10.2,10X,E10.2)
         ELSE
           CVWD2= 2.0*CVWD(I,J,K-1)
-          WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1        BEDLAK(II),CNDFC1,CVWD2,CNDFCT(II)
+          IF ( LWRT <= 0 ) WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),
+     1        DELC(J),DELR(I),BEDLAK(II),CNDFC1,CVWD2,CNDFCT(II)
 c-lfk
  7325   FORMAT(1X,5I3,2X,1P,5E10.2,E11.3)
 c 7325     FORMAT(1X,5I3,2X,1P,6E10.2)
@@ -3144,8 +3144,8 @@ Cdep  348   IF(LAYHDT(K).EQ.0) THEN
         IF(LAYHDT(K).EQ.0) THEN
           IF(NTYP.EQ.2) CNDFCT(II) = BEDLAK(II)*DELC(J)
           IF(NTYP.EQ.3) CNDFCT(II) = BEDLAK(II)*DELR(I)
-          WRITE(IOUT,7324) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1        BEDLAK(II),CNDFCT(II),CNDFCT(II)
+          IF ( LWRT <= 0 ) WRITE(IOUT,7324) (ILAKE(I1,II),I1=1,5),
+     1        DELC(J),DELR(I),BEDLAK(II),CNDFCT(II),CNDFCT(II)
           IWRN = 1
         ELSE
 C
@@ -3158,8 +3158,8 @@ C
         IF(NTYP.EQ.3) CNDFC1 = BEDLAK(II)*DELR(I)
         IF (CNDFC1.GT.0.0.AND.CNDFC2.GT.0.0) 
      *         CNDFCT(II) = 1.0/(1.0/CNDFC2+1.0/CNDFC1)
-        WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1    BEDLAK(II),CNDFC1,CNDFC2,CNDFCT(II)
+        IF ( LWRT <= 0 )WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),
+     1    DELR(I),BEDLAK(II),CNDFC1,CNDFC2,CNDFCT(II)
         END IF
       END IF
   350 CONTINUE
@@ -3181,7 +3181,7 @@ C
       RETURN
       END
 C
-      SUBROUTINE SGWF2LAK7LPF7RPS()
+      SUBROUTINE SGWF2LAK7LPF7RPS(LWRT)
 C
 C     ******************************************************************
 C     COMPUTE VERTICAL CONDUCTANCES AND HORIZONTAL CONDUCTANCES PER UNIT
@@ -3196,7 +3196,7 @@ C     ------------------------------------------------------------------
      +                        BOTM
       USE GWFLPFMODULE, ONLY: CHANI, LAYVKA, VKA, VKCB, HANI, HK
 C
-      WRITE(IOUT,108)
+      IF ( LWRT <= 0 )WRITE(IOUT,108)
   108 FORMAT(//9X,'C',15X,'INTERFACE CONDUCTANCES BETWEEN LAKE AND ',
      1  'AQUIFER CELLS'/
      2  3X,'L',5X,'O',10X,'(IF TYPE = 6, CONDUCTANCE (L^2/T) IS ',
@@ -3229,9 +3229,10 @@ C    for vertical interface, "K" is layer below bottom of lake
         IF(K.EQ.NLAY.AND.LKARR1(I,J,K).GT.0) GO TO 315
         IF(BEDLAK(II).LE.0.0) GO TO 315
         CNDFC1 = BEDLAK(II)*DELR(I)*DELC(J)
+        VK = 0.0
         IF(LAYVKA(K).EQ.0) THEN
            VK=VKA(I,J,K)
-        ELSE
+        ELSE IF ( VKA(I,J,K) > 0.0 ) THEN    !RGN 8/21/17 CHECK DIVIDE BY ZERO
            VK=HK(I,J,K)/VKA(I,J,K)
         END IF
 c   skip if zero vk
@@ -3249,8 +3250,8 @@ c   skip if zero vkcb
           CAQ = 1.0/(1.0/CAQ + 1.0/CCB)
         END IF
         CNDFCT(II) = 1.0/(1.0/CAQ+1.0/CNDFC1)
-  315   WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1             BEDLAK(II),CNDFC1,CAQ,CNDFCT(II)
+  315   IF ( LWRT <= 0 )WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),
+     1             DELC(J),DELR(I),BEDLAK(II),CNDFC1,CAQ,CNDFCT(II)
       ELSE
 C
 C  Horizontal conductance
@@ -3271,8 +3272,8 @@ C Y-DIRECTION
         IF(NTYP.EQ.3) CNDFC1 = BEDLAK(II)*DELR(I)
         IF (CNDFC1.GT.0.0.AND.CNDFC2.GT.0.0) 
      *         CNDFCT(II) = 1.0/(1.0/CNDFC2+1.0/CNDFC1)
-        WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1    BEDLAK(II),CNDFC1,CNDFC2,CNDFCT(II)
+        IF ( LWRT <= 0 )WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),
+     1    DELC(J),DELR(I),BEDLAK(II),CNDFC1,CNDFC2,CNDFCT(II)
 c-lfk
  7325   FORMAT(1X,5I3,2X,1P,5E10.2,E11.3)
 c 7325   FORMAT(1X,5I3,2X,1P,6E10.2)
@@ -3282,7 +3283,7 @@ C
       RETURN
       END
 C
-      SUBROUTINE SGWF2LAK7UPW1RPS()
+      SUBROUTINE SGWF2LAK7UPW1RPS(LWRT)
 C
 C     ******************************************************************
 C     COMPUTE VERTICAL CONDUCTANCES AND HORIZONTAL CONDUCTANCES PER UNIT
@@ -3298,7 +3299,7 @@ C     ------------------------------------------------------------------
       USE GWFUPWMODULE, ONLY: CHANI, LAYVKAUPW, VKAUPW, VKCB, HANI, 
      +                        HKUPW
 C
-      WRITE(IOUT,108)
+      IF ( LWRT <= 0 )WRITE(IOUT,108)
   108 FORMAT(//9X,'C',15X,'INTERFACE CONDUCTANCES BETWEEN LAKE AND ',
      1  'AQUIFER CELLS'/
      2  3X,'L',5X,'O',10X,'(IF TYPE = 6, CONDUCTANCE (L^2/T) IS ',
@@ -3333,7 +3334,7 @@ C    for vertical interface, "K" is layer below bottom of lake
         CNDFC1 = BEDLAK(II)*DELR(I)*DELC(J)
         IF(LAYVKAUPW(K).EQ.0) THEN
            VK=VKAUPW(I,J,K)
-        ELSE
+        ELSE IF ( VKAUPW(I,J,K) > 0.0 ) THEN    !RGN 8/21/17 CHECK DIVIDE BY ZERO
            VK=HKUPW(I,J,K)/VKAUPW(I,J,K)
         END IF
 c   skip if zero vk
@@ -3353,8 +3354,8 @@ c   skip if zero vkcb
           CAQ = 1.0/(1.0/CAQ + 1.0/CCB)
         END IF
         CNDFCT(II) = 1.0/(1.0/CAQ+1.0/CNDFC1)
-  315   WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1             BEDLAK(II),CNDFC1,CAQ,CNDFCT(II)
+  315   IF ( LWRT <= 0 )WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),
+     1             DELC(J),DELR(I),BEDLAK(II),CNDFC1,CAQ,CNDFCT(II)
       ELSE
 C
 C  Horizontal conductance
@@ -3375,8 +3376,8 @@ C Y-DIRECTION
         IF(NTYP.EQ.3) CNDFC1 = BEDLAK(II)*DELR(I)
         IF (CNDFC1.GT.0.0.AND.CNDFC2.GT.0.0) 
      *         CNDFCT(II) = 1.0/(1.0/CNDFC2+1.0/CNDFC1)
-        WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
-     1    BEDLAK(II),CNDFC1,CNDFC2,CNDFCT(II)
+        IF ( LWRT <= 0 )WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),
+     1    DELC(J),DELR(I),BEDLAK(II),CNDFC1,CNDFC2,CNDFCT(II)
  7325   FORMAT(1X,5I3,2X,1P,6E10.2)
       END IF
   350 CONTINUE
@@ -3385,7 +3386,7 @@ C
       END
 C
 C
-      SUBROUTINE SGWF2LAK7HUF7RPS()
+      SUBROUTINE SGWF2LAK7HUF7RPS(LWRT)
 C
 C     ******************************************************************
 C     COMPUTE VERTICAL CONDUCTANCES AND HORIZONTAL CONDUCTANCES PER UNIT
@@ -3401,7 +3402,7 @@ C     ------------------------------------------------------------------
 c-lfk      USE GWFLPFMODULE, ONLY: VKA, HK
       USE GWFHUFMODULE, ONLY: VKAH !!,HK,HKCC
 C
-      WRITE(IOUT,108)
+      IF ( LWRT <= 0 )WRITE(IOUT,108)
   108 FORMAT(//9X,'C',15X,'INTERFACE CONDUCTANCES BETWEEN LAKE AND ',
      1  'AQUIFER CELLS'/
      2  3X,'L',5X,'O',10X,'(IF TYPE = 6, CONDUCTANCE (L^2/T) IS ',
@@ -3450,9 +3451,9 @@ c-lfk    When HUF is active, set effective lakebed conductance only on basis of 
           CNDFCT(II) = CNDFC1
         END IF
 C-LFK   (ABOVE BLOCK MODIFIED 1/2/2013 WITH IF-THEN-ELSE-ENDIF CONTROLS TO AVOID ZERO LKNCE)
-  315   WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
+  315   IF ( LWRT <= 0 ) WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),
 c-lfk
-     1             BEDLAK(II),CNDFC1,CNDFCT(II)
+     1             DELR(I),BEDLAK(II),CNDFC1,CNDFCT(II)
 c    1             BEDLAK(II),CNDFC1,CAQ,CNDFCT(II)
       ELSE
 C
@@ -3473,9 +3474,9 @@ c        IF (CNDFC1.GT.0.0.AND.CNDFC2.GT.0.0)
 c     *         CNDFCT(II) = 1.0/(1.0/CNDFC2+1.0/CNDFC1)
 c-lfk    When HUF is active, set effective lakebed conductance only on basis of user-specified lakebed leakance value
           CNDFCT(II) = CNDFC1
-        WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),DELR(I),
+        IF ( LWRT <= 0 )WRITE(IOUT,7325) (ILAKE(I1,II),I1=1,5),DELC(J),
 c-lfk
-     1    BEDLAK(II),CNDFC1,CNDFCT(II)
+     1    DELR(I),BEDLAK(II),CNDFC1,CNDFCT(II)
 c    1    BEDLAK(II),CNDFC1,CNDFC2,CNDFCT(II)
 c-lfk
  7325   FORMAT(1X,5I3,2X,1P,4E10.2,10x,E11.3)
@@ -4037,43 +4038,7 @@ C
 C6E------COMPUTE LAKE SEEPAGE (FLOBOT) AS A FRACTION OF FLOBO1 AND 
 C          FLOB02 AND FLOBO3 AS A FRACTION OF FLOBO1 AND FLOBO3.   
       RETURN
-      END SUBROUTINE GET_FLOBOT   
-C
-C-------SUBROUTINE LAK2MODSIM
-      SUBROUTINE LAK2MODSIM()
-C     *******************************************************************
-C     SET VOLUMES, SFR INFLOWS, AND SFR OUTFLOWS FOR MODSIM
-!--------MARCH 8, 2017
-C     *******************************************************************
-      USE GWFLAKMODULE, ONLY: NLAKES, SURFIN, SURFOT, VOLOLDD, VOL
-      USE GWFBASMODULE, ONLY: DELT
-      IMPLICIT NONE
-C     -------------------------------------------------------------------
-C     SPECIFICATIONS:
-C     -------------------------------------------------------------------
-C     ARGUMENTS
-C     -------------------------------------------------------------------
-!      INTEGER 
-!      DOUBLE PRECISION 
-C     -------------------------------------------------------------------
-C     LOCAL VARIABLES
-C     -------------------------------------------------------------------
-      INTEGER LAKE
-      DOUBLE PRECISION DELTAVOL, DELTAQ
-C     -------------------------------------------------------------------
-C
-C
-C1-------SET FLOWS IN AND OUT OF LAKES AND CHANGE IN LAKE VOLUME.
-C
-        DO LAKE=1,NLAKES
-          DELTAQ = SURFIN(LAKE) - SURFOT(LAKE)
-          DELTAVOL = VOL(LAKE) - VOLOLDD(LAKE) 
-          DELTAVOL = DELTAVOL - DELTAQ
-        END DO
-C
-C5------RETURN.
-      RETURN
-      END SUBROUTINE LAK2MODSIM
+      END SUBROUTINE GET_FLOBOT
 C   
 C
       SUBROUTINE GWF2LAK7DA(IUNITLAK, IGRID)
