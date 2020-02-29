@@ -1,0 +1,42 @@
+                                  MODFLOW-NWT-SWR1 
+      U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
+                            VERSION 1.2.0 03/01/2020
+                    BASED ON MODFLOW-2005 VERSION 1.12.00 02/03/2017
+
+ LIST FILE: .\SWI_data_files\swi2ex4sww_64.lst
+                         UNIT    2
+
+ OPENING .\SWI_data_files\swi2ex4sww.dis
+ FILE TYPE:DIS   UNIT   11   STATUS:OLD    
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ OPENING .\SWI_data_files\swi2ex4sww.bas
+ FILE TYPE:BAS6   UNIT   13   STATUS:OLD    
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ OPENING .\SWI_data_files\swi2ex4sww.ghb
+ FILE TYPE:GHB   UNIT   23   STATUS:OLD    
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ OPENING .\SWI_data_files\swi2ex4sww.wel
+ FILE TYPE:WEL   UNIT   20   STATUS:OLD    
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ OPENING .\SWI_data_files\swi2ex4sww.upw
+ FILE TYPE:UPW   UNIT   15   STATUS:OLD    
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ OPENING .\SWI_data_files\swi2ex4sww.swi
+ FILE TYPE:SWI2   UNIT   29   STATUS:OLD    
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ OPENING .\SWI_data_files\swi2ex4sww.zta
+ FILE TYPE:DATA(BINARY)   UNIT   55   STATUS:REPLACE
+ FORMAT:BINARY                 ACCESS:SEQUENTIAL          
+
+ *** ERROR OPENING FILE ".\SWI_data_files\swi2ex4sww.zta" ON UNIT    55
+       SPECIFIED FILE STATUS: REPLACE
+       SPECIFIED FILE FORMAT: BINARY              
+       SPECIFIED FILE ACCESS: SEQUENTIAL          
+       SPECIFIED FILE ACTION: READWRITE           
+  -- STOP EXECUTION (SGWF2BAS7OPEN)

@@ -1,6 +1,6 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                             VERSION 1.1.4 4/01/2018
+                            VERSION 1.2.0 03/01/2020
                     BASED ON MODFLOW-2005 VERSION 1.12.00 02/03/2017
 
  LIST FILE: .\Lake_bath_example\l1b2k_bath.lst
@@ -46,7 +46,11 @@
  FILE TYPE:DATA   UNIT   22   STATUS:UNKNOWN
  FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
 
- BAS -- BASIC PACKAGE, VERSION 1.1.4, 4/01/2018 INPUT READ FROM UNIT    7
+ OPENING .\Lake_bath_example\lak1b_bath.hds
+ FILE TYPE:DATA(BINARY)   UNIT   18   STATUS:UNKNOWN
+ FORMAT:BINARY                 ACCESS:SEQUENTIAL          
+
+ BAS -- BASIC PACKAGE, VERSION 1.2.0, 3/01/2020 INPUT READ FROM UNIT    7
  
  MODFLOW was compiled using mixed precision
  Precision of REAL variables:           6
@@ -1435,11 +1439,11 @@
           HEAD    DRAWDOWN  HEAD  DRAWDOWN
  LAYER  PRINTOUT  PRINTOUT  SAVE    SAVE
  -----------------------------------------
-    1       0         0       0       0
-    2       0         0       0       0
-    3       0         0       0       0
-    4       0         0       0       0
-    5       1         0       0       0
+    1       0         0       1       0
+    2       0         0       1       0
+    3       0         0       1       0
+    4       0         0       1       0
+    5       1         0       1       0
 
 
      0  LAKE CELLS ARE DRY.
@@ -1526,6 +1530,8 @@
   15   146.9  145.7  144.2  142.7  141.4  140.3  140.0
   16   147.6  146.4  144.9  143.4  141.9  140.6  140.0
   17   148.5  147.3  145.8  144.2  142.7  141.1  140.0
+
+ HEAD WILL BE SAVED ON UNIT   18 AT END OF TIME STEP    1, STRESS PERIOD    1
 1
   VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
@@ -1535,29 +1541,29 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =      166882.6406         CONSTANT HEAD =      166882.6406
-                  ET =           0.0000                    ET =           0.0000
-            RECHARGE =     1739999.8750              RECHARGE =     1739999.8750
-     SPECIFIED FLOWS =           0.0000       SPECIFIED FLOWS =           0.0000
-       LAKE  SEEPAGE =       24955.2852         LAKE  SEEPAGE =       24955.2852
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =      166882.6406         CONSTANT HEAD     =      166882.6406
+                  ET     =           0.0000                    ET     =           0.0000
+            RECHARGE     =     1739999.8750              RECHARGE     =     1739999.8750
+     SPECIFIED FLOWS     =           0.0000       SPECIFIED FLOWS     =           0.0000
+       LAKE  SEEPAGE     =       24955.2852         LAKE  SEEPAGE     =       24955.2852
 
-            TOTAL IN =     1931837.7500              TOTAL IN =     1931837.7500
+                TOTAL IN =     1931837.7500                  TOTAL IN =     1931837.7500
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =        9490.5723         CONSTANT HEAD =        9490.5723
-                  ET =     1905452.2500                    ET =     1905452.2500
-            RECHARGE =           0.0000              RECHARGE =           0.0000
-     SPECIFIED FLOWS =           0.0000       SPECIFIED FLOWS =           0.0000
-       LAKE  SEEPAGE =       16886.7344         LAKE  SEEPAGE =       16886.7344
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =        9490.5723         CONSTANT HEAD     =        9490.5723
+                  ET     =     1905452.2500                    ET     =     1905452.2500
+            RECHARGE     =           0.0000              RECHARGE     =           0.0000
+     SPECIFIED FLOWS     =           0.0000       SPECIFIED FLOWS     =           0.0000
+       LAKE  SEEPAGE     =       16886.7344         LAKE  SEEPAGE     =       16886.7344
 
-           TOTAL OUT =     1931829.6250             TOTAL OUT =     1931829.6250
+               TOTAL OUT =     1931829.6250                 TOTAL OUT =     1931829.6250
 
-            IN - OUT =           8.1250              IN - OUT =           8.1250
+                IN - OUT =           8.1250                  IN - OUT =           8.1250
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+     PERCENT DISCREPANCY =           0.00         PERCENT DISCREPANCY =           0.00
 
 
 
@@ -1572,6 +1578,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2018/04/10 12:52:21
- Elapsed run time:  0.063 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2020/03/03 10:39:36
+ Elapsed run time:  0.089 Seconds
 

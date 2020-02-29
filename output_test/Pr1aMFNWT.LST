@@ -1,6 +1,6 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                             VERSION 1.1.4 4/01/2018
+                            VERSION 1.2.0 03/01/2020
                     BASED ON MODFLOW-2005 VERSION 1.12.00 02/03/2017
 
  LIST FILE: .\Ex_prob1a\Pr1aMFNWT.LST
@@ -30,7 +30,11 @@
  FILE TYPE:DATA(BINARY)   UNIT   50   STATUS:UNKNOWN
  FORMAT:BINARY                 ACCESS:SEQUENTIAL          
 
- BAS -- BASIC PACKAGE, VERSION 1.1.4, 4/01/2018 INPUT READ FROM UNIT    4
+ OPENING .\Ex_prob1a\Pr1aMFNWT.out
+ FILE TYPE:DATA   UNIT   51   STATUS:UNKNOWN
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ BAS -- BASIC PACKAGE, VERSION 1.2.0, 3/01/2020 INPUT READ FROM UNIT    4
  
  MODFLOW was compiled using mixed precision
  Precision of REAL variables:           6
@@ -121,13 +125,15 @@
         46.40       46.80       47.20       47.60       48.00       48.40       48.80       49.20       49.60       50.00    
 
  OUTPUT CONTROL IS SPECIFIED ONLY AT TIME STEPS FOR WHICH OUTPUT IS DESIRED
+ HEADS WILL BE SAVED WITH FORMAT: (10F10.3)           
+ SAVED HEADS WILL BE LABELED
  COMPACT CELL-BY-CELL BUDGET FILES WILL BE WRITTEN
  AUXILIARY DATA WILL BE SAVED IN CELL-BY-CELL BUDGET FILES
  HEAD PRINT FORMAT CODE IS   6    DRAWDOWN PRINT FORMAT CODE IS   0
- HEADS WILL BE SAVED ON UNIT    0    DRAWDOWNS WILL BE SAVED ON UNIT    0
+ HEADS WILL BE SAVED ON UNIT   51    DRAWDOWNS WILL BE SAVED ON UNIT    0
  # MODFLOW-NWT Input File Problem 1a
 
- NWT1 -- Newton Solver, VERSION 1.1.4, 4/01/2018
+ NWT1 -- Newton Solver, VERSION 1.2.0, 3/01/2020
          INPUT READ FROM UNIT 23
 
  SPECIFIED OPTION:
@@ -161,7 +167,7 @@
  MAX. NUMBER OF LINEAR ITERATIONS  (MXITERXMD) =        50
 
 
- UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.1.4, 4/01/2018
+ UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.2.0, 3/01/2020
          INPUT READ FROM UNIT 33
 
  CELL-BY-CELL FLOWS WILL BE SAVED ON UNIT   50
@@ -210,6 +216,7 @@
     PRINT BUDGET
     SAVE BUDGET
     PRINT HEAD FOR ALL LAYERS
+    SAVE HEAD FOR ALL LAYERS
  UBDSV2 SAVING "   CONSTANT HEAD" ON UNIT  50 AT TIME STEP  1, STRESS PERIOD   1
  UBDSV1 SAVING "FLOW RIGHT FACE " ON UNIT  50 AT TIME STEP  1, STRESS PERIOD   1
 1
@@ -231,6 +238,8 @@
       39.3681 39.6761 39.9817 40.2850 40.5860 40.8849 41.1816 41.4762 41.7687 42.0592 42.3478 42.6344 42.9191 43.2019 43.4829
       43.7621 44.0396 44.3153 44.5893 44.8617 45.1324 45.4015 45.6691 45.9351 46.1996 46.4625 46.7241 46.9841 47.2428 47.5000
       47.7559 48.0104 48.2635 48.5154 48.7659 49.0152 49.2633 49.5100 49.7556 50.0000
+
+ HEAD WILL BE SAVED ON UNIT   51 AT END OF TIME STEP    1, STRESS PERIOD    1
 1
   VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
@@ -240,21 +249,21 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =         610.9417         CONSTANT HEAD =         610.9417
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =         610.9417         CONSTANT HEAD     =         610.9417
 
-            TOTAL IN =         610.9417              TOTAL IN =         610.9417
+                TOTAL IN =         610.9417                  TOTAL IN =         610.9417
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =         610.9417         CONSTANT HEAD =         610.9417
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =         610.9417         CONSTANT HEAD     =         610.9417
 
-           TOTAL OUT =         610.9417             TOTAL OUT =         610.9417
+               TOTAL OUT =         610.9417                 TOTAL OUT =         610.9417
 
-            IN - OUT =           0.0000              IN - OUT =           0.0000
+                IN - OUT =           0.0000                  IN - OUT =           0.0000
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+     PERCENT DISCREPANCY =           0.00         PERCENT DISCREPANCY =           0.00
 
 
 
@@ -269,6 +278,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2018/04/10 12:52:29
- Elapsed run time:  0.000 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2020/03/03 10:40:04
+ Elapsed run time:  0.008 Seconds
 
