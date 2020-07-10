@@ -2,6 +2,7 @@
 
 set(SOURCE
   de47_NWT.f
+  gwf2ag1_NWT_mf.f
   gwf2bas7_NWT.f
   gwf2bcf7.f
   gwf2chd7.f
@@ -27,7 +28,7 @@ set(SOURCE
   gwf2sfr7_NWT.f
   gwf2str7.f
   gwf2sub7_NWT.f
-  gwf2swi27.f
+  gwf2swi27.fpp
   gwf2swr7.f
   gwf2swr7util.f
   gwf2swt7.f
@@ -38,6 +39,7 @@ set(SOURCE
   gwfsfrmodule_NWT.f
   gwfuzfmodule_NWT.f
   hufutl7.f
+  # Irestart.f
   lmt8_NWT.f
   mach_mod.f90
   MF_NWT.f
@@ -61,6 +63,7 @@ set(SOURCE
   sip7_NWT.f
   utl7.f
 )
+set_source_files_properties(gwf2swi27.fpp PROPERTIES LANGUAGE Fortran)
 
 add_executable(mfnwt ${SOURCE})
 target_compile_options(mfnwt

@@ -1,22 +1,10 @@
 ###############################################################################
 # Main CMake file to build MODFLOW-NWT distribution
 ###############################################################################
-cmake_minimum_required(VERSION 3.7)
-
-# Establish a build type prior to 'project' command
-if(NOT CMAKE_BUILD_TYPE)
-  message(STATUS "Setting build type to 'Release' as none was specified.")
-  set(CMAKE_BUILD_TYPE Release CACHE
-      STRING "Choose the type of build." FORCE)
-endif()
-if(NOT CMAKE_CONFIGURATION_TYPES)
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
-
+cmake_minimum_required(VERSION 3.9)
 
 project(MODFLOW-NWT
-  VERSION 1.1.4
+  VERSION 1.2.0
   LANGUAGES Fortran
 )
 
@@ -104,7 +92,7 @@ elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel")
     #7712: This variable has not been used
     set(Fortran_WARN_FLAGS
       -warn all
-      -diag-disable 6717,7712
+      -diag-disable 5194,6717,7712,8889
     )
   endif()
 else()  # Guess for other Fortran compilers
@@ -175,9 +163,7 @@ endmacro()
 # Build executable targets
 add_subdirectory(src mfnwt)
 
-message("")
-message("Configure summary:")
-message("")
+message(STATUS "-- Configure summary --")
 message(STATUS "Compiler ID:            ${CMAKE_Fortran_COMPILER_ID}")
 message(STATUS "Build Type:             ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_Fortran_COMPILER: ${CMAKE_Fortran_COMPILER}")
