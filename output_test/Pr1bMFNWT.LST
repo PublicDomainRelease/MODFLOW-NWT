@@ -1,6 +1,6 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                             VERSION 1.1.4 4/01/2018
+                            VERSION 1.2.0 03/01/2020
                     BASED ON MODFLOW-2005 VERSION 1.12.00 02/03/2017
 
  LIST FILE: .\Ex_prob1b\Pr1bMFNWT.LST
@@ -34,7 +34,11 @@
  FILE TYPE:DATA(BINARY)   UNIT   50   STATUS:UNKNOWN
  FORMAT:BINARY                 ACCESS:SEQUENTIAL          
 
- BAS -- BASIC PACKAGE, VERSION 1.1.4, 4/01/2018 INPUT READ FROM UNIT    4
+ OPENING .\Ex_prob1b\Pr1bMFNWT.out
+ FILE TYPE:DATA   UNIT   51   STATUS:UNKNOWN
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ BAS -- BASIC PACKAGE, VERSION 1.2.0, 3/01/2020 INPUT READ FROM UNIT    4
  
  MODFLOW was compiled using mixed precision
  Precision of REAL variables:           6
@@ -113,13 +117,15 @@
              INITIAL HEAD =   10.0000     FOR LAYER   1
 
  OUTPUT CONTROL IS SPECIFIED ONLY AT TIME STEPS FOR WHICH OUTPUT IS DESIRED
+ HEADS WILL BE SAVED WITH FORMAT: (10F10.3)           
+ SAVED HEADS WILL BE LABELED
  COMPACT CELL-BY-CELL BUDGET FILES WILL BE WRITTEN
  AUXILIARY DATA WILL BE SAVED IN CELL-BY-CELL BUDGET FILES
  HEAD PRINT FORMAT CODE IS   6    DRAWDOWN PRINT FORMAT CODE IS   0
- HEADS WILL BE SAVED ON UNIT    0    DRAWDOWNS WILL BE SAVED ON UNIT    0
+ HEADS WILL BE SAVED ON UNIT   51    DRAWDOWNS WILL BE SAVED ON UNIT    0
  # MODFLOW-NWT Input File Problem 1b
 
- NWT1 -- Newton Solver, VERSION 1.1.4, 4/01/2018
+ NWT1 -- Newton Solver, VERSION 1.2.0, 3/01/2020
          INPUT READ FROM UNIT 23
 
  SPECIFIED OPTION:
@@ -153,7 +159,7 @@
  MAX. NUMBER OF LINEAR ITERATIONS  (MXITERXMD) =        50
 
 
- UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.1.4, 4/01/2018
+ UPW1 -- UPSTREAM WEIGHTING FLOW PACKAGE, VERSION 1.2.0, 3/01/2020
          INPUT READ FROM UNIT 33
 
  CELL-BY-CELL FLOWS WILL BE SAVED ON UNIT   50
@@ -213,6 +219,7 @@
     PRINT BUDGET
     SAVE BUDGET
     PRINT HEAD FOR ALL LAYERS
+    SAVE HEAD FOR ALL LAYERS
  UBDSV2 SAVING "   CONSTANT HEAD" ON UNIT  50 AT TIME STEP  1, STRESS PERIOD   1
  UBDSV1 SAVING "FLOW RIGHT FACE " ON UNIT  50 AT TIME STEP  1, STRESS PERIOD   1
  UBDSV3 SAVING "        RECHARGE" ON UNIT  50 AT TIME STEP  1, STRESS PERIOD   1
@@ -235,6 +242,8 @@
       22.5583 22.6444 22.7280 22.8092 22.8878 22.9640 23.0378 23.1092 23.1782 23.2449 23.3093 23.3713 23.4311 23.4885 23.5437
       23.5967 23.6475 23.6960 23.7423 23.7865 23.8284 23.8682 23.9059 23.9414 23.9748 24.0060 24.0351 24.0621 24.0870 24.1099
       24.1306 24.1492 24.1658 24.1802 24.1926 24.2030 24.2112 24.2174 24.2216 24.2236
+
+ HEAD WILL BE SAVED ON UNIT   51 AT END OF TIME STEP    1, STRESS PERIOD    1
 1
   VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
@@ -244,23 +253,23 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =           0.0000         CONSTANT HEAD =           0.0000
-            RECHARGE =           4.9500              RECHARGE =           4.9500
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =           0.0000         CONSTANT HEAD     =           0.0000
+            RECHARGE     =           4.9500              RECHARGE     =           4.9500
 
-            TOTAL IN =           4.9500              TOTAL IN =           4.9500
+                TOTAL IN =           4.9500                  TOTAL IN =           4.9500
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =           4.9500         CONSTANT HEAD =           4.9500
-            RECHARGE =           0.0000              RECHARGE =           0.0000
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =           4.9500         CONSTANT HEAD     =           4.9500
+            RECHARGE     =           0.0000              RECHARGE     =           0.0000
 
-           TOTAL OUT =           4.9500             TOTAL OUT =           4.9500
+               TOTAL OUT =           4.9500                 TOTAL OUT =           4.9500
 
-            IN - OUT =           0.0000              IN - OUT =           0.0000
+                IN - OUT =           0.0000                  IN - OUT =           0.0000
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+     PERCENT DISCREPANCY =           0.00         PERCENT DISCREPANCY =           0.00
 
 
 
@@ -275,6 +284,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2018/04/10 12:52:34
- Elapsed run time:  0.016 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2020/03/03 10:40:05
+ Elapsed run time:  0.010 Seconds
 

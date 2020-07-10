@@ -46,7 +46,7 @@ C THE 'EXTENDED' HEADER OPTION IS THE DEFAULT. THE RESULTING LINK FILE
 C IS COMPATIBLE WITH MT3DMS VERSION [4.00] OR LATER OR MT3D-USGS VERSION
 C [1.00] OR LATER.
 !rgn------REVISION NUMBER CHANGED TO INDICATE MODIFICATIONS FOR NWT 
-!rgn------NEW VERSION NUMBER 1.1.4, 4/01/2018
+!rgn------NEW VERSION NUMBER 1.2.0, 3/01/2020
 C **********************************************************************
 C last modified: 06-23-2016
 C last modified: 10-21-2010 swm: added MTMNW1 & MTMNW2
@@ -449,9 +449,18 @@ C--ENSURE A UNIQUE UNIT NUMBER FOR LINK-MT3DMS OUTPUT FILE
      &        I4,' ALREADY IN USE;' 
      &       /1X,'SPECIFY A UNIQUE UNIT NUMBER.')   
 C
-C--OPEN THE LINK-MT3DMS OUTPUT FILE NEEDED BY MT3DMS
+C--OPEN THE LINK-MT3DMS OUTPUT FILE NEEDED BY MT3DMS (or MT3D-USGS)
 C--AND PRINT AN IDENTIFYING MESSAGE IN MODFLOW OUTPUT FILE  
       INQUIRE(UNIT=IUMT3D,OPENED=LOP)
+      IF(LOP.AND.ILMTFMT.EQ.1) THEN
+        WRITE(IOUT,1020)
+        WRITE(*,1020)
+        CALL USTOP(' ')
+      ENDIF
+ 1020 FORMAT(/1X,'LINKER FILE PREVIOUSLY LISTED IN THE MODFLOW NAME '
+     &       /1X,'FILE. REMOVE ITS LISTING FROM WITHIN THE NAME FILE '
+     &       /1X,'AND PROVIDE LINKER FILE NAME AND UNIT NUMBER ONLY IN '
+     &       /1X,'THE LMT INPUT FILE.  STOPPING MODEL.')
       IF(LOP) THEN
         REWIND (IUMT3D)
       ELSE
@@ -3471,7 +3480,7 @@ C
       USE GWFBASMODULE,ONLY:DELT
       USE LMTMODULE,   ONLY:IUZFFLOWS,IGWET
       USE GWFUZFMODULE,ONLY:SEEPOUT,IUZHOLD,numcells,IUZFBND,RTSOLFL,
-     &                      NUZTOP,GWET,UZFLWT,IETFLG
+     &                      NUZTOP,GWET,UZFLWT,IETFLG,LAYNUM
 C
       IMPLICIT NONE
 C
@@ -3525,7 +3534,7 @@ C--MANIPULATE IUZFRCH
                 IUZFRCH(J,I)=1
               ELSEIF(NUZTOP.EQ.2) THEN ! Recharge to and discharge from the layer specified in IUZFBND
                 IUZFRCH(J,I)=IUZFBND(J,I)
-                BUFF(J,I,1)=BUFF(J,I,IUZFBND(J,I))
+                BUFF(J,I,1)=BUFF(J,I,IUZFBND(J,I))  !Not sure about this line (RGN 11/6/2019)
               ENDIF
             ENDIF
           ENDDO
@@ -3546,6 +3555,11 @@ C--MANIPULATE IUZFRCH
             ENDDO
           ENDDO
         ENDDO
+      ELSE IF(NUZTOP.EQ.4) THEN
+        K=LAYNUM(J,I)
+        IF (IBOUND(J,I,K).GT.0) THEN
+          IUZFRCH(J,I)= K
+        END IF
       ENDIF
 C
 C--WRITE AN IDENTIFYING HEADER
@@ -4615,7 +4629,10 @@ C20-----SET FLOW INTO DIVERSION IF SEGMENT IS DIVERSION.
                   DO WHILE(I.LT.NSTRM)  !Find the nstrm index for the strm/rch from which flow is diverted
                     IUPSEG = ISTRM(4, I)
                     IUPRCH = ISTRM(5, I)
-                    IF(IUPSEG.EQ.IDIVAR(1,ISTSG).AND.IUPRCH.EQ.1) EXIT
+                    IF(IUPSEG.EQ.IDIVAR(1,ISTSG).AND.IUPRCH.EQ.1) THEN
+                      I=I+(ISEG(4,IDIVAR(1,ISTSG))-1)
+                      EXIT
+                    ENDIF
                     I=I+1
                   ENDDO  
                   !JJJ=LASTRCH(III)

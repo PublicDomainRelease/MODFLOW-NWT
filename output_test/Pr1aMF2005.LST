@@ -1,6 +1,6 @@
                                   MODFLOW-NWT-SWR1 
       U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUNDWATER-FLOW MODEL
-                             VERSION 1.1.4 4/01/2018
+                            VERSION 1.2.0 03/01/2020
                     BASED ON MODFLOW-2005 VERSION 1.12.00 02/03/2017
 
  LIST FILE: .\Ex_prob1a\Pr1aMF2005.LST
@@ -30,7 +30,11 @@
  FILE TYPE:DATA(BINARY)   UNIT   50   STATUS:UNKNOWN
  FORMAT:BINARY                 ACCESS:SEQUENTIAL          
 
- BAS -- BASIC PACKAGE, VERSION 1.1.4, 4/01/2018 INPUT READ FROM UNIT    4
+ OPENING .\Ex_prob1a\Pr1aMF2005.out
+ FILE TYPE:DATA   UNIT   51   STATUS:UNKNOWN
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+
+ BAS -- BASIC PACKAGE, VERSION 1.2.0, 3/01/2020 INPUT READ FROM UNIT    4
  
  MODFLOW was compiled using mixed precision
  Precision of REAL variables:           6
@@ -121,10 +125,12 @@
         46.40       46.80       47.20       47.60       48.00       48.40       48.80       49.20       49.60       50.00    
 
  OUTPUT CONTROL IS SPECIFIED ONLY AT TIME STEPS FOR WHICH OUTPUT IS DESIRED
+ HEADS WILL BE SAVED WITH FORMAT: (10F10.3)           
+ SAVED HEADS WILL BE LABELED
  COMPACT CELL-BY-CELL BUDGET FILES WILL BE WRITTEN
  AUXILIARY DATA WILL BE SAVED IN CELL-BY-CELL BUDGET FILES
  HEAD PRINT FORMAT CODE IS   6    DRAWDOWN PRINT FORMAT CODE IS   0
- HEADS WILL BE SAVED ON UNIT    0    DRAWDOWNS WILL BE SAVED ON UNIT    0
+ HEADS WILL BE SAVED ON UNIT   51    DRAWDOWNS WILL BE SAVED ON UNIT    0
 
  LPF -- LAYER-PROPERTY FLOW PACKAGE, VERSION 7, 5/2/2005
          INPUT READ FROM UNIT   33
@@ -220,6 +226,7 @@
     PRINT BUDGET
     SAVE BUDGET
     PRINT HEAD FOR ALL LAYERS
+    SAVE HEAD FOR ALL LAYERS
  UBDSV2 SAVING "   CONSTANT HEAD" ON UNIT  50 AT TIME STEP  1, STRESS PERIOD   1
  UBDSV1 SAVING "FLOW RIGHT FACE " ON UNIT  50 AT TIME STEP  1, STRESS PERIOD   1
 1
@@ -241,6 +248,8 @@
       39.4294 39.7356 40.0394 40.3410 40.6403 40.9374 41.2324 41.5253 41.8161 42.1050 42.3918 42.6768 42.9598 43.2410 43.5204
       43.7980 44.0738 44.3479 44.6204 44.8912 45.1604 45.4279 45.6939 45.9584 46.2214 46.4828 46.7428 47.0014 47.2585 47.5143
       47.7687 48.0217 48.2735 48.5239 48.7730 49.0209 49.2675 49.5128 49.7570 50.0000
+
+ HEAD WILL BE SAVED ON UNIT   51 AT END OF TIME STEP    1, STRESS PERIOD    1
 1
   VOLUMETRIC BUDGET FOR ENTIRE MODEL AT END OF TIME STEP    1, STRESS PERIOD   1
   ------------------------------------------------------------------------------
@@ -250,21 +259,21 @@
 
            IN:                                      IN:
            ---                                      ---
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =         605.9722         CONSTANT HEAD =         605.9722
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =         605.9722         CONSTANT HEAD     =         605.9722
 
-            TOTAL IN =         605.9722              TOTAL IN =         605.9722
+                TOTAL IN =         605.9722                  TOTAL IN =         605.9722
 
           OUT:                                     OUT:
           ----                                     ----
-             STORAGE =           0.0000               STORAGE =           0.0000
-       CONSTANT HEAD =         605.9722         CONSTANT HEAD =         605.9722
+             STORAGE     =           0.0000               STORAGE     =           0.0000
+       CONSTANT HEAD     =         605.9722         CONSTANT HEAD     =         605.9722
 
-           TOTAL OUT =         605.9722             TOTAL OUT =         605.9722
+               TOTAL OUT =         605.9722                 TOTAL OUT =         605.9722
 
-            IN - OUT =       6.1035E-05              IN - OUT =       6.1035E-05
+                IN - OUT =       6.1035E-05                  IN - OUT =       6.1035E-05
 
- PERCENT DISCREPANCY =           0.00     PERCENT DISCREPANCY =           0.00
+     PERCENT DISCREPANCY =           0.00         PERCENT DISCREPANCY =           0.00
 
 
 
@@ -279,6 +288,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2018/04/10 12:52:27
- Elapsed run time:  0.016 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2020/03/03 10:40:04
+ Elapsed run time:  0.009 Seconds
 
